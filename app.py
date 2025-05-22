@@ -52,21 +52,11 @@ def create_app():
 
     @login_manager.user_loader
     def load_user(user_id):
-        return db.session.get(User, int(user_id))
-
-    # Main application routes
-    @app.route('/')
-    def home():
-        return render_template('index.html') # Renders 1. Main/templates/index.html
-
-    @app.route('/about')
-    def about():
-        return render_template('about.html') # Renders 1. Main/templates/about.html
-
-    @app.route('/contact')
-    def contact():
-        return render_template('contact.html') # Renders 1. Main/templates/contact.html
-
+        # return db.session.get(User, int(user_id))
+        # This function is called to reload the user object from the user ID stored in the session.
+        # Flask-Login ensures it runs within an appropriate context to access db.
+        return User.query.get(int(user_id))
+    
     # Register the blog blueprint
     # All routes from blog_bp will be prefixed with /blog_project
     app.register_blueprint(blog_bp, url_prefix='/blog_project')
@@ -76,6 +66,41 @@ def create_app():
 
     return app
 
+# Create the Flask app instance
+# This is the main entry point for the application.
+# It will be used by Gunicorn or any other WSGI server.
+# This is the main application file.
+# It initializes the Flask app and registers the main routes.
+# This is the main application file.
+    
+# Create the Flask app instance globally so Gunicorn can find it.
+# This also makes the 'app' instance available for any module-level decorators
+# like @app.route (if used outside blueprints) or for the __main__ block.
+app = create_app()
+
+# Main application routes
+@app.route('/')
+def home():
+    return render_template('index.html') # Renders 1. Main/templates/index.html
+
+@app.route('/about')
+def about():
+    return render_template('about.html') # Renders 1. Main/templates/about.html
+
+@app.route('/contact')
+def contact():
+    return render_template('contact.html') # Renders 1. Main/templates/contact.html
+
+
+# @login_manager.user_loader
+# def load_user(user_id):
+#     # This function is called to reload the user object from the user ID stored in the session.
+#     # Flask-Login ensures it runs within an appropriate context to access db.
+#     return User.query.get(int(user_id))
+
 if __name__ == '__main__':
-    app = create_app()
-    app.run(debug=True) 
+    # Create database tables if they don't exist
+    # This should be done within the app context
+    with app.app_context(): # Use the globally created app instance
+        db.create_all()
+    app.run(debug=True)
