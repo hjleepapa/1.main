@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-screen">
+    <!-- Hero Section -->
+    <section class="py-20">
+        <div class="max-w-6xl mx-auto text-center">
+            <h1 class="text-4xl md:text-6xl font-bold text-gray-800 mb-6">
+                Welcome to HJLEE's Portfolio Website!
+            </h1>
+            <p class="text-xl text-gray-600 mb-8">
+                I'm a passionate developer with 20+ years of contact center experiences and 5+ years of software development experience. I specialize in creating innovative solutions that enhance customer experiences and streamline operations. 
+            </p>
+        </div>
+    </section>
+
+    <!-- Tech Skills Section -->
+    <section class="py-12 bg-white">
+        <div class="max-w-6xl mx-auto">
+            <h2 class="text-3xl font-bold text-center mb-12">Technical Skills</h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Python -->
+                <div class="bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg transition">
+                    <div class="text-center">
+                        <img src="{{ url_for('static', filename='images/python.png') }}" alt="Python logo" class="w-12 h-12 mx-auto mb-4">
+                        <h3 class="text-lg font-semibold">Python</h3>
+                    </div>
+                </div>
+
+                <!-- Flask -->
+                <div class="bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg transition">
+                    <div class="text-center">
+                        <img src="{{ url_for('static', filename='images/flask.png') }}" alt="Flask logo" class="w-12 h-12 mx-auto mb-4">
+                        <h3 class="text-lg font-semibold">Flask</h3>
+                    </div>
+                </div>
+
+                <!-- JavaScript -->
+                <div class="bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg transition">
+                    <div class="text-center">
+                        <img src="{{ url_for('static', filename='images/js.png') }}" alt="JavaScript logo" class="w-12 h-12 mx-auto mb-4">
+                        <h3 class="text-lg font-semibold">JavaScript</h3>
+                    </div>
+                </div>
+
+                <!-- Contact Center -->
+                <div class="bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg transition">
+                    <div class="text-center">
+                        <img src="{{ url_for('static', filename='images/cc.png') }}" alt="Contact Center logo" class="w-12 h-12 mx-auto mb-4">
+                        <h3 class="text-lg font-semibold">Contact Center</h3>
+                    </div>
+                </div>
+
+                <!-- Genesys -->
+                <div class="bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg transition">
+                    <div class="text-center">
+                        <img src="{{ url_for('static', filename='images/genesys.png') }}" alt="Genesys logo" class="w-12 h-12 mx-auto mb-4">
+                        <h3 class="text-lg font-semibold">Genesys</h3>
+                    </div>
+                </div>
+
+                <!-- Cloud -->
+                <div class="bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg transition">
+                    <div class="text-center">
+                        <img src="{{ url_for('static', filename='images/cloud.png') }}" alt="Cloud logo" class="w-12 h-12 mx-auto mb-4">
+                        <h3 class="text-lg font-semibold">Cloud</h3>
+                    </div>
+                </div>
+
+                <!-- API -->
+                <div class="bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg transition">
+                    <div class="text-center">
+                        <img src="{{ url_for('static', filename='images/api.png') }}" alt="API logo" class="w-12 h-12 mx-auto mb-4">
+                        <h3 class="text-lg font-semibold">API</h3>
+                    </div>
+                </div>
+
+                <!-- SQL -->
+                <div class="bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg transition">
+                    <div class="text-center">
+                        <img src="{{ url_for('static', filename='images/sql.png') }}" alt="SQL logo" class="w-12 h-12 mx-auto mb-4">
+                        <h3 class="text-lg font-semibold">SQL</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" class="py-20 bg-white">
+        <div class="max-w-6xl mx-auto">
+            <h2 class="text-3xl font-bold text-center mb-12">Featured Projects</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Project 1 -->
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition">
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold mb-2">Create Blog Web Site</h3>
+                        <p class="text-gray-600 mb-4">A full-stack blog solution with register, login/out, post, comment, delete with users management.</p>
+                        <!-- <a href="#" class="text-blue-500 hover:text-blue-600">Learn More →</a> -->
+                        <a href="{{ url_for('blog.get_all_posts') }}" class="text-blue-500 hover:text-blue-600">Learn More →</a>
+
+                    </div>
+                </div>
+
+                <!-- Project 2 -->
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition">
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold mb-2">Voice AI Chatbot with VAPI</h3>
+                        <p class="text-gray-600 mb-4">AI Voice agentic solution integrated with VAPI.</p>
+                        <a href="#" class="text-blue-500 hover:text-blue-600">Learn More →</a>
+                    </div>
+                </div>
+
+                <!-- Project 3 -->
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition">
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold mb-2">TBD</h3>
+                        <p class="text-gray-600 mb-4">MCP?</p>
+                        <a href="#" class="text-blue-500 hover:text-blue-600">Learn More →</a>
+                    </div>
+                </div>
+
+                <!-- Project 4 -->
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition">
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold mb-2">TBD</h3>
+                        <p class="text-gray-600 mb-4">AI Agents?</p>
+                        <a href="#" class="text-blue-500 hover:text-blue-600">Learn More →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %} 
