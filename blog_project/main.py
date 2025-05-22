@@ -1,7 +1,7 @@
 from datetime import date
 from flask import Blueprint, abort, render_template, redirect, url_for, flash, request, jsonify
 # Import extensions from the parent directory's extensions.py
-from extensions import db, login_manager, ckeditor, bootstrap, gravatar
+from extensions import db, login_manager, ckeditor, bootstrap #, gravatar
 from flask_login import login_user, current_user, logout_user
 # Import models from the local models.py
 from .models import BlogPost, User, Comment

@@ -1,14 +1,36 @@
 from flask import Flask, render_template
 import os
 from dotenv import load_dotenv
-load_dotenv()
-
-from extensions import db, login_manager, ckeditor, bootstrap, gravatar # This is fine
+import hashlib
+from extensions import db, login_manager, ckeditor, bootstrap #, gravatar # This is fine
+from flask_login import current_user # Import current_user
 from blog_project.main import blog_bp # Changed from relative to absolute
 from blog_project.models import User # Changed from relative to absolute, Needed for user_loader
 
+def generate_gravatar_url(email, size=80, default_image='mp', rating='g'):
+    """
+    Generates a Gravatar URL for a given email address.
+
+    :param email: The email address (string).
+    :param size: Size of the avatar in pixels (integer).
+    :param default_image: Default image type (e.g., 'mp', 'identicon', '404').
+    :param rating: Rating of the avatar (e.g., 'g', 'pg', 'r', 'x').
+    :return: The Gravatar URL (string).
+    """
+    if email is None: # Handle None email gracefully
+        email = ''
+    email_hash = hashlib.md5(email.lower().encode('utf-8')).hexdigest()
+    # Always use HTTPS for Gravatar URLs
+    return f"https://www.gravatar.com/avatar/{email_hash}?s={size}&d={default_image}&r={rating}"
+
+load_dotenv() # It's common to load dotenv at the module level or early in create_app
+
 def create_app():
     app = Flask(__name__)
+
+    @app.context_processor
+    def utility_processor():
+        return dict(gravatar_url=generate_gravatar_url, user=current_user)
 
     # Configuration
     # Use a unique secret key for your main application, load from environment
@@ -26,7 +48,7 @@ def create_app():
     login_manager.login_message_category = 'info' # Optional: for flash messages
     ckeditor.init_app(app)
     bootstrap.init_app(app)
-    gravatar.init_app(app)
+    # gravatar.init_app(app)
 
     @login_manager.user_loader
     def load_user(user_id):
