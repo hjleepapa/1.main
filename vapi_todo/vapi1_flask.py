@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 from typing import Union, Dict, Any
 from contextlib import contextmanager
+from typing import Generator
 
 from pydantic import BaseModel, ValidationError as PydanticValidationError
 
@@ -62,14 +63,14 @@ class CalendarEvent(Base):
 # create_all on the same Base/metadata, SQLAlchemy handles it gracefully.
 Base.metadata.create_all(bind=engine)
 
-
 @contextmanager
-def get_db_session() -> Session:
+def get_db_session() -> Generator[Session, None, None]:
     """Provides a SQLAlchemy session within a context manager."""
     db = SessionLocal()
     try:
         yield db
     finally:
+        db.close()
         db.close()
 
 # --- Pydantic Models (same as in vapi1.py) ---
