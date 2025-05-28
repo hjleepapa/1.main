@@ -7,6 +7,11 @@ from flask_login import current_user # Import current_user
 from blog_project.main import blog_bp # Changed from relative to absolute
 from blog_project.models import User # Changed from relative to absolute, Needed for user_loader
 
+from vapi_todo.vapi1_flask import vapi_flask_bp # Adjust path if necessary
+
+
+
+
 def generate_gravatar_url(email, size=80, default_image='mp', rating='g'):
     """
     Generates a Gravatar URL for a given email address.
@@ -60,6 +65,9 @@ def create_app():
     # Register the blog blueprint
     # All routes from blog_bp will be prefixed with /blog_project
     app.register_blueprint(blog_bp, url_prefix='/blog_project')
+
+    # vapi_flask_todo blueprints:
+    app.register_blueprint(vapi_flask_bp) # The url_prefix is already set in vapi1_flask.py
 
     with app.app_context():
         db.create_all() # Create database tables for all models
