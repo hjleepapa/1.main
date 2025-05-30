@@ -2,15 +2,32 @@
 
 {% block content %}
 <div class="min-h-screen">
+    
     <section class="py-20">
         <div class="max-w-6xl mx-auto">
             <h1 class="text-4xl font-bold text-center mb-12">Contact Me</h1>
+
+            {% if msg_sent %}
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6" role="alert">
+                <strong class="font-bold">Success!</strong>
+                <span class="block sm:inline">Your message has been sent successfully.</span>
+            </div>
+            {% endif %}
+            {% if error %}
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+                <strong class="font-bold">Error!</strong>
+                <span class="block sm:inline">{{ error }}</span>
+            </div>
+            {% endif %}
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
                 <div>
                     <h2 class="text-2xl font-semibold mb-4">Get in Touch</h2>
                     <p class="text-gray-600 mb-6">
-                        I'm always open to discussing new projects, creative ideas, or opportunities to be part of your visions.
+                            I'm always open to exploring new projects related to AI Contact Centers, sharing creative ideas for migration or integration with existing systems, or discussing ways to enhance customer satisfaction. 
+                        Whether you have a question, are interested in collaborating, or just want to connect, I'd love to hear from you. Feel free to reach out via email, phone, or by filling out the form provided. 
+                        I'll get back to you as soon as possible. Looking forward to connecting!
+
                     </p>
                     
                     <div class="space-y-4">
@@ -37,7 +54,9 @@
                 </div>
                 
                 <div class="bg-white p-8 rounded-lg shadow-lg">
-                    <form class="space-y-6">
+                    <!-- Ensure form method is POST and action points to the correct route -->
+                    <form method="POST" action="{{ url_for('contact') }}" class="space-y-6">
+                        
                         <div>
                             <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
                             <input type="text" id="name" name="name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
@@ -45,6 +64,10 @@
                         <div>
                             <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
                             <input type="email" id="email" name="email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="phone" class="block text-sm font-medium text-gray-700">Phone (Optional)</label>
+                            <input type="tel" id="phone" name="phone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         </div>
                         <div>
                             <label for="message" class="block text-sm font-medium text-gray-700">Message</label>

@@ -1,8 +1,9 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request # Added request
 import os
 from dotenv import load_dotenv
 import hashlib
 from extensions import db, login_manager, ckeditor, bootstrap #, gravatar # This is fine
+import smtplib # Added for email sending
 from flask_login import current_user # Import current_user
 from blog_project.main import blog_bp # Changed from relative to absolute
 from blog_project.models import User # Changed from relative to absolute, Needed for user_loader
@@ -95,9 +96,55 @@ def home():
 def about():
     return render_template('about.html') # Renders 1. Main/templates/about.html
 
-@app.route('/contact')
+@app.route('/contact', methods=["GET", "POST"]) # Allow POST requests
 def contact():
-    return render_template('contact.html') # Renders 1. Main/templates/contact.html
+    msg_sent = False
+    error_message = None
+    if request.method == "POST":
+        name = request.form.get("name")
+        email_from = request.form.get("email")
+        phone = request.form.get("phone")
+        message_body = request.form.get("message")
+
+        if not all([name, email_from, message_body]): # Phone might be optional
+            error_message = "Please fill in all required fields (Name, Email, Message)."
+            return render_template('contact.html', current_user=current_user, msg_sent=False, error=error_message)
+
+        # Email configuration (ensure these are in your .env file)
+        mail_server = os.environ.get('MAIL_SERVER')
+        mail_port = int(os.environ.get('MAIL_PORT', 587))
+        mail_username = os.environ.get('MAIL_USERNAME')
+        mail_password = os.environ.get('MAIL_PASSWORD')
+        mail_receiver = os.environ.get('MAIL_RECEIVER')
+
+        if not all([mail_server, mail_username, mail_password, mail_receiver]):
+            print("Email configuration is incomplete for main contact form. Please check environment variables.")
+            error_message = "Message could not be sent due to a server configuration issue."
+            # Log this error for admin review
+            return render_template('contact.html', current_user=current_user, msg_sent=False, error=error_message)
+
+        email_subject = f"New Contact Form Submission from {name} (Main Site)"
+        full_email_message = (
+            f"Subject: {email_subject}\n\n"
+            f"You have received a new message from your main website contact form.\n\n"
+            f"Name: {name}\n"
+            f"Email: {email_from}\n"
+            f"Phone: {phone if phone else 'Not provided'}\n\n"
+            f"Message:\n{message_body}\n"
+        )
+
+        try:
+            with smtplib.SMTP(mail_server, mail_port) as server:
+                server.starttls()
+                server.login(mail_username, mail_password)
+                server.sendmail(mail_username, mail_receiver, full_email_message.encode('utf-8'))
+            msg_sent = True
+        except Exception as e:
+            print(f"Error sending email from main contact form: {e}") # Log this
+            error_message = "An unexpected error occurred while sending your message. Please try again later."
+
+    # For GET request or after POST processing
+    return render_template('contact.html', current_user=current_user, msg_sent=msg_sent, error=error_message)
 
 
 # @login_manager.user_loader

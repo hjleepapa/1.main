@@ -6,9 +6,10 @@ from flask_login import login_user, current_user, logout_user
 # Import models from the local models.py
 from .models import BlogPost, User, Comment
 # Import forms from the local forms.py
-from functools import wraps
+from functools import wraps # Not strictly needed anymore if admin_only is the only user, but good to keep for now
 from werkzeug.security import generate_password_hash, check_password_hash
 from .forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
+import smtplib # Added for email sending
 import os
 from dotenv import load_dotenv
 
@@ -190,17 +191,6 @@ def delete_post(post_id):
     db.session.delete(post_to_delete)
     db.session.commit()
     return redirect(url_for('blog.get_all_posts'))
-
-
-# These will be /blog_project/about and /blog_project/contact
-@blog_bp.route("/about")
-def about():
-    return render_template("aboutb.html", current_user=current_user)
-
-
-@blog_bp.route("/contact", methods=["GET", "POST"])
-def contact():
-    return render_template("contactb.html", current_user=current_user)
 
 
 # API for Badge and PIN Authentication
