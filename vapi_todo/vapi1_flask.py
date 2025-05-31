@@ -52,20 +52,6 @@ class CalendarEvent(db.Model): # Inherit from the shared db.Model
     event_from = Column(DateTime)
     event_to = Column(DateTime)
 
-# Create tables if they don't exist.
-# This is generally fine. If integrated into a larger Flask app that also calls
-# create_all on the same Base/metadata, SQLAlchemy handles it gracefully.
-# db.create_all()
-
-#@contextmanager
-# def get_db_session() -> Generator[Session, None, None]:
-#     """Provides a SQLAlchemy session within a context manager."""
-#     db = SessionLocal()
-#     try:
-#         yield db
-#     finally:
-#         db.close()
-#         db.close()
 
 # --- Pydantic Models  ---
 class ToolCallFunction(BaseModel):
@@ -150,11 +136,7 @@ def create_todo():
     title = args.get('title', '')
     description = args.get('description', '')
 
-    # with get_db_session() as db:
-    #     todo = Todo(title=title, description=description)
-    #     db.add(todo)
-    #     db.commit()
-    #     db.refresh(todo)
+    
     todo = Todo(title=title, description=description)
     db.session.add(todo)
     db.session.commit()
@@ -173,9 +155,7 @@ def create_todo():
 def get_todos():
     tool_call = _get_validated_tool_call('getTodos')
     
-    # with get_db_session() as db:
-    #     todos_db = db.query(Todo).all()
-    #     todos_response = [TodoResponse.from_orm(todo).dict() for todo in todos_db]
+    
     todos_db = db.session.query(Todo).all()
     todos_response = [TodoResponse.from_orm(todo).dict() for todo in todos_db]
 
@@ -197,14 +177,7 @@ def complete_todo():
     if not todo_id:
         abort(400, description='Missing To-Do ID in arguments.')
 
-    # with get_db_session() as db:
-    #     todo = db.query(Todo).filter(Todo.id == todo_id).first()
-    #     if not todo:
-    #         abort(404, description='Todo not found.')
-        
-    #     todo.completed = True
-    #     db.commit()
-    #     db.refresh(todo)
+    
     todo = db.session.query(Todo).filter(Todo.id == todo_id).first()
     if not todo:
         abort(404, description='Todo not found.')
@@ -231,13 +204,7 @@ def delete_todo():
     if not todo_id:
         abort(400, description='Missing To-Do ID in arguments.')
 
-    # with get_db_session() as db:
-    #     todo = db.query(Todo).filter(Todo.id == todo_id).first()
-    #     if not todo:
-    #         abort(404, description='Todo not found.')
-        
-    #     db.delete(todo)
-    #     db.commit()
+    
     todo = db.session.query(Todo).filter(Todo.id == todo_id).first()
     if not todo:
         abort(404, description='Todo not found.')
@@ -265,12 +232,7 @@ def add_reminder():
     if not reminder_text or not importance:
         abort(400, description="Missing required fields 'reminder_text' or 'importance' in arguments.")
 
-    # with get_db_session() as db:
-    #     reminder = Reminder(reminder_text=reminder_text, importance=importance)
-    #     db.add(reminder)
-    #     db.commit()
-    #     db.refresh(reminder)
-    #     response_data = ReminderResponse.from_orm(reminder).dict()
+    
     reminder = Reminder(reminder_text=reminder_text, importance=importance)
     db.session.add(reminder)
     db.session.commit()
@@ -288,9 +250,6 @@ def add_reminder():
 def get_reminders():
     tool_call = _get_validated_tool_call('getReminders')
 
-    # with get_db_session() as db:
-    #     reminders_db = db.query(Reminder).all()
-    #     reminders_response = [ReminderResponse.from_orm(r).dict() for r in reminders_db]
     reminders_db = db.session.query(Reminder).all()
     reminders_response = [ReminderResponse.from_orm(r).dict() for r in reminders_db]
 
@@ -310,13 +269,7 @@ def delete_reminder():
     if not reminder_id:
         abort(400, description="Missing reminder ID in arguments.")
 
-    # with get_db_session() as db:
-    #     reminder = db.query(Reminder).filter(Reminder.id == reminder_id).first()
-    #     if not reminder:
-    #         abort(404, description="Reminder not found.")
-        
-    #     db.delete(reminder)
-    #     db.commit()
+    
     reminder = db.session.query(Reminder).filter(Reminder.id == reminder_id).first()
     if not reminder:
         abort(404, description="Reminder not found.")
@@ -350,25 +303,7 @@ def add_calendar_entry():
     except ValueError:
         abort(400, description="Invalid date format for 'event_from' or 'event_to'. Use ISO format (YYYY-MM-DDTHH:MM:SS).")
     
-    # with get_db_session() as db:
-    #     calendar_event = CalendarEvent(
-    #         title=title,
-    #         description=description,
-    #         event_from=event_from,
-    #         event_to=event_to
-    #     )
-    #     db.add(calendar_event)
-    #     db.commit()
-    #     db.refresh(calendar_event)
-    #     response_data = CalendarEventResponse.from_orm(calendar_event).dict()
-
-
-    # return jsonify({
-    #     'results': [{
-    #         'toolCallId': tool_call.id,
-    #         'result': response_data
-    #     }]
-    # })
+    
     calendar_event = CalendarEvent(
         title=title,
         description=description,
@@ -414,20 +349,6 @@ def delete_calendar_entry():
     if not event_id:
         abort(400, description="Missing event ID in arguments.")
 
-    # with get_db_session() as db:
-    #     event = db.query(CalendarEvent).filter(CalendarEvent.id == event_id).first()
-    #     if not event:
-    #         abort(404, description="Calendar event not found.")
-        
-    #     db.delete(event)
-    #     db.commit()
-
-    # return jsonify({
-    #     'results': [{
-    #         'toolCallId': tool_call.id,
-    #         'result': {'id': event_id, 'deleted': True}
-    #     }]
-    # })
     event = db.session.query(CalendarEvent).filter(CalendarEvent.id == event_id).first()
     if not event:
         abort(404, description="Calendar event not found.")
