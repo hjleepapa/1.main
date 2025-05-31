@@ -3,13 +3,10 @@
 VAPI toDoList AI assistant project added to Portfolio website
 
 ## Table of Contents
-
--[Installation](#installation)
--[Usage](#usage)
--[Configuration](#Configuration)
+-[VAPI Configuration & Deployment](#VAPI Configuration & Deployment)
 -[License](#license)
 
-## Installation
+
 
 ## VAPI Configuration & Deployment
 1. Go to Vapi.AI
@@ -53,6 +50,12 @@ Once logged in, go to your dashboard and click on “Create Tool” in Tools/Bui
 5. Once creating an assistant and tools, click "published"
 
 ## Create API functions to respond with requests (vapi1_flask.py)
+tool_call = _get_validated_tool_call('createTodo') # Make sure that attribute 'createTodo' name should exactly match to 'Create Tool' name in step 3. 
 
 ![vapi1_flask](https://github.com/user-attachments/assets/66bb08d9-c7fd-4b65-98d8-2cc91c5851a8)
+
+6. Postgres DB need to be created and db.Model need to be set for each table.
+    ![vapi_db](https://github.com/user-attachments/assets/ffa9a986-601f-4144-83cb-bbddf6e6a938)
+
+   
 
