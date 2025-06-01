@@ -13,11 +13,3 @@ db = SQLAlchemy(model_class=Base)
 login_manager = LoginManager()
 ckeditor = CKEditor()
 bootstrap = Bootstrap5() # Instance for Bootstrap
-# gravatar = Gravatar(
-#     size=100,
-#     rating='g',
-#     default='retro',
-#     force_default=False,
-#     force_lower=False,
-#     use_ssl=False,  # Consider setting to True in production if using HTTPS
-#     base_url=None)
