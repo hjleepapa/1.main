@@ -4,6 +4,7 @@ VAPI toDoList AI assistant project added to Portfolio website
 
 ## Table of Contents
 -[VAPI Configuration & Deployment](#VAPI Configuration & Deployment)
+-[Create API functions](#Create API functions)
 -[License](#license)
 
 
@@ -49,13 +50,21 @@ Once logged in, go to your dashboard and click on “Create Tool” in Tools/Bui
 
 5. Once creating an assistant and tools, click "published"
 
-## Create API functions to respond with requests (vapi1_flask.py)
+## Create API functions
+They respond with requests (vapi1_flask.py)
 tool_call = _get_validated_tool_call('createTodo') # Make sure that attribute 'createTodo' name should exactly match to 'Create Tool' name in step 3. 
 
 ![vapi1_flask](https://github.com/user-attachments/assets/66bb08d9-c7fd-4b65-98d8-2cc91c5851a8)
 
-6. Postgres DB need to be created and db.Model need to be set for each table.
+1. Postgres DB need to be created and db.Model need to be set for each table.
     ![vapi_db](https://github.com/user-attachments/assets/ffa9a986-601f-4144-83cb-bbddf6e6a938)
+
+## Test AI Voice scheuduler
+1. Make a call and say "to do list with time and date" to AI assistant
+2. Make a call and ask what "to do lists" exist currently and ask to remind the tasks
+3. Make a call and say that some tasks were completed
+4. Make a call and say that some tasks were deleted
+5. Check whether all test cases have been updated to Database tables
 
    
 
