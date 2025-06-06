@@ -144,4 +144,6 @@ Werkzeug==3.0.1
 wrapt==1.17.2
 WTForms==3.0.1
 yarl==1.20.0
+markdown2==2.4.13
 zipp==3.21.0
+markdown2
