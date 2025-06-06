@@ -9,6 +9,7 @@ from typing import Generator
 from pydantic import BaseModel, ValidationError as PydanticValidationError
 
 from flask import Blueprint, request, jsonify, abort, render_template, current_app
+import markdown2 # Added for Markdown to HTML conversion
 from sqlalchemy import Column, Integer, String, Boolean, DateTime
 #from sqlalchemy.orm import Session # Keep for type hinting if needed
 
@@ -374,8 +375,10 @@ def view_vapi_readme():
     readme_path = os.path.join(current_app.root_path, 'static', readme_filename)
     try:
         with open(readme_path, 'r', encoding='utf-8') as f:
-            content = f.read()
+            markdown_content = f.read()
     except FileNotFoundError:
         abort(404, description=f"{readme_filename} not found.")
     
-    return render_template('show_markdown.html', title="VAPI To-Do List README", content=content)
+    # Convert Markdown to HTML
+    html_content = markdown2.markdown(markdown_content, extras=["fenced-code-blocks", "tables", "strike", "header-ids"])
+    return render_template('show_markdown.html', title="VAPI To-Do List README", content=html_content)
