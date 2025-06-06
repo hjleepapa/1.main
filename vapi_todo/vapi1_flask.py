@@ -8,7 +8,7 @@ from typing import Generator
 
 from pydantic import BaseModel, ValidationError as PydanticValidationError
 
-from flask import Blueprint, request, jsonify, abort
+from flask import Blueprint, request, jsonify, abort, render_template, current_app
 from sqlalchemy import Column, Integer, String, Boolean, DateTime
 #from sqlalchemy.orm import Session # Keep for type hinting if needed
 
@@ -362,3 +362,20 @@ def delete_calendar_entry():
             'result': {'id': event_id, 'deleted': True}
         }]
     })
+
+@vapi_flask_bp.route('/readme')
+def view_vapi_readme():
+    """
+    Displays the content of the README_VAPI_toDoList.md file.
+    """
+    # Construct the path to the README.md file within the main app's static folder
+    # current_app.root_path is the path to the directory where app.py (your main app file) is
+    readme_filename = 'README_VAPI_toDoList.md'
+    readme_path = os.path.join(current_app.root_path, 'static', readme_filename)
+    try:
+        with open(readme_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+    except FileNotFoundError:
+        abort(404, description=f"{readme_filename} not found.")
+    
+    return render_template('show_markdown.html', title="VAPI To-Do List README", content=content)
