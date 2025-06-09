@@ -2,7 +2,7 @@ from flask import Flask, render_template, request # Added request
 import os
 from dotenv import load_dotenv
 import hashlib
-from extensions import db, login_manager, ckeditor, bootstrap #, gravatar # This is fine
+from extensions import db, login_manager, ckeditor, bootstrap, migrate #, gravatar # Import migrate
 import smtplib # Added for email sending
 from flask_login import current_user # Import current_user
 from blog_project.main import blog_bp # Changed from relative to absolute
@@ -54,6 +54,7 @@ def create_app():
     login_manager.login_message_category = 'info' # Optional: for flash messages
     ckeditor.init_app(app)
     bootstrap.init_app(app)
+    migrate.init_app(app, db) # Initialize Flask-Migrate
     # gravatar.init_app(app)
 
     @login_manager.user_loader
@@ -146,12 +147,11 @@ def contact():
     # For GET request or after POST processing
     return render_template('contact.html', current_user=current_user, msg_sent=msg_sent, error=error_message)
 
-
-# @login_manager.user_loader
-# def load_user(user_id):
-#     # This function is called to reload the user object from the user ID stored in the session.
-#     # Flask-Login ensures it runs within an appropriate context to access db.
-#     return User.query.get(int(user_id))
+# Aircall webhook route
+from flask import Blueprint
+@app.route('/aircall/calls', methods=['POST'])
+def handle_aircall_call():
+  return '', 200
 
 if __name__ == '__main__':
     # Create database tables if they don't exist
