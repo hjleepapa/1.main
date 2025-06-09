@@ -3,7 +3,7 @@ from flask import Blueprint, abort, render_template, redirect, url_for, flash, r
 # Import extensions from the parent directory's extensions.py
 from extensions import db, login_manager, ckeditor, bootstrap #, gravatar
 from flask_login import login_user, current_user, logout_user
-# Import models from the local models.py
+# Import models from the local models.py using a relative import
 from .models import BlogPost, User, Comment
 # Import forms from the local forms.py
 from functools import wraps # Not strictly needed anymore if admin_only is the only user, but good to keep for now
@@ -37,6 +37,21 @@ def admin_only(f):
 
     return decorated_function
 
+def determine_user_category(badge_number: str) -> str:
+    """Determines user category based on the first digit of the badge number."""
+    if not badge_number:
+        return "unknown"
+    first_digit = badge_number[0]
+    categories = {
+        '1': 'executive',
+        '2': 'vip',
+        '3': 'director',
+        '4': 'manager',
+        '5': 'newHire',
+        '6': 'campaign',
+        '7': 'regular'
+    }
+    return categories.get(first_digit, "unknown") # Default to 'unknown' if not found
 
 # Register new users into the User database
 @blog_bp.route('/register', methods=["GET", "POST"])
@@ -45,12 +60,17 @@ def register():
     if form.validate_on_submit():
 
         # Check if user email is already present in the database.
-        result = db.session.execute(db.select(User).where(User.email == form.email.data))
-        user = result.scalar()
-        if user:
+        existing_user_by_email = db.session.execute(db.select(User).where(User.email == form.email.data)).scalar()
+        if existing_user_by_email:
             # User already exists
             flash("You've already signed up with that email, log in instead!")
             return redirect(url_for('blog.login')) # Prefix with blueprint name
+
+        # Check if badge number is already present in the database.
+        existing_user_by_badge = db.session.execute(db.select(User).where(User.badge == form.badge.data)).scalar()
+        if existing_user_by_badge:
+            flash("This badge number is already registered. Please use a different badge number.")
+            return render_template("register.html", form=form, current_user=current_user)
 
         hash_and_salted_password = generate_password_hash(
             form.password.data,
@@ -62,18 +82,22 @@ def register():
             method='pbkdf2:sha256',  # Using the same strong hashing method
             salt_length=8
         )
+
+        user_category = determine_user_category(form.badge.data)
+
         new_user = User(
             email=form.email.data,
             name=form.name.data,
             password=hash_and_salted_password,
             badge=form.badge.data,
-            pin=hashed_pin
+            pin=hashed_pin,
+            category=user_category # Assign the determined category
         )
         db.session.add(new_user)
         db.session.commit()
-        # This line will authenticate the user with Flask-Login
-        login_user(new_user)
-        return redirect(url_for("blog.get_all_posts")) # Prefix with blueprint name
+        # User is not logged in automatically.
+        flash("Registration successful! Please log in to continue.", "success")
+        return redirect(url_for("blog.login")) # Redirect to login page
     return render_template("register.html", form=form, current_user=current_user)
 
 
@@ -221,7 +245,9 @@ def authenticate_badge_pin():
             "status": "success",
             "message": "Authentication successful",
             "user_id": user.id,
-            "name": user.name
+            "name": user.name,
+            "email": user.email,
+            "category": user.category
         }), 200
     else:
         return jsonify({"status": "error", "message": "Invalid PIN"}), 401
