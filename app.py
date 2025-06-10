@@ -5,6 +5,8 @@ import hashlib
 from extensions import db, login_manager, ckeditor, bootstrap, migrate #, gravatar # Import migrate
 import smtplib # Added for email sending
 from flask_login import current_user # Import current_user
+import requests # For sending requests to Aircall API
+import base64   # For Basic Auth encoding
 from blog_project.main import blog_bp # Changed from relative to absolute
 from blog_project.models import User # Changed from relative to absolute, Needed for user_loader
 
@@ -30,6 +32,74 @@ def generate_gravatar_url(email, size=80, default_image='mp', rating='g'):
     return f"https://www.gravatar.com/avatar/{email_hash}?s={size}&d={default_image}&r={rating}"
 
 load_dotenv() # It's common to load dotenv at the module level or early in create_app
+
+# --- Aircall Integration ---
+# Simple in-memory storage for call data (replace with database/Redis for production)
+call_data_store = {}
+
+def store_call_data(call_id, key, value):
+    if call_id not in call_data_store:
+        call_data_store[call_id] = {}
+    call_data_store[call_id][key] = value
+
+def retrieve_call_data(call_id, key):
+    return call_data_store.get(call_id, {}).get(key)
+
+def clear_call_data(call_id):
+    if call_id in call_data_store:
+        del call_data_store[call_id]
+
+def fetch_customer_data_from_database(badge_number, pin_from_ivr):
+    # This function needs the app context to query the database
+    # It will be available if called from within a request or if app_context is explicitly managed
+    user = User.query.filter_by(badge=badge_number).first()
+    if user and check_password_hash(user.pin, pin_from_ivr): # Assuming check_password_hash is accessible
+        return {
+            "id": user.id,
+            "name": user.name,
+            "email": user.email,
+            "badgeNumber": user.badge, # Match JS example field name
+            "category": user.category,
+            "company": "Your Company Name" # Placeholder, adjust as needed
+        }
+    return None
+
+def send_insight_card_to_aircall(call_id, customer_data):
+    aircall_api_id = os.environ.get("AIRCALL_API_ID")
+    aircall_api_token = os.environ.get("AIRCALL_API_TOKEN")
+
+    if not aircall_api_id or not aircall_api_token:
+        print("Error: Aircall API ID or Token not configured in environment variables.")
+        return
+
+    insight_card_payload = {
+        "content": {
+            "title": "Customer Information",
+            "description": f"{customer_data.get('name', 'N/A')} - {customer_data.get('company', 'N/A')}",
+            "fields": [
+                {"type": "text", "label": "Badge Number", "value": customer_data.get('badgeNumber', 'N/A')},
+                {"type": "text", "label": "Customer ID", "value": str(customer_data.get('id', 'N/A'))},
+                {"type": "text", "label": "Category", "value": customer_data.get('category', 'N/A')},
+                {"type": "text", "label": "Email", "value": customer_data.get('email', 'N/A')},
+            ]
+        }
+    }
+    auth_string = f"{aircall_api_id}:{aircall_api_token}"
+    headers = {
+        "Authorization": "Basic " + base64.b64encode(auth_string.encode()).decode(),
+        "Content-Type": "application/json"
+    }
+    url = f"https://api.aircall.io/v1/calls/{call_id}/insight_cards"
+
+    try:
+        response = requests.post(url, json=insight_card_payload, headers=headers, timeout=10)
+        response.raise_for_status()
+        print(f"Aircall Insight card created for call {call_id}: {response.json()}")
+    except requests.exceptions.RequestException as e:
+        print(f"Error creating Aircall insight card for call {call_id}: {e}")
+        if hasattr(e, 'response') and e.response is not None:
+            print(f"Aircall API Response: {e.response.text}")
+# --- End Aircall Integration ---
 
 def create_app():
     app = Flask(__name__)
@@ -61,6 +131,7 @@ def create_app():
     def load_user(user_id):
         # return db.session.get(User, int(user_id))
         # This function is called to reload the user object from the user ID stored in the session.
+        from werkzeug.security import check_password_hash # Make sure it's available for fetch_customer_data
         # Flask-Login ensures it runs within an appropriate context to access db.
         return User.query.get(int(user_id))
     
@@ -148,10 +219,63 @@ def contact():
     return render_template('contact.html', current_user=current_user, msg_sent=msg_sent, error=error_message)
 
 # Aircall webhook route
-from flask import Blueprint
+from flask import Blueprint, jsonify # jsonify was missing from this import block
+from werkzeug.security import check_password_hash # For PIN verification
+
 @app.route('/aircall/calls', methods=['POST'])
 def handle_aircall_call():
-  return '', 200
+    event_payload = request.json
+    if not event_payload:
+        print("Aircall Webhook: Received empty payload or not JSON")
+        return jsonify({"status": "error", "message": "Request must be JSON"}), 400
+
+    event_type = event_payload.get("event")
+    data = event_payload.get("data", {})
+    call_id = data.get("id")
+
+    print(f"Aircall Webhook: Event: {event_type}, Call ID: {call_id}, Full Payload: {event_payload}")
+
+    if event_type == 'call.created' and call_id:
+        ivr_details = data.get("ivr", {})
+        ivr_input = ivr_details.get("digits")
+        # Aircall IVR step. Ensure to check Aircall docs if this is string or int. Assuming int.
+        ivr_step = ivr_details.get("step") 
+
+        if ivr_input is not None:
+            print(f"Aircall IVR: Call ID: {call_id}, Step: {ivr_step}, Digits: {ivr_input}")
+            if ivr_step == 1:  # Assuming step 1 is for badge
+                store_call_data(call_id, 'badge_number', ivr_input)
+                print(f"Aircall: Stored badge number for call {call_id}: {ivr_input}")
+            elif ivr_step == 2:  # Assuming step 2 is for PIN
+                store_call_data(call_id, 'pin', ivr_input)
+                print(f"Aircall: Stored PIN for call {call_id}: {ivr_input}")
+
+                badge_number = retrieve_call_data(call_id, 'badge_number')
+                pin_from_storage = retrieve_call_data(call_id, 'pin')
+
+                if badge_number and pin_from_storage:
+                    print(f"Aircall: Attempting to fetch customer data for badge: {badge_number}")
+                    customer_data = fetch_customer_data_from_database(badge_number, pin_from_storage)
+                    if customer_data:
+                        print(f"Aircall: Customer data found for call {call_id}: {customer_data}")
+                        send_insight_card_to_aircall(call_id, customer_data)
+                    else:
+                        print(f"Aircall: No customer data found for badge {badge_number} with PIN for call {call_id}.")
+                    clear_call_data(call_id) # Clean up after processing
+                else:
+                    print(f"Aircall: Missing badge or PIN for call {call_id} after IVR step 2.")
+        else:
+            print(f"Aircall IVR: No digits received for call {call_id}, step {ivr_step}.")
+
+    elif event_type == 'call.answered' and call_id:
+        print(f"Aircall: Call answered: {call_id}. Insight card should display if sent.")
+        # Add logic here if you need to refresh or ensure card display on answer.
+
+    elif event_type == 'call.ended' and call_id: # Good practice to clean up any stored data
+        print(f"Aircall: Call ended: {call_id}. Clearing stored data.")
+        clear_call_data(call_id)
+
+    return jsonify({"status": "webhook received"}), 200
 
 if __name__ == '__main__':
     # Create database tables if they don't exist
