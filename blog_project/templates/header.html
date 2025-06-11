@@ -67,28 +67,24 @@
               >
             </li>
             <!-- Only show Login/Register if user is logged out. Otherwise show "Log Out" -->
-            {% if not current_user.is_authenticated: %}
+            {% if current_user.is_authenticated: %}
             <li class="nav-item">
-              <a
-                class="nav-link px-lg-3 py-3 py-lg-4"
-                href="{{ url_for('blog.login') }}"
-                >Login</a
-              >
+              <a class="nav-link px-lg-3 py-3 py-lg-4" href="#">Welcome, {{ current_user.name }}!</a>
+              {# You can add Gravatar here if desired, e.g., next to the name or as a separate item #}
             </li>
-            <li class="nav-item">
-              <a
-                class="nav-link px-lg-3 py-3 py-lg-4"
-                href="{{ url_for('blog.register') }}"
-                >Register</a
-              >
-            </li>
-            {% else: %}
             <li class="nav-item">
               <a
                 class="nav-link px-lg-3 py-3 py-lg-4"
                 href="{{ url_for('blog.logout') }}"
                 >Log Out</a
               >
+            </li>
+            {% else: %}
+            <li class="nav-item">
+              <a class="nav-link px-lg-3 py-3 py-lg-4" href="{{ url_for('blog.login') }}">Login</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link px-lg-3 py-3 py-lg-4" href="{{ url_for('blog.register') }}">Register</a>
             </li>
             {% endif %}
           </ul>

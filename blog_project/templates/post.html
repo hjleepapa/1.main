@@ -25,10 +25,10 @@
 <article>
   <div class="container px-4 px-lg-5">
     <div class="row gx-4 gx-lg-5 justify-content-center">
-      <div class="col-md-10 col-lg-8 col-xl-7">
+      <div class="col-md-12 col-lg-10 col-xl-10">
         {{ post.body|safe }}
         <!--Only show Edit Post button if user id is 1 (admin user) -->
-        {% if current_user.id == 1 %}
+        {% if current_user.is_authenticated and current_user.id == 1 %}
         <div class="d-flex justify-content-end mb-4">
           <a
             class="btn btn-primary float-right"
@@ -51,7 +51,7 @@
             {% for comment in post.comments: %}
             <li>
               <div class="commenterImage">
-                <img src="{{ gravatar_url(user.email, size=100) }}" alt="User Aavatar"/>
+                <img src="{{ gravatar_url(comment.comment_author.email, size=100) }}" alt="User Avatar"/>
               </div>
               <div class="commentText">
                 {{comment.text|safe}}
