@@ -60,7 +60,7 @@ def fetch_customer_data_from_database(badge_number, pin_from_ivr):
             "email": user.email,
             "badgeNumber": user.badge, # Match JS example field name
             "category": user.category,
-            "company": "Your Company Name" # Placeholder, adjust as needed
+            "company": user.company if user.company else "N/A"
         }
     return None
 

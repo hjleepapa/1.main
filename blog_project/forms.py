@@ -18,7 +18,9 @@ class RegisterForm(FlaskForm):
     email = StringField("Email", validators=[DataRequired()])
     password = PasswordField("Password", validators=[DataRequired()])
     name = StringField("Name", validators=[DataRequired()])
-    badge = StringField("Badge", validators=[DataRequired()]) # Using PasswordField for PIN for masking
+    badge = StringField("Badge", validators=[DataRequired()]) 
+    company = StringField('Company', validators=[Length(max=150)]) # Added company field
+    # Using PasswordField for PIN for masking
     pin = PasswordField("PIN", validators=[
         DataRequired(),
         Length(min=4, max=6, message='PIN must be between 4 and 6 digits long.'),
