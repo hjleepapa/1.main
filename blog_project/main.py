@@ -91,6 +91,7 @@ def register():
             password=hash_and_salted_password,
             badge=form.badge.data,
             pin=hashed_pin,
+            company=form.company.data if form.company.data else None,
             category=user_category # Assign the determined category
         )
         db.session.add(new_user)
