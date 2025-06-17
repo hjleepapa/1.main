@@ -14,14 +14,16 @@
             <div class="flex justify-between">
                 <div class="flex space-x-7">
                     <div>
-                        <a href="/" class="flex items-center py-4">
-                            <span class="font-semibold text-gray-500 text-lg">Portfolio</span>
+                        <!-- If you want to keep "Portfolio" as a brand link to home, keep it. Otherwise, it can be removed if the new links are sufficient. -->
+                        <a href="{{ url_for('home') }}" class="flex items-center py-4">
+                            <span class="font-semibold text-gray-500 text-lg">HJ Lee</span> <!-- Or your preferred brand name -->
                         </a>
                     </div>
                     <div class="hidden md:flex items-center space-x-1">
-                        <a href="/" class="py-4 px-2 text-gray-500 hover:text-blue-500 transition duration-300">Home</a>
-                        <a href="/about" class="py-4 px-2 text-gray-500 hover:text-blue-500 transition duration-300">About</a>
-                        <a href="/contact" class="py-4 px-2 text-gray-500 hover:text-blue-500 transition duration-300">Contact</a>
+                        <a href="{{ url_for('home') }}#about" class="py-4 px-2 text-gray-500 hover:text-blue-500 transition duration-300">About</a>
+                        <a href="{{ url_for('home') }}#tech-skills" class="py-4 px-2 text-gray-500 hover:text-blue-500 transition duration-300">Tech Skills</a>
+                        <a href="{{ url_for('home') }}#projects" class="py-4 px-2 text-gray-500 hover:text-blue-500 transition duration-300">Projects</a>
+                        <a href="{{ url_for('home') }}#contact" class="py-4 px-2 text-gray-500 hover:text-blue-500 transition duration-300">Contact</a>
                     </div>
                 </div>
                 <!-- Mobile menu button -->
@@ -43,9 +45,10 @@
         <!-- Mobile menu -->
         <div class="hidden mobile-menu">
             <ul class="">
-                <li><a href="/" class="block text-sm px-2 py-4 text-gray-500 hover:bg-blue-500 hover:text-white transition duration-300">Home</a></li>
-                <li><a href="/about" class="block text-sm px-2 py-4 text-gray-500 hover:bg-blue-500 hover:text-white transition duration-300">About</a></li>
-                <li><a href="/contact" class="block text-sm px-2 py-4 text-gray-500 hover:bg-blue-500 hover:text-white transition duration-300">Contact</a></li>
+                <li><a href="{{ url_for('home') }}#about" class="block text-sm px-2 py-4 text-gray-500 hover:bg-blue-500 hover:text-white transition duration-300">About</a></li>
+                <li><a href="{{ url_for('home') }}#tech-skills" class="block text-sm px-2 py-4 text-gray-500 hover:bg-blue-500 hover:text-white transition duration-300">Tech Skills</a></li>
+                <li><a href="{{ url_for('home') }}#projects" class="block text-sm px-2 py-4 text-gray-500 hover:bg-blue-500 hover:text-white transition duration-300">Projects</a></li>
+                <li><a href="{{ url_for('home') }}#contact" class="block text-sm px-2 py-4 text-gray-500 hover:bg-blue-500 hover:text-white transition duration-300">Contact</a></li>
             </ul>
         </div>
     </nav>
