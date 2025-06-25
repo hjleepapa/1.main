@@ -8,7 +8,7 @@
     />
     <meta name="description" content="" />
     <meta name="author" content="" />
-    <title>HJ's Home</title>
+    <title>HJ's Blog</title>
     {% block styles %}
     <!-- Load Bootstrap-Flask CSS here -->
     {{ bootstrap.load_css() }}
@@ -63,7 +63,7 @@
               <a
                 class="nav-link px-lg-3 py-3 py-lg-4"
                 href="{{ url_for('home') }}"
-                >Main Home</a
+                >HJ's Main</a
               >
             </li>
             <!-- Only show Login/Register if user is logged out. Otherwise show "Log Out" -->
@@ -72,6 +72,12 @@
               <a class="nav-link px-lg-3 py-3 py-lg-4" href="#">Welcome, {{ current_user.name }}!</a>
               {# You can add Gravatar here if desired, e.g., next to the name or as a separate item #}
             </li>
+            <!-- Show Admin Dashboard link only to executives -->
+            {% if current_user.category == 'executive' %}
+            <li class="nav-item">
+              <a class="nav-link px-lg-3 py-3 py-lg-4" href="{{ url_for('blog.admin_dashboard') }}">Admin Panel</a>
+            </li>
+            {% endif %}
             <li class="nav-item">
               <a
                 class="nav-link px-lg-3 py-3 py-lg-4"

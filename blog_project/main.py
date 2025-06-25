@@ -1,8 +1,13 @@
 from datetime import date
-from flask import Blueprint, abort, render_template, redirect, url_for, flash, request, jsonify
+from flask import abort, render_template, redirect, url_for, flash, request, jsonify, Blueprint
 # Import extensions from the parent directory's extensions.py
 from extensions import db, login_manager, ckeditor, bootstrap #, gravatar
 from flask_login import login_user, current_user, logout_user
+# Define the blueprint here instead of in __init__.py to avoid circular imports.
+blog_bp = Blueprint('blog', __name__, 
+                    template_folder='templates',
+                    static_folder='static',
+                    static_url_path='/blog_project/static')
 # Import models from the local models.py using a relative import
 from .models import BlogPost, User, Comment
 # Import forms from the local forms.py
@@ -12,30 +17,35 @@ from .forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
 import smtplib # Added for email sending
 import os
 from dotenv import load_dotenv
-
 # Load environment variables from .env file if it exists in this directory
 # It's often better to have one .env file at the project root (1. Main/)
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 if os.path.exists(dotenv_path):
     load_dotenv(dotenv_path=dotenv_path)
 
-blog_bp = Blueprint('blog', __name__,
-                    template_folder='templates',  # Will look for templates in blog_project/templates/
-                    static_folder='static',       # Will look for static files in blog_project/static/
-                    static_url_path='/blog_project/static') # URL for these static files
+# Create a decorator to check for required user roles
+def roles_required(*required_roles):
+    """
+    A decorator to ensure a user is logged in and has one of the required roles.
+    This is a more flexible replacement for the old `admin_only` decorator.
+    Usage: @roles_required('executive', 'director')
+    """
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            # Check if user is authenticated
+            if not current_user.is_authenticated:
+                flash("You must be logged in to view this page.", "warning")
+                return redirect(url_for('blog.login', next=request.url))
 
-# Create an admin-only decorator
-def admin_only(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        # If id is not 1 then return abort with 403 error
-        # Also check if user is authenticated
-        if not current_user.is_authenticated or current_user.id != 1:
-            return abort(403)
-        # Otherwise continue with the route function
-        return f(*args, **kwargs)
+            # Check if the user's category is one of the required roles
+            if current_user.category not in required_roles:
+                # User does not have the required permission
+                return abort(403)  # Forbidden
 
-    return decorated_function
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
 
 def determine_user_category(badge_number: str) -> str:
     """Determines user category based on the first digit of the badge number."""
@@ -101,7 +111,6 @@ def register():
         return redirect(url_for("blog.login")) # Redirect to login page
     return render_template("register.html", form=form, current_user=current_user)
 
-
 @blog_bp.route('/login', methods=["GET", "POST"])
 def login():
     form = LoginForm()
@@ -125,12 +134,10 @@ def login():
 
     return render_template("login.html", form=form, current_user=current_user)
 
-
 @blog_bp.route('/logout')
 def logout():
     logout_user()
     return redirect(url_for('blog.get_all_posts'))
-
 
 # This will be the root of the blog, e.g., /blog_project/
 @blog_bp.route('/')
@@ -165,7 +172,7 @@ def show_post(post_id):
 
 # Use a decorator so only an admin user can create new posts
 @blog_bp.route("/new-post", methods=["GET", "POST"])
-@admin_only
+@roles_required('executive', 'director') # Allow executives and directors to create posts
 def add_new_post():
     form = CreatePostForm()
     if form.validate_on_submit():
@@ -185,7 +192,7 @@ def add_new_post():
 
 # Use a decorator so only an admin user can edit a post
 @blog_bp.route("/edit-post/<int:post_id>", methods=["GET", "POST"])
-@admin_only # Ensure admin_only decorator is applied
+@roles_required('executive', 'director') # Allow executives and directors to edit posts
 def edit_post(post_id):
     post = db.get_or_404(BlogPost, post_id)
     edit_form = CreatePostForm(
@@ -210,7 +217,7 @@ def edit_post(post_id):
 
 # Use a decorator so only an admin user can delete a post
 @blog_bp.route("/delete/<int:post_id>")
-@admin_only
+@roles_required('executive') # Only executives can delete posts
 def delete_post(post_id):
     post_to_delete = db.get_or_404(BlogPost, post_id)
     db.session.delete(post_to_delete)
@@ -252,3 +259,27 @@ def authenticate_badge_pin():
         }), 200
     else:
         return jsonify({"status": "error", "message": "Invalid PIN"}), 401
+
+# Admin Dashboard
+@blog_bp.route("/admin/dashboard")
+@roles_required('executive')
+def admin_dashboard():
+    # Fetch all users and posts to display on the dashboard
+    all_users = db.session.execute(db.select(User).order_by(User.id)).scalars().all()
+    all_posts = db.session.execute(db.select(BlogPost).order_by(BlogPost.date.desc())).scalars().all()
+    return render_template("admin_dashboard.html", users=all_users, posts=all_posts, current_user=current_user)
+
+# Route to delete a user from the admin dashboard
+@blog_bp.route("/admin/delete_user/<int:user_id>", methods=["POST"])
+@roles_required('executive')
+def delete_user(user_id):
+    # Prevent an executive from deleting their own account from the dashboard
+    if user_id == current_user.id:
+        flash("You cannot delete your own account from the dashboard.", "danger")
+        return redirect(url_for('blog.admin_dashboard'))
+
+    user_to_delete = db.get_or_404(User, user_id)
+    db.session.delete(user_to_delete)
+    db.session.commit()
+    flash(f"User '{user_to_delete.name}' has been deleted successfully.", "success")
+    return redirect(url_for('blog.admin_dashboard'))
