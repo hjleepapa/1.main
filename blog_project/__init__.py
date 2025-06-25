@@ -1,2 +1,2 @@
 # This file makes the 'blog_project' directory a Python package.
-# It can be empty.
+# The blueprint and its views are defined in main.py to simplify the import structure.

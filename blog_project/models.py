@@ -27,8 +27,8 @@ class User(UserMixin, db.Model):
     pin: Mapped[str] = mapped_column(String(100))
     category: Mapped[str] = mapped_column(String(50), nullable=True) # Added user category
     company: Mapped[str] = mapped_column(String(150), nullable=True) # Changed to Mapped syntax
-    posts = relationship("BlogPost", back_populates="author")
-    comments = relationship("Comment", back_populates="comment_author")
+    posts = relationship("BlogPost", back_populates="author", cascade="all, delete-orphan")
+    comments = relationship("Comment", back_populates="comment_author", cascade="all, delete-orphan")
 
 
 class Comment(db.Model):

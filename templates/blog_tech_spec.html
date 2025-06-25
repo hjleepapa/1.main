@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-screen py-12 bg-gray-50">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 bg-white p-8 rounded-lg shadow-lg">
+        <h1 class="text-4xl font-bold text-center mb-8 text-gray-800">Blog Project: Technical Specification & Architecture</h1>
+
+        <div class="prose prose-lg max-w-none">
+            <h3 class="text-2xl font-semibold mt-6 mb-4">1. High-Level Overview</h3>
+            <p>The <code>blog_project</code> is a modular and self-contained component, implemented as a Flask Blueprint, that provides a complete set of features for a multi-user blog. It is designed to be seamlessly integrated into a larger Flask application, as demonstrated by its registration within the <code>create_app</code> factory in <code>app.py</code>.</p>
+            <p>The architecture emphasizes a clear separation of concerns, with distinct modules for routes and logic (<code>main.py</code>), database models (<code>models.py</code>), and form definitions (<code>forms.py</code>). This modularity makes the project scalable, maintainable, and easy to test.</p>
+
+            <h3 class="text-2xl font-semibold mt-6 mb-4">2. Core Architecture & Design Patterns</h3>
+            <h4 class="text-xl font-semibold mt-4 mb-2">a. Flask Blueprint (<code>blog_bp</code>)</h4>
+            <p>The entire functionality of the blog is encapsulated within a single Flask Blueprint named <code>blog_bp</code>.</p>
+            <ul>
+                <li><strong>Definition</strong>: The blueprint is defined in <code>/Users/hj/Web Development Projects/1. Main/blog_project/main.py</code>. This file serves as the central hub for the blog's routes and view functions.</li>
+                <li><strong>Modularity</strong>: It has its own dedicated <code>template_folder</code> and <code>static_folder</code>, ensuring its frontend assets are neatly organized and decoupled from the main application or other blueprints.</li>
+                <li><strong>Integration</strong>: In <code>/Users/hj/Web Development Projects/1. Main/app.py</code>, the blueprint is registered with the main Flask application using a <code>url_prefix='/blog_project'</code>. This means all routes defined within the blueprint (e.g., <code>/login</code>, <code>/post/1</code>) are accessible under the prefixed path (e.g., <code>http://yourdomain.com/blog_project/login</code>).</li>
+            </ul>
+
+            <h4 class="text-xl font-semibold mt-4 mb-2">b. Application Factory Pattern (<code>create_app</code>)</h4>
+            <p>The main application in <code>app.py</code> utilizes the factory pattern. This is a crucial architectural choice that:</p>
+            <ul>
+                <li>Avoids global application objects, which can lead to complex circular dependencies.</li>
+                <li>Facilitates the creation of multiple application instances with different configurations, which is essential for testing.</li>
+                <li>Ensures a predictable and controlled initialization sequence: extensions are initialized first, then blueprints are imported and registered.</li>
+            </ul>
+
+            <h4 class="text-xl font-semibold mt-4 mb-2">c. Centralized Extension Management (<code>extensions.py</code>)</h4>
+            <p>The project uses <code>/Users/hj/Web Development Projects/1. Main/extensions.py</code> to instantiate all Flask extension objects (<code>db</code>, <code>login_manager</code>, <code>ckeditor</code>, etc.). These un-configured instances are then imported and initialized within the <code>create_app</code> factory. This pattern elegantly solves the problem of circular imports that often arises when models, views, and the app factory all need to access the same extension instance.</p>
+
+            <h3 class="text-2xl font-semibold mt-6 mb-4">3. Database and Data Layer</h3>
+            <h4 class="text-xl font-semibold mt-4 mb-2">a. ORM and Models</h4>
+            <ul>
+                <li><strong>Technology</strong>: The project uses <strong>Flask-SQLAlchemy</strong> as its Object-Relational Mapper (ORM) to interact with the database.</li>
+                <li><strong>Model Definitions</strong>: The database schema is defined in <code>/Users/hj/Web Development Projects/1. Main/blog_project/models.py</code> using modern, type-annotated <code>Mapped</code> syntax. The core models are:
+                    <ul>
+                        <li><code>User</code>: Stores user credentials (<code>email</code>, hashed <code>password</code>, hashed <code>pin</code>), personal details (<code>name</code>, <code>badge</code>, <code>company</code>), and a <code>category</code> for role-based access control.</li>
+                        <li><code>BlogPost</code>: Represents a blog article with a <code>title</code>, <code>subtitle</code>, <code>body</code>, <code>date</code>, and <code>img_url</code>.</li>
+                        <li><code>Comment</code>: Represents a user's comment on a post.</li>
+                    </ul>
+                </li>
+                <li><strong>Relationships</strong>: The models are linked via SQLAlchemy relationships to create a relational structure:
+                    <ul>
+                        <li><strong>User to Posts</strong>: A one-to-many relationship where one <code>User</code> can be the author of many <code>BlogPost</code>s.</li>
+                        <li><strong>User to Comments</strong>: A one-to-many relationship where one <code>User</code> can write many <code>Comment</code>s.</li>
+                        <li><strong>Post to Comments</strong>: A one-to-many relationship where one <code>BlogPost</code> can have many <code>Comment</code>s.</li>
+                        <li><strong>Cascading Deletes</strong>: The relationships are configured with <code>cascade="all, delete-orphan"</code>, ensuring that when a user is deleted, all of their associated posts and comments are also automatically deleted from the database.</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h4 class="text-xl font-semibold mt-4 mb-2">b. Database Migrations</h4>
+            <p>The project is integrated with <strong>Flask-Migrate</strong>, which uses Alembic to handle database schema migrations. This is configured in <code>app.py</code> and <code>migrations/env.py</code>, allowing for version-controlled, programmatic updates to the database structure as the application's models evolve.</p>
+
+            <h3 class="text-2xl font-semibold mt-6 mb-4">4. Authentication and Authorization</h3>
+            <h4 class="text-xl font-semibold mt-4 mb-2">a. Authentication</h4>
+            <ul>
+                <li><strong>Session Management</strong>: <strong>Flask-Login</strong> is used to manage user sessions. It handles logging users in (<code>login_user</code>), logging them out (<code>logout_user</code>), and providing access to the currently authenticated user object via <code>current_user</code>.</li>
+                <li><strong>User Loader</strong>: The required <code>@login_manager.user_loader</code> callback is defined in <code>app.py</code>. It tells Flask-Login how to retrieve a <code>User</code> object from the database given a user ID stored in the session cookie.</li>
+                <li><strong>Password Security</strong>: Passwords and PINs are never stored in plaintext. The <code>werkzeug.security</code> library is used to create secure hashes (<code>generate_password_hash</code>) during registration and to verify them (<code>check_password_hash</code>) during login.</li>
+            </ul>
+
+            <h4 class="text-xl font-semibold mt-4 mb-2">b. Authorization (Role-Based Access Control)</h4>
+            <p>Access to sensitive actions is controlled by a flexible, custom decorator.</p>
+            <ul>
+                <li><strong><code>@roles_required(*required_roles)</code></strong>: This decorator, defined in <code>blog_project/main.py</code>, provides fine-grained access control. It can be applied to any route to restrict access to users with specific roles (e.g., <code>@roles_required('executive', 'director')</code>).</li>
+                <li><strong>Logic</strong>: The decorator first checks if a user is authenticated. If not, it redirects them to the login page. It then checks if the <code>current_user.category</code> is present in the list of <code>required_roles</code>. If the user does not have the required role, it aborts the request with a <strong>403 Forbidden</strong> status.</li>
+            </ul>
+
+            <h3 class="text-2xl font-semibold mt-6 mb-4">5. API Endpoint for External Services</h3>
+            <p>The project includes a stateless API for external authentication, demonstrating a microservice-oriented approach.</p>
+            <ul>
+                <li><strong>Route</strong>: <code>/api/authenticate_badge_pin</code> (POST method).</li>
+                <li><strong>Purpose</strong>: Designed to be called by an external system (e.g., an IVR or another service). It accepts a JSON payload containing a <code>badge</code> and <code>pin</code>.</li>
+                <li><strong>Functionality</strong>: It authenticates these credentials against the <code>User</code> database by looking up the badge and verifying the hashed PIN. It returns a JSON response indicating success or failure, decoupling the core user database from other systems.</li>
+            </ul>
+
+            <h3 class="text-2xl font-semibold mt-6 mb-4">6. Data Flow Example: Creating a New Post</h3>
+            <ol>
+                <li><strong>Request</strong>: An authenticated user with an 'executive' role navigates to <code>/blog_project/new-post</code>.</li>
+                <li><strong>Authorization</strong>: The <code>@roles_required('executive', 'director')</code> decorator on the <code>add_new_post</code> view function executes. It confirms the user is logged in and their <code>category</code> is 'executive', granting access.</li>
+                <li><strong>Form Handling</strong>: The <code>add_new_post</code> function in <code>main.py</code> instantiates a <code>CreatePostForm</code> object.</li>
+                <li><strong>Rendering</strong>: It renders the <code>make-post.html</code> template, passing the form object to it. The template uses WTForms macros to generate the HTML form fields, including a CKEditor rich text area for the post body.</li>
+                <li><strong>Submission</strong>: The user fills out the form and submits it, sending a POST request.</li>
+                <li><strong>Validation</strong>: <code>form.validate_on_submit()</code> is called. This validates the CSRF token and checks that all required fields have been filled according to the validators defined in <code>forms.py</code>.</li>
+                <li><strong>Database Interaction</strong>: If validation is successful, a new <code>BlogPost</code> model object is created. Its <code>author</code> is set to <code>current_user</code>. The object is added to the database session (<code>db.session.add()</code>) and saved (<code>db.session.commit()</code>).</li>
+                <li><strong>Response</strong>: The user is redirected to the main blog page (<code>/blog_project/</code>) to see their newly created post.</li>
+            </ol>
+
+            <p class="mt-8">This architecture creates a robust, maintainable, and feature-rich blog system that is well-integrated into the main portfolio application while remaining a distinct and organized module.</p>
+
+            <div class="mt-8 text-center">
+                <a href="{{ url_for('blog.get_all_posts') }}" class="inline-block bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 transition duration-300 text-lg font-semibold">Go to the Blog</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
