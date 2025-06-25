@@ -197,14 +197,11 @@ def create_app():
     def utility_processor():
         return dict(gravatar_url=generate_gravatar_url, user=current_user)
 
-    # with app.app_context():
-    #     db.create_all() # Create database tables for all models
-
     return app
 
 # Create the application instance for WSGI servers like Gunicorn to find.
 app = create_app()
 
 if __name__ == '__main__':
-    # app = create_app()
+    # This is for local development only.
     app.run(debug=True)
