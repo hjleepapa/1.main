@@ -11,9 +11,16 @@ The architecture emphasizes a clear separation of concerns, with distinct module
 #### a. Flask Blueprint (`blog_bp`)
 The entire functionality of the blog is encapsulated within a single Flask Blueprint named `blog_bp`.
 
-*   **Definition**: The blueprint is defined in `/Users/hj/Web Development Projects/1. Main/blog_project/main.py`. This file serves as the central hub for the blog's routes and view functions.
+*   **Definition**: The blueprint is defined in `blog_project/main.py`. This file serves as the central hub for the blog's routes and view functions.
+blog_bp = Blueprint('blog', __name__, 
+                    template_folder='templates',
+                    static_folder='static',
+                    static_url_path='/blog_project/static')
 *   **Modularity**: It has its own dedicated `template_folder` and `static_folder`, ensuring its frontend assets are neatly organized and decoupled from the main application or other blueprints.
-*   **Integration**: In `/Users/hj/Web Development Projects/1. Main/app.py`, the blueprint is registered with the main Flask application using a `url_prefix='/blog_project'`. This means all routes defined within the blueprint (e.g., `/login`, `/post/1`) are accessible under the prefixed path (e.g., `http://yourdomain.com/blog_project/login`).
+*   **Integration**: In `app.py`, the blueprint is registered with the main Flask application using a `url_prefix='/blog_project'`. 
+from blog_project.main import blog_bp
+app.register_blueprint(blog_bp, url_prefix='/blog_project')
+This means all routes defined within the blueprint (e.g., `/login`, `/post/1`) are accessible under the prefixed path (e.g., `https://one-main.onrender.com/blog_project/login`).
 
 #### b. Application Factory Pattern (`create_app`)
 The main application in `app.py` utilizes the factory pattern. This is a crucial architectural choice that:
