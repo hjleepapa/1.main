@@ -58,8 +58,8 @@ def create_app():
     from blog_project.main import blog_bp
     app.register_blueprint(blog_bp, url_prefix='/blog_project')
 
-    from vapi_todo.vapi1_flask import vapi_flask_bp
-    app.register_blueprint(vapi_flask_bp) # The url_prefix is already set in vapi1_flask.py
+    from vapi_todo import vapi_flask_bp
+    app.register_blueprint(vapi_flask_bp) # The url_prefix is already set in routes.py
 
     # --- Main Application Routes ---
     @app.route('/')
@@ -74,6 +74,11 @@ def create_app():
     def blog_tech_spec():
         """Renders the technical specification page for the blog project."""
         return render_template('blog_tech_spec.html')
+
+    @app.route('/vapi-tech-spec')
+    def vapi_tech_spec():
+        """Renders the technical specification page for the VAPI todo project."""
+        return render_template('vapi_tech_spec.html')
 
     @app.route('/contact', methods=["GET", "POST"])
     def contact():
@@ -118,79 +123,7 @@ def create_app():
 
         return render_template('contact.html', current_user=current_user, msg_sent=msg_sent, error=error_message)
 
-    # --- Aircall Integration ---
-    # Simple in-memory storage for call data (replace with database/Redis for production)
-    # call_data_store = {}
-
-    # def store_call_data(call_id, key, value):
-    #     if call_id not in call_data_store:
-    #         call_data_store[call_id] = {}
-    #     call_data_store[call_id][key] = value
-
-    # def retrieve_call_data(call_id, key):
-    #     return call_data_store.get(call_id, {}).get(key)
-
-    # def clear_call_data(call_id):
-    #     if call_id in call_data_store:
-    #         del call_data_store[call_id]
-
-    # def fetch_customer_data_from_database(badge_number, pin_from_ivr):
-    #     user = User.query.filter_by(badge=badge_number).first()
-    #     if user and check_password_hash(user.pin, pin_from_ivr):
-    #         return {
-    #             "id": user.id, "name": user.name, "email": user.email,
-    #             "badgeNumber": user.badge, "category": user.category,
-    #             "company": user.company if user.company else "N/A"
-    #         }
-    #     return None
-
-    # def send_insight_card_to_aircall(call_id, customer_data):
-    #     import base64
-    #     import requests
-    #     aircall_api_id = os.environ.get("AIRCALL_API_ID")
-    #     aircall_api_token = os.environ.get("AIRCALL_API_TOKEN")
-    #     if not aircall_api_id or not aircall_api_token:
-    #         print("Error: Aircall API ID or Token not configured.")
-    #         return
-    #     insight_card_payload = { "content": { "title": "Customer Information", "description": f"{customer_data.get('name', 'N/A')} - {customer_data.get('company', 'N/A')}", "fields": [ {"type": "text", "label": "Badge Number", "value": customer_data.get('badgeNumber', 'N/A')}, {"type": "text", "label": "Customer ID", "value": str(customer_data.get('id', 'N/A'))}, {"type": "text", "label": "Category", "value": customer_data.get('category', 'N/A')}, {"type": "text", "label": "Email", "value": customer_data.get('email', 'N/A')}, ] } }
-    #     auth_string = f"{aircall_api_id}:{aircall_api_token}"
-    #     headers = { "Authorization": "Basic " + base64.b64encode(auth_string.encode()).decode(), "Content-Type": "application/json" }
-    #     url = f"https://api.aircall.io/v1/calls/{call_id}/insight_cards"
-    #     try:
-    #         response = requests.post(url, json=insight_card_payload, headers=headers, timeout=10)
-    #         response.raise_for_status()
-    #         print(f"Aircall Insight card created for call {call_id}: {response.json()}")
-    #     except requests.exceptions.RequestException as e:
-    #         print(f"Error creating Aircall insight card for call {call_id}: {e}")
-
-    # @app.route('/aircall/calls', methods=['POST'])
-    # def handle_aircall_call():
-    #     event_payload = request.json
-    #     if not event_payload:
-    #         return jsonify({"status": "error", "message": "Request must be JSON"}), 400
-    #     event_type = event_payload.get("event")
-    #     data = event_payload.get("data", {})
-    #     call_id = data.get("id")
-    #     print(f"Aircall Webhook: Event: {event_type}, Call ID: {call_id}")
-    #     if event_type == 'call.created' and call_id:
-    #         ivr_details = data.get("ivr", {})
-    #         ivr_input = ivr_details.get("digits")
-    #         ivr_step = ivr_details.get("step")
-    #         if ivr_input is not None:
-    #             if ivr_step == 1:
-    #                 store_call_data(call_id, 'badge_number', ivr_input)
-    #             elif ivr_step == 2:
-    #                 store_call_data(call_id, 'pin', ivr_input)
-    #                 badge_number = retrieve_call_data(call_id, 'badge_number')
-    #                 pin_from_storage = retrieve_call_data(call_id, 'pin')
-    #                 if badge_number and pin_from_storage:
-    #                     customer_data = fetch_customer_data_from_database(badge_number, pin_from_storage)
-    #                     if customer_data:
-    #                         send_insight_card_to_aircall(call_id, customer_data)
-    #                     clear_call_data(call_id)
-    #     elif event_type == 'call.ended' and call_id:
-    #         clear_call_data(call_id)
-    #     return jsonify({"status": "webhook received"}), 200
+    
 
     # --- Context Processors ---
     @app.context_processor
@@ -204,4 +137,5 @@ app = create_app()
 
 if __name__ == '__main__':
     # This is for local development only.
+    # app = create_app() # Ensure the app is created before running
     app.run(debug=True)
