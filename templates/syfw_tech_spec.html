@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}SYFW To-Do Tech Spec{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+            <h1 class="mt-5">SYFW To-Do List - Technical Specification</h1>
+            <hr>
+            <p>This page outlines the technical details and architecture of the "See You, Find You" (SYFW) To-Do List project.</p>
+            
+            <h2 class="mt-4">Project Overview</h2>
+            <p>
+                The SYFW To-Do List is a simple, yet powerful task management application built with Flask. It allows users to manage their daily tasks effectively.
+            </p>
+
+            <h2 class="mt-4">Core Technologies</h2>
+            <ul>
+                <li><strong>Backend Framework:</strong> Flask</li>
+                <li><strong>Database:</strong> SQLite (or as configured in the main app)</li>
+                <li><strong>Frontend:</strong> HTML, CSS, JavaScript (with Bootstrap)</li>
+                <li><strong>Deployment:</strong> To be determined (e.g., Gunicorn + Nginx)</li>
+            </ul>
+
+            <h2 class="mt-4">Features</h2>
+            <ul>
+                <li>Create, Read, Update, and Delete (CRUD) operations for tasks.</li>
+                <li>Task prioritization.</li>
+                <li>Due dates for tasks.</li>
+                <li>User authentication (if integrated with the main site's login system).</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

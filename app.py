@@ -61,6 +61,9 @@ def create_app():
     from vapi_todo import vapi_flask_bp
     app.register_blueprint(vapi_flask_bp) # The url_prefix is already set in routes.py
 
+    from syfw_todo.routes import syfw_todo_bp
+    app.register_blueprint(syfw_todo_bp, url_prefix='/syfw_todo')
+
     # --- Main Application Routes ---
     @app.route('/')
     def home():
@@ -79,6 +82,11 @@ def create_app():
     def vapi_tech_spec():
         """Renders the technical specification page for the VAPI todo project."""
         return render_template('vapi_tech_spec.html')
+
+    @app.route('/syfw-tech-spec')
+    def syfw_tech_spec():
+        """Renders the technical specification page for the SYFW todo project."""
+        return render_template('syfw_tech_spec.html')
 
     @app.route('/contact', methods=["GET", "POST"])
     def contact():
