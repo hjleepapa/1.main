@@ -2,8 +2,8 @@ import os
 import markdown2
 from flask import Blueprint, request, jsonify, abort, render_template, current_app
 from extensions import db
-from .models import Todo, Reminder, CalendarEvent
-from .schemas import TodoResponse, ReminderResponse, CalendarEventResponse
+from .models import VapiTodo, VapiReminder, VapiCalendarEvent
+from .schemas import TodoResponse, ReminderResponse, CalendarEventResponse # Schemas can remain the same
 from .helpers import _get_validated_tool_call
 
 vapi_flask_bp = Blueprint('vapi_flask', __name__, url_prefix='/vapi_project')
@@ -14,7 +14,7 @@ def create_todo():
     args = tool_call.function.arguments
     title = args.get('title', '')
     description = args.get('description', '')
-    todo = Todo(title=title, description=description)
+    todo = VapiTodo(title=title, description=description)
     db.session.add(todo)
     db.session.commit()
     db.session.refresh(todo)
@@ -23,7 +23,7 @@ def create_todo():
 @vapi_flask_bp.route('/get_todos', methods=['POST'])
 def get_todos():
     tool_call = _get_validated_tool_call('getTodos')
-    todos_db = db.session.query(Todo).all()
+    todos_db = db.session.query(VapiTodo).all()
     todos_response = [TodoResponse.from_orm(todo).dict() for todo in todos_db]
     return jsonify({'results': [{'toolCallId': tool_call.id, 'result': todos_response}]})
 
@@ -34,7 +34,7 @@ def complete_todo():
     todo_id = args.get('id')
     if not todo_id:
         abort(400, description='Missing To-Do ID in arguments.')
-    todo = db.session.query(Todo).filter(Todo.id == todo_id).first()
+    todo = db.session.query(VapiTodo).filter(VapiTodo.id == todo_id).first()
     if not todo:
         abort(404, description='Todo not found.')
     todo.completed = True
@@ -48,7 +48,7 @@ def delete_todo():
     todo_id = args.get('id')
     if not todo_id:
         abort(400, description='Missing To-Do ID in arguments.')
-    todo = db.session.query(Todo).filter(Todo.id == todo_id).first()
+    todo = db.session.query(VapiTodo).filter(VapiTodo.id == todo_id).first()
     if not todo:
         abort(404, description='Todo not found.')
     db.session.delete(todo)
@@ -61,7 +61,7 @@ def add_reminder():
     args = tool_call.function.arguments
     reminder_text = args.get('reminder_text', '')
     importance = args.get('importance', '')
-    reminder = Reminder(reminder_text=reminder_text, importance=importance)
+    reminder = VapiReminder(reminder_text=reminder_text, importance=importance)
     db.session.add(reminder)
     db.session.commit()
     db.session.refresh(reminder)
@@ -70,7 +70,7 @@ def add_reminder():
 @vapi_flask_bp.route('/get_reminders', methods=['POST'])
 def get_reminders():
     tool_call = _get_validated_tool_call('getReminders')
-    reminders_db = db.session.query(Reminder).all()
+    reminders_db = db.session.query(VapiReminder).all()
     reminders_response = [ReminderResponse.from_orm(reminder).dict() for reminder in reminders_db]
     return jsonify({'results': [{'toolCallId': tool_call.id, 'result': reminders_response}]})
 
@@ -81,7 +81,7 @@ def delete_reminder():
     reminder_id = args.get('id')
     if not reminder_id:
         abort(400, description='Missing Reminder ID in arguments.')
-    reminder = db.session.query(Reminder).filter(Reminder.id == reminder_id).first()
+    reminder = db.session.query(VapiReminder).filter(VapiReminder.id == reminder_id).first()
     if not reminder:
         abort(404, description='Reminder not found.')
     db.session.delete(reminder)
@@ -96,7 +96,7 @@ def add_calendar_entry():
     description = args.get('description', '')
     event_from = args.get('event_from')
     event_to = args.get('event_to')
-    event = CalendarEvent(title=title, description=description, event_from=event_from, event_to=event_to)
+    event = VapiCalendarEvent(title=title, description=description, event_from=event_from, event_to=event_to)
     db.session.add(event)
     db.session.commit()
     db.session.refresh(event)
@@ -105,7 +105,7 @@ def add_calendar_entry():
 @vapi_flask_bp.route('/get_calendar_entries', methods=['POST'])
 def get_calendar_entries():
     tool_call = _get_validated_tool_call('getCalendarEntries')
-    events_db = db.session.query(CalendarEvent).all()
+    events_db = db.session.query(VapiCalendarEvent).all()
     events_response = [CalendarEventResponse.from_orm(event).dict() for event in events_db]
     return jsonify({'results': [{'toolCallId': tool_call.id, 'result': events_response}]})
 
@@ -116,7 +116,7 @@ def delete_calendar_entry():
     event_id = args.get('id')
     if not event_id:
         abort(400, description='Missing Calendar Event ID in arguments.')
-    event = db.session.query(CalendarEvent).filter(CalendarEvent.id == event_id).first()
+    event = db.session.query(VapiCalendarEvent).filter(VapiCalendarEvent.id == event_id).first()
     if not event:
         abort(404, description='Calendar event not found.')
     db.session.delete(event)
