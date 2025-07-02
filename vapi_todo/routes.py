@@ -2,15 +2,15 @@ import os
 import markdown2
 from flask import Blueprint, request, jsonify, abort, render_template, current_app
 from extensions import db
-from .models import VapiTodo, VapiReminder, VapiCalendarEvent
-from .schemas import TodoResponse, ReminderResponse, CalendarEventResponse # Schemas can remain the same
-from .helpers import _get_validated_tool_call
+from .models import VapiTodo, VapiReminder, VapiCalendarEvent # Models are specific, so they stay
+from shared.schemas import TodoResponse, ReminderResponse, CalendarEventResponse
+from shared.helpers import get_validated_tool_call
 
 vapi_flask_bp = Blueprint('vapi_flask', __name__, url_prefix='/vapi_project')
 
 @vapi_flask_bp.route('/create_todo', methods=['POST'])
 def create_todo():
-    tool_call = _get_validated_tool_call('createTodo')
+    tool_call = get_validated_tool_call('createTodo')
     args = tool_call.function.arguments
     title = args.get('title', '')
     description = args.get('description', '')
@@ -22,14 +22,14 @@ def create_todo():
 
 @vapi_flask_bp.route('/get_todos', methods=['POST'])
 def get_todos():
-    tool_call = _get_validated_tool_call('getTodos')
+    tool_call = get_validated_tool_call('getTodos')
     todos_db = db.session.query(VapiTodo).all()
     todos_response = [TodoResponse.from_orm(todo).dict() for todo in todos_db]
     return jsonify({'results': [{'toolCallId': tool_call.id, 'result': todos_response}]})
 
 @vapi_flask_bp.route('/complete_todo', methods=['POST'])
 def complete_todo():
-    tool_call = _get_validated_tool_call('completeTodo')
+    tool_call = get_validated_tool_call('completeTodo')
     args = tool_call.function.arguments
     todo_id = args.get('id')
     if not todo_id:
@@ -43,7 +43,7 @@ def complete_todo():
 
 @vapi_flask_bp.route('/delete_todo', methods=['POST'])
 def delete_todo():
-    tool_call = _get_validated_tool_call('deleteTodo')
+    tool_call = get_validated_tool_call('deleteTodo')
     args = tool_call.function.arguments
     todo_id = args.get('id')
     if not todo_id:
@@ -57,7 +57,7 @@ def delete_todo():
 
 @vapi_flask_bp.route('/add_reminder', methods=['POST'])
 def add_reminder():
-    tool_call = _get_validated_tool_call('addReminder')
+    tool_call = get_validated_tool_call('addReminder')
     args = tool_call.function.arguments
     reminder_text = args.get('reminder_text', '')
     importance = args.get('importance', '')
@@ -69,14 +69,14 @@ def add_reminder():
 
 @vapi_flask_bp.route('/get_reminders', methods=['POST'])
 def get_reminders():
-    tool_call = _get_validated_tool_call('getReminders')
+    tool_call = get_validated_tool_call('getReminders')
     reminders_db = db.session.query(VapiReminder).all()
     reminders_response = [ReminderResponse.from_orm(reminder).dict() for reminder in reminders_db]
     return jsonify({'results': [{'toolCallId': tool_call.id, 'result': reminders_response}]})
 
 @vapi_flask_bp.route('/delete_reminder', methods=['POST'])
 def delete_reminder():
-    tool_call = _get_validated_tool_call('deleteReminder')
+    tool_call = get_validated_tool_call('deleteReminder')
     args = tool_call.function.arguments
     reminder_id = args.get('id')
     if not reminder_id:
@@ -90,7 +90,7 @@ def delete_reminder():
 
 @vapi_flask_bp.route('/add_calendar_entry', methods=['POST'])
 def add_calendar_entry():
-    tool_call = _get_validated_tool_call('addCalendarEntry')
+    tool_call = get_validated_tool_call('addCalendarEntry')
     args = tool_call.function.arguments
     title = args.get('title', '')
     description = args.get('description', '')
@@ -104,14 +104,14 @@ def add_calendar_entry():
 
 @vapi_flask_bp.route('/get_calendar_entries', methods=['POST'])
 def get_calendar_entries():
-    tool_call = _get_validated_tool_call('getCalendarEntries')
+    tool_call = get_validated_tool_call('getCalendarEntries')
     events_db = db.session.query(VapiCalendarEvent).all()
     events_response = [CalendarEventResponse.from_orm(event).dict() for event in events_db]
     return jsonify({'results': [{'toolCallId': tool_call.id, 'result': events_response}]})
 
 @vapi_flask_bp.route('/delete_calendar_entry', methods=['POST'])
 def delete_calendar_entry():
-    tool_call = _get_validated_tool_call('deleteCalendarEntry')
+    tool_call = get_validated_tool_call('deleteCalendarEntry')
     args = tool_call.function.arguments
     event_id = args.get('id')
     if not event_id:
