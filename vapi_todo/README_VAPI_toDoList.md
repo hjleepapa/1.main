@@ -1,12 +1,6 @@
 # VAPI toDoList AI assistant into Portfolio
 
-VAPI toDoList AI assistant project added to Portfolio website
-
-## Table of Contents
--[VAPI Configuration & Deployment](#VAPI Configuration & Deployment)
--[Create API functions](#Create API functions)
--[License](#license)
-
+VAPI toDoList AI assistant project
 
 
 ## VAPI Configuration & Deployment

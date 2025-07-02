@@ -1,14 +1,14 @@
 import json
 from flask import request, abort
 from pydantic import ValidationError as PydanticValidationError
-from .schemas import syfwRequest, ToolCall
+from .schemas import SyfwRequest, ToolCall
 
 def _get_validated_tool_call(expected_function_name: str) -> ToolCall:
     json_data = request.get_json()
     if not json_data:
         abort(400, description="Invalid JSON payload. Request body must be JSON.")
     try:
-        syfw_req = syfwRequest(**json_data)
+        syfw_req = SyfwRequest(**json_data)
     except PydanticValidationError as e:
         abort(400, description=f"Invalid request format: {e.errors()}")
     for tool_call in syfw_req.message.toolCalls:

@@ -13,7 +13,7 @@ class ToolCall(BaseModel):
 class Message(BaseModel):
     toolCalls: list[ToolCall]
 
-class syfwRequest(BaseModel):
+class SyfwRequest(BaseModel):
     message: Message
 
 class TodoResponse(BaseModel):
