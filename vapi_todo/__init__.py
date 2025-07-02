@@ -1,1 +1,1 @@
-from .routes import vapi_flask_bp 
+from .routes import vapi_flask_bp
