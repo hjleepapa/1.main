@@ -10,6 +10,7 @@ from .helpers import _get_validated_tool_call
 syfw_todo_bp = Blueprint(
     'syfw_todo',
     __name__,
+    url_prefix='/syfw_todo',
     template_folder='templates',
     static_folder='static'
 )
@@ -137,7 +138,7 @@ def delete_calendar_entry():
 
 @syfw_todo_bp.route('/readme')
 def view_syfw_readme():
-    readme_path = os.path.join(os.path.dirname(__file__), 'README_syfw_toDoList.md')
+    readme_path = os.path.join(os.path.dirname(__file__), 'README_Syfw_toDoList.md')
     if not os.path.exists(readme_path):
         return 'README not found.'
     with open(readme_path, 'r') as f:

@@ -61,8 +61,8 @@ def create_app():
     from vapi_todo import vapi_flask_bp
     app.register_blueprint(vapi_flask_bp) # The url_prefix is already set in routes.py
 
-    from syfw_todo.routes import syfw_todo_bp
-    app.register_blueprint(syfw_todo_bp, url_prefix='/syfw_todo')
+    from syfw_todo import syfw_todo_bp
+    app.register_blueprint(syfw_todo_bp)
 
     # --- Main Application Routes ---
     @app.route('/')
