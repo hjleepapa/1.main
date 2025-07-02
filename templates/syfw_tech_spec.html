@@ -5,30 +5,86 @@
 <div class="container">
     <div class="row">
         <div class="col-lg-8 col-md-10 mx-auto">
-            <h1 class="mt-5">SYFW To-Do List - Technical Specification</h1>
+            <h1 class="mt-5">Synthflow To-Do Assistant - Technical Specification</h1>
             <hr>
-            <p>This page outlines the technical details and architecture of the "See You, Find You" (SYFW) To-Do List project.</p>
-            
+
             <h2 class="mt-4">Project Overview</h2>
             <p>
-                The SYFW To-Do List is a simple, yet powerful task management application built with Flask. It allows users to manage their daily tasks effectively.
+                The Synthflow To-Do Assistant is a voice-driven task management system integrated into the main portfolio application. It leverages the **Synthflow.ai** platform to provide a natural language interface for managing to-do lists, reminders, and calendar events over the phone.
+            </p>
+            <p>
+                This project is implemented as a modular Flask Blueprint, providing a set of secure, stateless API endpoints that Synthflow calls to interact with the application's database.
             </p>
 
-            <h2 class="mt-4">Core Technologies</h2>
+            <h2 class="mt-4">Core Architecture & Integration</h2>
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Flask Blueprint (`syfw_todo_bp`)</h5>
+                    <p class="card-text">The entire module is encapsulated within a Flask Blueprint defined in <code>syfw_todo/routes.py</code>. This ensures its logic and routes are self-contained. It is registered in the main <code>app.py</code> with a URL prefix, making all its routes accessible under <code>/syfw_todo/...</code>.</p>
+                </div>
+            </div>
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Shared Modules for DRY Code</h5>
+                    <p class="card-text">To avoid code duplication with the similar <code>vapi_todo</code> project, this module utilizes a central <code>shared</code> directory for common components:</p>
+                    <ul>
+                        <li><strong><code>shared/schemas.py</code></strong>: Contains Pydantic models for request validation and response serialization, ensuring data consistency.</li>
+                        <li><strong><code>shared/helpers.py</code></strong>: Contains the <code>get_validated_tool_call</code> function, which parses and validates incoming JSON payloads from the voice platform.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h2 class="mt-4">Synthflow.ai Configuration</h2>
+            <p>The connection between the voice platform and our Flask backend is established in the Synthflow dashboard. The key is to define "Custom Actions" that map directly to our API endpoints.</p>
+            <ol>
+                <li><strong>Create an Agent:</strong> An agent is created in Synthflow to handle the call logic, voice, and personality.</li>
+                <li><strong>Define Custom Actions:</strong> For each function we want the AI to perform, a Custom Action is created. The name of the action must exactly match the function name expected by our API helper (e.g., <code>createTodo</code>, <code>getTodos</code>).</li>
+                <li><strong>Configure API Endpoint:</strong> Each action is configured to send a <code>POST</code> request to the corresponding URL on our deployed server. For example, the <code>createTodo</code> action points to <code>https://one-main.onrender.com/syfw_todo/create_todo</code>.</li>
+                <li><strong>Assign Actions to Agent:</strong> The created actions are assigned to the agent, enabling it to trigger them during a call.</li>
+            </ol>
+
+            <h2 class="mt-4">Database Models</h2>
+            <p>The data is stored in a PostgreSQL database, managed by Flask-SQLAlchemy. To prevent conflicts with other modules, all table names are suffixed with <code>_syfw</code>.</p>
             <ul>
-                <li><strong>Backend Framework:</strong> Flask</li>
-                <li><strong>Database:</strong> SQLite (or as configured in the main app)</li>
-                <li><strong>Frontend:</strong> HTML, CSS, JavaScript (with Bootstrap)</li>
-                <li><strong>Deployment:</strong> To be determined (e.g., Gunicorn + Nginx)</li>
+                <li><strong><code>SyfwTodo</code></strong>: Stores to-do items with a title, description, and completion status. Mapped to the <code>todos_syfw</code> table.</li>
+                <li><strong><code>SyfwReminder</code></strong>: Stores reminders with text and an importance level. Mapped to the <code>reminders_syfw</code> table.</li>
+                <li><strong><code>SyfwCalendarEvent</code></strong>: Stores calendar events with a title, description, and start/end times. Mapped to the <code>calendar_events_syfw</code> table.</li>
             </ul>
 
-            <h2 class="mt-4">Features</h2>
-            <ul>
-                <li>Create, Read, Update, and Delete (CRUD) operations for tasks.</li>
-                <li>Task prioritization.</li>
-                <li>Due dates for tasks.</li>
-                <li>User authentication (if integrated with the main site's login system).</li>
-            </ul>
+            <h2 class="mt-4">Data Flow Example: Creating a To-Do Item</h2>
+            <p>Here is the end-to-end flow for adding a new task via a phone call:</p>
+            <ol>
+                <li><strong>User Interaction:</strong> The user calls the phone number assigned to the Synthflow agent and says, "Can you add a task to buy milk?"</li>
+                <li><strong>Synthflow NLU:</strong> Synthflow's Natural Language Understanding (NLU) processes the audio, identifies the intent as "create a to-do," and extracts "buy milk" as the title. It matches this to the <strong><code>createTodo</code></strong> Custom Action.</li>
+                <li><strong>API Request:</strong> Synthflow constructs a JSON payload and sends a <code>POST</code> request to our server at <code>/syfw_todo/create_todo</code>.
+<pre><code class="language-json">{
+  "message": {
+    "toolCalls": [
+      {
+        "id": "tool_call_xyz789",
+        "function": {
+          "name": "createTodo",
+          "arguments": "{\"title\": \"buy milk\"}"
+        }
+      }
+    ]
+  }
+}</code></pre>
+                </li>
+                <li><strong>Backend Validation:</strong> The <code>create_todo</code> view function in Flask calls <code>get_validated_tool_call('createTodo')</code>. This helper function uses Pydantic schemas to validate the incoming JSON, ensuring it has the correct structure.</li>
+                <li><strong>Database Operation:</strong> Once validated, the function extracts the arguments, creates a new <code>SyfwTodo(title="buy milk")</code> object, and commits it to the database.</li>
+                <li><strong>API Response:</strong> The server sends a success response back to Synthflow.
+<pre><code class="language-json">{
+  "results": [
+    {
+      "toolCallId": "tool_call_xyz789",
+      "result": "success"
+    }
+  ]
+}</code></pre>
+                </li>
+                <li><strong>User Feedback:</strong> Synthflow receives the success response and informs the user via its text-to-speech engine, "Okay, I've added 'buy milk' to your to-do list."</li>
+            </ol>
         </div>
     </div>
 </div>
