@@ -65,9 +65,49 @@ def create_app():
     app.register_blueprint(syfw_todo_bp)
 
     # --- Main Application Routes ---
-    @app.route('/')
+    @app.route('/', methods=["GET", "POST"])
     def home():
-        return render_template('index.html')
+        msg_sent = False
+        error_message = None
+        if request.method == "POST":
+            # This is the contact form submission from the homepage
+            name = request.form.get("name")
+            email_from = request.form.get("email")
+            phone = request.form.get("phone")
+            message_body = request.form.get("message")
+
+            if not all([name, email_from, message_body]):
+                error_message = "Please fill in all required fields (Name, Email, Message)."
+            else:
+                mail_server = os.environ.get('MAIL_SERVER')
+                mail_port = int(os.environ.get('MAIL_PORT', 587))
+                mail_username = os.environ.get('MAIL_USERNAME')
+                mail_password = os.environ.get('MAIL_PASSWORD')
+                mail_receiver = os.environ.get('MAIL_RECEIVER')
+
+                if not all([mail_server, mail_username, mail_password, mail_receiver]):
+                    print("Email configuration is incomplete for main contact form.")
+                    error_message = "Message could not be sent due to a server configuration issue."
+                else:
+                    email_subject = f"New Contact Form Submission from {name} (Main Site)"
+                    full_email_message = (
+                        f"Subject: {email_subject}\n\n"
+                        f"Name: {name}\nEmail: {email_from}\nPhone: {phone if phone else 'Not provided'}\n\nMessage:\n{message_body}\n"
+                    )
+
+                    try:
+                        with smtplib.SMTP(mail_server, mail_port) as server:
+                            server.starttls()
+                            server.login(mail_username, mail_password)
+                            server.sendmail(mail_username, mail_receiver, full_email_message.encode('utf-8'))
+                        msg_sent = True
+                    except Exception as e:
+                        print(f"Error sending email from main contact form: {e}")
+                        error_message = "An unexpected error occurred. Please try again later."
+
+        # Always render index.html, passing the status of the form submission
+        # The 'current_user' is available globally via the context_processor, so no need to pass it here.
+        return render_template('index.html', msg_sent=msg_sent, error=error_message)
 
     @app.route('/about')
     def about():
@@ -87,51 +127,6 @@ def create_app():
     def syfw_tech_spec():
         """Renders the technical specification page for the SYFW todo project."""
         return render_template('syfw_tech_spec.html')
-
-    @app.route('/contact', methods=["GET", "POST"])
-    def contact():
-        msg_sent = False
-        error_message = None
-        if request.method == "POST":
-            name = request.form.get("name")
-            email_from = request.form.get("email")
-            phone = request.form.get("phone")
-            message_body = request.form.get("message")
-
-            if not all([name, email_from, message_body]):
-                error_message = "Please fill in all required fields (Name, Email, Message)."
-                return render_template('contact.html', current_user=current_user, msg_sent=False, error=error_message)
-
-            mail_server = os.environ.get('MAIL_SERVER')
-            mail_port = int(os.environ.get('MAIL_PORT', 587))
-            mail_username = os.environ.get('MAIL_USERNAME')
-            mail_password = os.environ.get('MAIL_PASSWORD')
-            mail_receiver = os.environ.get('MAIL_RECEIVER')
-
-            if not all([mail_server, mail_username, mail_password, mail_receiver]):
-                print("Email configuration is incomplete for main contact form.")
-                error_message = "Message could not be sent due to a server configuration issue."
-                return render_template('contact.html', current_user=current_user, msg_sent=False, error=error_message)
-
-            email_subject = f"New Contact Form Submission from {name} (Main Site)"
-            full_email_message = (
-                f"Subject: {email_subject}\n\n"
-                f"Name: {name}\nEmail: {email_from}\nPhone: {phone if phone else 'Not provided'}\n\nMessage:\n{message_body}\n"
-            )
-
-            try:
-                with smtplib.SMTP(mail_server, mail_port) as server:
-                    server.starttls()
-                    server.login(mail_username, mail_password)
-                    server.sendmail(mail_username, mail_receiver, full_email_message.encode('utf-8'))
-                msg_sent = True
-            except Exception as e:
-                print(f"Error sending email from main contact form: {e}")
-                error_message = "An unexpected error occurred. Please try again later."
-
-        return render_template('contact.html', current_user=current_user, msg_sent=msg_sent, error=error_message)
-
-    
 
     # --- Context Processors ---
     @app.context_processor
