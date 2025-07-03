@@ -1,91 +1,210 @@
 {% extends "base.html" %}
-{% block title %}SYFW To-Do Tech Spec{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row">
-        <div class="col-lg-8 col-md-10 mx-auto">
-            <h1 class="mt-5">Synthflow To-Do Assistant - Technical Specification</h1>
-            <hr>
-
-            <h2 class="mt-4">Project Overview</h2>
-            <p>
-                The Synthflow To-Do Assistant is a voice-driven task management system integrated into the main portfolio application. It leverages the **Synthflow.ai** platform to provide a natural language interface for managing to-do lists, reminders, and calendar events over the phone.
-            </p>
-            <p>
-                This project is implemented as a modular Flask Blueprint, providing a set of secure, stateless API endpoints that Synthflow calls to interact with the application's database.
-            </p>
-
-            <h2 class="mt-4">Core Architecture & Integration</h2>
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">Flask Blueprint (`syfw_todo_bp`)</h5>
-                    <p class="card-text">The entire module is encapsulated within a Flask Blueprint defined in <code>syfw_todo/routes.py</code>. This ensures its logic and routes are self-contained. It is registered in the main <code>app.py</code> with a URL prefix, making all its routes accessible under <code>/syfw_todo/...</code>.</p>
+<div class="min-h-screen bg-gray-50">
+    <!-- Header Section -->
+    <section class="py-16 bg-white">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h1 class="text-4xl font-bold text-gray-800 mb-4">Syfw To-Do AI Assistant</h1>
+                <p class="text-xl text-gray-600 mb-8">AI Voice agentic solution integrated with Synthflow.ai</p>
+                <div class="flex justify-center space-x-4">
+                    <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">Flask</span>
+                    <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">SQLAlchemy</span>
+                    <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">Pydantic</span>
+                    <span class="bg-pink-100 text-pink-800 px-3 py-1 rounded-full text-sm font-medium">Synthflow.ai</span>
                 </div>
             </div>
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">Shared Modules for DRY Code</h5>
-                    <p class="card-text">To avoid code duplication with the similar <code>vapi_todo</code> project, this module utilizes a central <code>shared</code> directory for common components:</p>
-                    <ul>
-                        <li><strong><code>shared/schemas.py</code></strong>: Contains Pydantic models for request validation and response serialization, ensuring data consistency.</li>
-                        <li><strong><code>shared/helpers.py</code></strong>: Contains the <code>get_validated_tool_call</code> function, which parses and validates incoming JSON payloads from the voice platform.</li>
-                    </ul>
+        </div>
+    </section>
+
+    <!-- Technical Architecture Section -->
+    <section class="py-16 bg-white">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-center mb-12">Technical Architecture</h2>
+            <!-- Overview -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">Overview</h3>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <p class="text-gray-700 mb-4">
+                        The Syfw To-Do AI Assistant is a Flask-based REST API that provides to-do list, reminder, and calendar management functionality. It is designed to integrate with Synthflow.ai voice agents through standardized tool call interfaces and custom actions.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                        <div class="bg-white p-4 rounded border">
+                            <h4 class="font-semibold text-gray-800 mb-2">Core Technologies</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Flask (Python web framework)</li>
+                                <li>• SQLAlchemy with shared database instance</li>
+                                <li>• Pydantic models for request/response validation</li>
+                                <li>• Blueprint architecture for modular design</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-4 rounded border">
+                            <h4 class="font-semibold text-gray-800 mb-2">Key Features</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• To-do list management</li>
+                                <li>• Reminder system</li>
+                                <li>• Calendar event management</li>
+                                <li>• Voice API integration (Synthflow.ai)</li>
+                                <li>• RESTful API endpoints</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <h2 class="mt-4">Synthflow.ai Configuration</h2>
-            <p>The connection between the voice platform and our Flask backend is established in the Synthflow dashboard. The key is to define "Custom Actions" that map directly to our API endpoints.</p>
-            <ol>
-                <li><strong>Create an Agent:</strong> An agent is created in Synthflow to handle the call logic, voice, and personality.</li>
-                <li><strong>Define Custom Actions:</strong> For each function we want the AI to perform, a Custom Action is created. The name of the action must exactly match the function name expected by our API helper (e.g., <code>createTodo</code>, <code>getTodos</code>).</li>
-                <li><strong>Configure API Endpoint:</strong> Each action is configured to send a <code>POST</code> request to the corresponding URL on our deployed server. For example, the <code>createTodo</code> action points to <code>https://one-main.onrender.com/syfw_todo/create_todo</code>.</li>
-                <li><strong>Assign Actions to Agent:</strong> The created actions are assigned to the agent, enabling it to trigger them during a call.</li>
-            </ol>
+            <!-- Module Structure -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">Module Structure</h3>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <div class="font-mono text-sm bg-white p-4 rounded border overflow-x-auto">
+                        <pre>syfw_todo/
+├── __init__.py      # Package initialization, exports blueprint
+├── models.py        # SQLAlchemy database models
+├── schemas.py       # Pydantic validation schemas
+├── helpers.py       # Utility functions and request parsing
+├── routes.py        # Flask routes and blueprint definition
+├── README_Syfw_toDoList.md  # Documentation
+</pre>
+                    </div>
+                </div>
+            </div>
 
-            <h2 class="mt-4">Database Models</h2>
-            <p>The data is stored in a PostgreSQL database, managed by Flask-SQLAlchemy. To prevent conflicts with other modules, all table names are suffixed with <code>_syfw</code>.</p>
-            <ul>
-                <li><strong><code>SyfwTodo</code></strong>: Stores to-do items with a title, description, and completion status. Mapped to the <code>todos_syfw</code> table.</li>
-                <li><strong><code>SyfwReminder</code></strong>: Stores reminders with text and an importance level. Mapped to the <code>reminders_syfw</code> table.</li>
-                <li><strong><code>SyfwCalendarEvent</code></strong>: Stores calendar events with a title, description, and start/end times. Mapped to the <code>calendar_events_syfw</code> table.</li>
-            </ul>
+            <!-- Data Layer -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">Data Layer (models.py)</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h4 class="text-lg font-semibold mb-3 text-gray-800">SyfwTodo Model</h4>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            <li>• id: Primary key</li>
+                            <li>• title: Task title (indexed)</li>
+                            <li>• description: Optional task details</li>
+                            <li>• completed: Boolean status</li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h4 class="text-lg font-semibold mb-3 text-gray-800">SyfwReminder Model</h4>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            <li>• id: Primary key</li>
+                            <li>• reminder_text: Reminder content</li>
+                            <li>• importance: Priority level</li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h4 class="text-lg font-semibold mb-3 text-gray-800">SyfwCalendarEvent Model</h4>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            <li>• id: Primary key</li>
+                            <li>• title: Event title (indexed)</li>
+                            <li>• description: Event details</li>
+                            <li>• event_from: Start datetime</li>
+                            <li>• event_to: End datetime</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
 
-            <h2 class="mt-4">Data Flow Example: Creating a To-Do Item</h2>
-            <p>Here is the end-to-end flow for adding a new task via a phone call:</p>
-            <ol>
-                <li><strong>User Interaction:</strong> The user calls the phone number assigned to the Synthflow agent and says, "Can you add a task to buy milk?"</li>
-                <li><strong>Synthflow NLU:</strong> Synthflow's Natural Language Understanding (NLU) processes the audio, identifies the intent as "create a to-do," and extracts "buy milk" as the title. It matches this to the <strong><code>createTodo</code></strong> Custom Action.</li>
-                <li><strong>API Request:</strong> Synthflow constructs a JSON payload and sends a <code>POST</code> request to our server at <code>/syfw_todo/create_todo</code>.
-<pre><code class="language-json">{
-  "message": {
-    "toolCalls": [
-      {
-        "id": "tool_call_xyz789",
-        "function": {
-          "name": "createTodo",
-          "arguments": "{\"title\": \"buy milk\"}"
-        }
-      }
-    ]
-  }
-}</code></pre>
-                </li>
-                <li><strong>Backend Validation:</strong> The <code>create_todo</code> view function in Flask calls <code>get_validated_tool_call('createTodo')</code>. This helper function uses Pydantic schemas to validate the incoming JSON, ensuring it has the correct structure.</li>
-                <li><strong>Database Operation:</strong> Once validated, the function extracts the arguments, creates a new <code>SyfwTodo(title="buy milk")</code> object, and commits it to the database.</li>
-                <li><strong>API Response:</strong> The server sends a success response back to Synthflow.
-<pre><code class="language-json">{
+            <!-- API Endpoints -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">API Endpoints</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h4 class="text-lg font-semibold mb-3 text-gray-800">To-Do Management</h4>
+                        <ul class="text-sm text-gray-600 space-y-2">
+                            <li><code class="bg-gray-100 px-2 py-1 rounded">POST /syfw_todo/create_todo</code></li>
+                            <li><code class="bg-gray-100 px-2 py-1 rounded">POST /syfw_todo/get_todos</code></li>
+                            <li><code class="bg-gray-100 px-2 py-1 rounded">POST /syfw_todo/complete_todo</code></li>
+                            <li><code class="bg-gray-100 px-2 py-1 rounded">POST /syfw_todo/delete_todo</code></li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h4 class="text-lg font-semibold mb-3 text-gray-800">Reminder Management</h4>
+                        <ul class="text-sm text-gray-600 space-y-2">
+                            <li><code class="bg-gray-100 px-2 py-1 rounded">POST /syfw_todo/add_reminder</code></li>
+                            <li><code class="bg-gray-100 px-2 py-1 rounded">POST /syfw_todo/get_reminders</code></li>
+                            <li><code class="bg-gray-100 px-2 py-1 rounded">POST /syfw_todo/delete_reminder</code></li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h4 class="text-lg font-semibold mb-3 text-gray-800">Calendar Management</h4>
+                        <ul class="text-sm text-gray-600 space-y-2">
+                            <li><code class="bg-gray-100 px-2 py-1 rounded">POST /syfw_todo/add_calendar_entry</code></li>
+                            <li><code class="bg-gray-100 px-2 py-1 rounded">POST /syfw_todo/get_calendar_entries</code></li>
+                            <li><code class="bg-gray-100 px-2 py-1 rounded">POST /syfw_todo/delete_calendar_entry</code></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Response Format -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">Response Format</h3>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <p class="text-gray-700 mb-4">All API responses follow a consistent structure:</p>
+                    <div class="bg-white p-4 rounded border">
+                        <pre class="text-sm overflow-x-auto"><code>{
   "results": [
     {
-      "toolCallId": "tool_call_xyz789",
-      "result": "success"
+      "toolCallId": "string",
+      "result": "success" | object | array
     }
   ]
 }</code></pre>
-                </li>
-                <li><strong>User Feedback:</strong> Synthflow receives the success response and informs the user via its text-to-speech engine, "Okay, I've added 'buy milk' to your to-do list."</li>
-            </ol>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
+    </section>
+
+    <!-- Synthflow Configuration & Deployment -->
+    <section class="py-16 bg-gray-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-center mb-12">Synthflow Configuration & Deployment</h2>
+            <div class="space-y-6">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h4 class="text-lg font-semibold mb-3 text-gray-800">1. Synthflow.ai Setup</h4>
+                    <ol class="list-decimal list-inside text-gray-700 space-y-2">
+                        <li>Go to <strong>synthflow.ai</strong> and create an account or log in.</li>
+                        <li>Go to the Synthflow menu in the left panel and create an agent.</li>
+                        <li>Go to Actions menu and create Custom Actions:
+                            <ul class="list-disc list-inside ml-6">
+                                <li>toDoList: <span class="text-gray-600">createTodo, getTodos, completeTodo, deleteTodo</span></li>
+                                <li>reMinder: <span class="text-gray-600">addReminder, getReminder, deleteReminder</span></li>
+                                <li>calendar: <span class="text-gray-600">addCalendarEntry, getCalendarEntries, deleteCalendarEntry</span></li>
+                            </ul>
+                        </li>
+                        <li>Configure Agent (General, Voice, Call Configuration):
+                            <ul class="list-disc list-inside ml-6">
+                                <li>AI Model: GPT 4o or your choice</li>
+                                <li>Timezone: US/Pacific</li>
+                                <li>Language: English or your preference</li>
+                                <li>Voice: Jessica or your preference</li>
+                                <li>Enable Recording and Transcripts</li>
+                            </ul>
+                        </li>
+                        <li>Configure Prompt (Greeting, Agent Info, Personality, Role, Goal, Conversation Style, Script Instructions)</li>
+                        <li>Configure Actions (assign to Before, During, or After the call as needed)</li>
+                        <li>Deployment: Assign a phone number and set up greeting message</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Test Scenarios -->
+    <section class="py-16 bg-white">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-center mb-12">Test Scenarios</h2>
+            <div class="bg-gray-50 p-6 rounded-lg">
+                <ol class="list-decimal list-inside text-gray-700 space-y-2">
+                    <li>Make a call and say "to do list with time and date" to the AI assistant</li>
+                    <li>Ask what "to do lists" exist currently and ask to remind the tasks</li>
+                    <li>Say that some tasks were completed</li>
+                    <li>Say that some tasks were deleted</li>
+                    <li>Check whether all test cases have been updated to database tables</li>
+                </ol>
+            </div>
+        </div>
+    </section>
 </div>
 {% endblock %}
