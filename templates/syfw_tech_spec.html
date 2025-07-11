@@ -13,6 +13,7 @@
                     <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">SQLAlchemy</span>
                     <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">Pydantic</span>
                     <span class="bg-pink-100 text-pink-800 px-3 py-1 rounded-full text-sm font-medium">Synthflow.ai</span>
+                    <span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-medium">Google Calendar</span>
                 </div>
             </div>
         </div>
@@ -45,6 +46,7 @@
                                 <li>• To-do list management</li>
                                 <li>• Reminder system</li>
                                 <li>• Calendar event management</li>
+                                <li>• Google Calendar integration</li>
                                 <li>• Voice API integration (Synthflow.ai)</li>
                                 <li>• RESTful API endpoints</li>
                             </ul>
@@ -99,6 +101,7 @@
                             <li>• description: Event details</li>
                             <li>• event_from: Start datetime</li>
                             <li>• event_to: End datetime</li>
+                            <li>• google_calendar_event_id: Google Calendar event ID (VARCHAR)</li>
                         </ul>
                     </div>
                 </div>
@@ -131,6 +134,56 @@
                             <li><code class="bg-gray-100 px-2 py-1 rounded">POST /syfw_todo/add_calendar_entry</code></li>
                             <li><code class="bg-gray-100 px-2 py-1 rounded">POST /syfw_todo/get_calendar_entries</code></li>
                             <li><code class="bg-gray-100 px-2 py-1 rounded">POST /syfw_todo/delete_calendar_entry</code></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Google Calendar Integration -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">Google Calendar Integration</h3>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <p class="text-gray-700 mb-4">
+                        The SYFW Todo system integrates with Google Calendar to automatically sync calendar events, to-dos, and reminders with the user's Google Calendar account.
+                    </p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-white p-4 rounded border">
+                            <h4 class="font-semibold text-gray-800 mb-2">Authentication</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• OAuth2 authentication with Google Calendar API</li>
+                                <li>• Requires credentials.json from Google Cloud Console</li>
+                                <li>• Token-based authentication with automatic refresh</li>
+                                <li>• Supports desktop application authentication flow</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-4 rounded border">
+                            <h4 class="font-semibold text-gray-800 mb-2">Features</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Automatic event creation in Google Calendar</li>
+                                <li>• Real-time synchronization with database</li>
+                                <li>• Event updates and deletions</li>
+                                <li>• Timezone-aware datetime handling</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-4 rounded border mb-4">
+                        <h4 class="font-semibold text-gray-800 mb-2">Implementation Details</h4>
+                        <div class="text-sm text-gray-600 space-y-2">
+                            <p><strong>Service Location:</strong> <code class="bg-gray-100 px-2 py-1 rounded">shared/google_calendar.py</code></p>
+                            <p><strong>Main Class:</strong> <code class="bg-gray-100 px-2 py-1 rounded">GoogleCalendarService</code></p>
+                            <p><strong>Global Access:</strong> <code class="bg-gray-100 px-2 py-1 rounded">get_calendar_service()</code></p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-4 rounded border">
+                        <h4 class="font-semibold text-gray-800 mb-2">API Methods</h4>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            <li>• <code class="bg-gray-100 px-2 py-1 rounded">create_event()</code> - Create new calendar event</li>
+                            <li>• <code class="bg-gray-100 px-2 py-1 rounded">update_event()</code> - Update existing event</li>
+                            <li>• <code class="bg-gray-100 px-2 py-1 rounded">delete_event()</code> - Delete calendar event</li>
+                            <li>• <code class="bg-gray-100 px-2 py-1 rounded">get_event()</code> - Retrieve event details</li>
                         </ul>
                     </div>
                 </div>
