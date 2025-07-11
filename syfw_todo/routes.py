@@ -1,10 +1,12 @@
 import os
 import markdown2
+from datetime import datetime, timedelta
 from flask import Blueprint, request, jsonify, abort, render_template, current_app
 from extensions import db
 from .models import SyfwTodo, SyfwReminder, SyfwCalendarEvent # Models are specific, so they stay
 from shared.schemas import TodoResponse, ReminderResponse, CalendarEventResponse
 from shared.helpers import get_validated_tool_call
+from shared.google_calendar import get_calendar_service
 
 # It's good practice to define template_folder and static_folder if they exist within the blueprint directory.
 syfw_todo_bp = Blueprint(
@@ -27,10 +29,26 @@ def create_todo():
     args = tool_call.function.arguments
     title = args.get('title', '')
     description = args.get('description', '')
+    
+    # Create todo in database
     todo = SyfwTodo(title=title, description=description)
     db.session.add(todo)
     db.session.commit()
     db.session.refresh(todo)
+    
+    # Sync with Google Calendar
+    try:
+        calendar_service = get_calendar_service()
+        google_event_id = calendar_service.create_event(
+            title=f"TODO: {title}",
+            description=description or "Task from SYFW Todo System"
+        )
+        if google_event_id:
+            todo.google_calendar_event_id = google_event_id
+            db.session.commit()
+    except Exception as e:
+        print(f"Failed to sync with Google Calendar: {e}")
+    
     return jsonify({'results': [{'toolCallId': tool_call.id, 'result': 'success'}]})
 
 @syfw_todo_bp.route('/get_todos', methods=['POST'])
@@ -47,11 +65,26 @@ def complete_todo():
     todo_id = args.get('id')
     if not todo_id:
         abort(400, description='Missing To-Do ID in arguments.')
+    
     todo = db.session.query(SyfwTodo).filter(SyfwTodo.id == todo_id).first()
     if not todo:
         abort(404, description='Todo not found.')
+    
     todo.completed = True
     db.session.commit()
+    
+    # Update Google Calendar event
+    if todo.google_calendar_event_id:
+        try:
+            calendar_service = get_calendar_service()
+            calendar_service.update_event(
+                event_id=todo.google_calendar_event_id,
+                title=f"COMPLETED: {todo.title}",
+                description=f"{todo.description or ''}\n\nStatus: Completed"
+            )
+        except Exception as e:
+            print(f"Failed to update Google Calendar event: {e}")
+    
     return jsonify({'results': [{'toolCallId': tool_call.id, 'result': 'success'}]})
 
 @syfw_todo_bp.route('/delete_todo', methods=['POST'])
@@ -61,9 +94,19 @@ def delete_todo():
     todo_id = args.get('id')
     if not todo_id:
         abort(400, description='Missing To-Do ID in arguments.')
+    
     todo = db.session.query(SyfwTodo).filter(SyfwTodo.id == todo_id).first()
     if not todo:
         abort(404, description='Todo not found.')
+    
+    # Delete from Google Calendar first
+    if todo.google_calendar_event_id:
+        try:
+            calendar_service = get_calendar_service()
+            calendar_service.delete_event(todo.google_calendar_event_id)
+        except Exception as e:
+            print(f"Failed to delete Google Calendar event: {e}")
+    
     db.session.delete(todo)
     db.session.commit()
     return jsonify({'results': [{'toolCallId': tool_call.id, 'result': 'success'}]})
@@ -74,10 +117,26 @@ def add_reminder():
     args = tool_call.function.arguments
     reminder_text = args.get('reminder_text', '')
     importance = args.get('importance', '')
+    
+    # Create reminder in database
     reminder = SyfwReminder(reminder_text=reminder_text, importance=importance)
     db.session.add(reminder)
     db.session.commit()
     db.session.refresh(reminder)
+    
+    # Sync with Google Calendar
+    try:
+        calendar_service = get_calendar_service()
+        google_event_id = calendar_service.create_event(
+            title=f"REMINDER: {reminder_text}",
+            description=f"Importance: {importance}\nReminder from SYFW Todo System"
+        )
+        if google_event_id:
+            reminder.google_calendar_event_id = google_event_id
+            db.session.commit()
+    except Exception as e:
+        print(f"Failed to sync reminder with Google Calendar: {e}")
+    
     return jsonify({'results': [{'toolCallId': tool_call.id, 'result': 'success'}]})
 
 @syfw_todo_bp.route('/get_reminders', methods=['POST'])
@@ -94,9 +153,19 @@ def delete_reminder():
     reminder_id = args.get('id')
     if not reminder_id:
         abort(400, description='Missing Reminder ID in arguments.')
+    
     reminder = db.session.query(SyfwReminder).filter(SyfwReminder.id == reminder_id).first()
     if not reminder:
         abort(404, description='Reminder not found.')
+    
+    # Delete from Google Calendar first
+    if reminder.google_calendar_event_id:
+        try:
+            calendar_service = get_calendar_service()
+            calendar_service.delete_event(reminder.google_calendar_event_id)
+        except Exception as e:
+            print(f"Failed to delete Google Calendar event: {e}")
+    
     db.session.delete(reminder)
     db.session.commit()
     return jsonify({'results': [{'toolCallId': tool_call.id, 'result': 'success'}]})
@@ -109,10 +178,48 @@ def add_calendar_entry():
     description = args.get('description', '')
     event_from = args.get('event_from')
     event_to = args.get('event_to')
-    event = SyfwCalendarEvent(title=title, description=description, event_from=event_from, event_to=event_to)
+    
+    # Parse datetime strings
+    start_time = None
+    end_time = None
+    if event_from:
+        try:
+            start_time = datetime.fromisoformat(event_from.replace('Z', '+00:00'))
+        except:
+            start_time = datetime.utcnow()
+    if event_to:
+        try:
+            end_time = datetime.fromisoformat(event_to.replace('Z', '+00:00'))
+        except:
+            end_time = start_time + timedelta(hours=1) if start_time else datetime.utcnow() + timedelta(hours=1)
+    
+    # Create calendar event in database
+    event = SyfwCalendarEvent(title=title, description=description, event_from=start_time, event_to=end_time)
     db.session.add(event)
     db.session.commit()
     db.session.refresh(event)
+    
+    # Sync with Google Calendar
+    try:
+        print(f"🔄 Attempting to sync calendar event: {title}")
+        calendar_service = get_calendar_service()
+        google_event_id = calendar_service.create_event(
+            title=title,
+            description=description or "Event from SYFW Todo System",
+            start_time=start_time,
+            end_time=end_time
+        )
+        if google_event_id:
+            event.google_calendar_event_id = google_event_id
+            db.session.commit()
+            print(f"✅ Successfully created Google Calendar event: {google_event_id}")
+        else:
+            print("❌ Google Calendar event creation returned None")
+    except Exception as e:
+        print(f"❌ Failed to sync calendar event with Google Calendar: {e}")
+        import traceback
+        traceback.print_exc()
+    
     return jsonify({'results': [{'toolCallId': tool_call.id, 'result': 'success'}]})
 
 @syfw_todo_bp.route('/get_calendar_entries', methods=['POST'])
@@ -129,9 +236,19 @@ def delete_calendar_entry():
     event_id = args.get('id')
     if not event_id:
         abort(400, description='Missing Calendar Event ID in arguments.')
+    
     event = db.session.query(SyfwCalendarEvent).filter(SyfwCalendarEvent.id == event_id).first()
     if not event:
         abort(404, description='Calendar event not found.')
+    
+    # Delete from Google Calendar first
+    if event.google_calendar_event_id:
+        try:
+            calendar_service = get_calendar_service()
+            calendar_service.delete_event(event.google_calendar_event_id)
+        except Exception as e:
+            print(f"Failed to delete Google Calendar event: {e}")
+    
     db.session.delete(event)
     db.session.commit()
     return jsonify({'results': [{'toolCallId': tool_call.id, 'result': 'success'}]})
