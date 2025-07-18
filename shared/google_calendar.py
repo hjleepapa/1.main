@@ -29,7 +29,7 @@ class GoogleCalendarService:
     def _authenticate(self):
         """Authenticate with Google Calendar API."""
         creds = None
-        
+        # reference: https://developers.google.com/calendar/api/quickstart/python
         # The file token.pickle stores the user's access and refresh tokens.
         if os.path.exists(self.token_file):
             with open(self.token_file, 'rb') as token:
