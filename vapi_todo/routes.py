@@ -42,7 +42,7 @@ def create_todo():
 def get_todos():
     tool_call = get_validated_tool_call('getTodos')
     todos_db = db.session.query(VapiTodo).all()
-    todos_response = [TodoResponse.from_orm(todo).dict() for todo in todos_db]
+    todos_response = [TodoResponse.model_validate(todo).model_dump() for todo in todos_db]
     return jsonify({'results': [{'toolCallId': tool_call.id, 'result': todos_response}]})
 
 @vapi_flask_bp.route('/complete_todo', methods=['POST'])
@@ -130,7 +130,7 @@ def add_reminder():
 def get_reminders():
     tool_call = get_validated_tool_call('getReminders')
     reminders_db = db.session.query(VapiReminder).all()
-    reminders_response = [ReminderResponse.from_orm(reminder).dict() for reminder in reminders_db]
+    reminders_response = [ReminderResponse.model_validate(reminder).model_dump() for reminder in reminders_db]
     return jsonify({'results': [{'toolCallId': tool_call.id, 'result': reminders_response}]})
 
 @vapi_flask_bp.route('/delete_reminder', methods=['POST'])
@@ -207,7 +207,7 @@ def add_calendar_entry():
 def get_calendar_entries():
     tool_call = get_validated_tool_call('getCalendarEntries')
     events_db = db.session.query(VapiCalendarEvent).all()
-    events_response = [CalendarEventResponse.from_orm(event).dict() for event in events_db]
+    events_response = [CalendarEventResponse.model_validate(event).model_dump() for event in events_db]
     return jsonify({'results': [{'toolCallId': tool_call.id, 'result': events_response}]})
 
 @vapi_flask_bp.route('/delete_calendar_entry', methods=['POST'])

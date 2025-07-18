@@ -64,6 +64,9 @@ def create_app():
     from syfw_todo import syfw_todo_bp
     app.register_blueprint(syfw_todo_bp)
 
+    from blnd_todo.routes import blnd_todo_bp
+    app.register_blueprint(blnd_todo_bp)
+
     # --- Main Application Routes ---
     @app.route('/', methods=["GET", "POST"])
     def home():
@@ -127,6 +130,11 @@ def create_app():
     def syfw_tech_spec():
         """Renders the technical specification page for the SYFW todo project."""
         return render_template('syfw_tech_spec.html')
+
+    @app.route('/blnd-tech-spec')
+    def blnd_tech_spec():
+        """Renders the technical specification page for the BLND todo project."""
+        return render_template('blnd_tech_spec.html')
 
     # --- Context Processors ---
     @app.context_processor

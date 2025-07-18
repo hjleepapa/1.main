@@ -26,15 +26,13 @@ class TodoResponse(BaseModel):
     title: str
     description: Union[str, None]
     completed: bool
-    class Config:
-        from_attributes = True
+    model_config = {'from_attributes': True}
 
 class ReminderResponse(BaseModel):
     id: int
     reminder_text: str
     importance: str
-    class Config:
-        from_attributes = True
+    model_config = {'from_attributes': True}
 
 class CalendarEventResponse(BaseModel):
     id: int
@@ -42,5 +40,4 @@ class CalendarEventResponse(BaseModel):
     description: Union[str, None]
     event_from: dt.datetime
     event_to: dt.datetime
-    class Config:
-        from_attributes = True
+    model_config = {'from_attributes': True}
