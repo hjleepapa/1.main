@@ -177,44 +177,49 @@ def add_calendar_entry():
     args = tool_call.function.arguments
     title = args.get('title', '')
     description = args.get('description', '')
-    start_time = args.get('event_from')
-    end_time = args.get('event_to')
-
-    if not start_time or not end_time:
-        abort(400, description='Missing start_time or end_time in arguments.')
-
+    event_from = args.get('event_from')
+    event_to = args.get('event_to')
+    
     # Parse datetime strings
-    try:
-        start_dt = datetime.fromisoformat(start_time)
-        end_dt = datetime.fromisoformat(end_time)
-    except ValueError:
-        abort(400, description='Invalid datetime format for start_time or end_time.')
-
+    start_time = None
+    end_time = None
+    if event_from:
+        try:
+            start_time = datetime.fromisoformat(event_from.replace('Z', '+00:00'))
+        except:
+            start_time = datetime.now(datetime.timezone.utc)
+    if event_to:
+        try:
+            end_time = datetime.fromisoformat(event_to.replace('Z', '+00:00'))
+        except:
+            end_time = start_time + timedelta(hours=1) if start_time else datetime.now(datetime.timezone.utc) + timedelta(hours=1)
+    
     # Create calendar event in database
-    event = BlndCalendarEvent(
-        title=title,
-        description=description,
-        start_time=start_dt,
-        end_time=end_dt
-    )
+    event = BlndCalendarEvent(title=title, description=description, event_from=start_time, event_to=end_time)
     db.session.add(event)
     db.session.commit()
     db.session.refresh(event)
-
+    
     # Sync with Google Calendar
     try:
+        print(f"🔄 Attempting to sync calendar event: {title}")
         calendar_service = get_calendar_service()
         google_event_id = calendar_service.create_event(
             title=title,
-            description=description or "Event from BLND To-Do",
-            start=start_dt,
-            end=end_dt
+            description=description or "Event from Blnd Todo System",
+            start_time=start_time,
+            end_time=end_time
         )
         if google_event_id:
             event.google_calendar_event_id = google_event_id
             db.session.commit()
+            print(f"✅ Successfully created Google Calendar event: {google_event_id}")
+        else:
+            print("❌ Google Calendar event creation returned None")
     except Exception as e:
-        current_app.logger.error(f"Error syncing with Google Calendar: {e}")
+        print(f"Failed to sync calendar event with Google Calendar: {e}")
+        import traceback
+        traceback.print_exc()
     
     return jsonify({'results': [{'toolCallId': tool_call.id, 'result': 'success'}]})
 
