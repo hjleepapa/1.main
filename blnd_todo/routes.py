@@ -117,7 +117,7 @@ def add_reminder():
     tool_call = get_validated_tool_call('addReminder')
     args = tool_call.function.arguments
     reminder_text = args.get('reminder_text', '')
-    importance = args.get('importance', 'medium')
+    importance = args.get('importance', '')
 
     # Create reminder in database
     reminder = BlndReminder(reminder_text=reminder_text, importance=importance)
