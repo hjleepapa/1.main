@@ -1,5 +1,7 @@
 import os
 import json
+import base64
+import tempfile
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 from google.oauth2.credentials import Credentials
@@ -29,9 +31,17 @@ class GoogleCalendarService:
     def _authenticate(self):
         """Authenticate with Google Calendar API."""
         creds = None
-        # reference: https://developers.google.com/calendar/api/quickstart/python
-        # The file token.pickle stores the user's access and refresh tokens.
-        if os.path.exists(self.token_file):
+        
+        # Try to load token from environment variable first, then fallback to file
+        token_b64 = os.getenv('GOOGLE_TOKEN_B64')
+        if token_b64:
+            try:
+                token_data = base64.b64decode(token_b64)
+                creds = pickle.loads(token_data)
+            except Exception as e:
+                print(f"Warning: Could not load token from environment variable: {e}")
+                creds = None
+        elif os.path.exists(self.token_file):
             with open(self.token_file, 'rb') as token:
                 creds = pickle.load(token)
         
@@ -40,17 +50,49 @@ class GoogleCalendarService:
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
             else:
-                if not os.path.exists(self.credentials_file):
+                # Try to get credentials from environment variable first
+                credentials_b64 = os.getenv('GOOGLE_CREDENTIALS_B64')
+                if credentials_b64:
+                    try:
+                        credentials_data = base64.b64decode(credentials_b64)
+                        credentials_json = json.loads(credentials_data.decode('utf-8'))
+                        
+                        # Create a temporary file for the credentials
+                        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as temp_file:
+                            json.dump(credentials_json, temp_file)
+                            temp_credentials_file = temp_file.name
+                        
+                        flow = InstalledAppFlow.from_client_secrets_file(
+                            temp_credentials_file, SCOPES)
+                        
+                        # Clean up the temporary file
+                        os.unlink(temp_credentials_file)
+                        
+                    except Exception as e:
+                        raise RuntimeError(f"Could not load credentials from environment variable: {e}")
+                elif os.path.exists(self.credentials_file):
+                    flow = InstalledAppFlow.from_client_secrets_file(
+                        self.credentials_file, SCOPES)
+                else:
                     raise FileNotFoundError(
-                        f"Credentials file '{self.credentials_file}' not found. "
-                        "Please download it from Google Cloud Console."
+                        f"Credentials not found in environment variable 'GOOGLE_CREDENTIALS_B64' "
+                        f"or file '{self.credentials_file}'. Please set the environment variable "
+                        "or download the credentials file from Google Cloud Console."
                     )
-                
-                flow = InstalledAppFlow.from_client_secrets_file(
-                    self.credentials_file, SCOPES)
                 creds = flow.run_local_server(port=0)
             
             # Save the credentials for the next run
+            # Save to environment variable (base64 encoded) and also to file as backup
+            try:
+                token_data = pickle.dumps(creds)
+                token_b64 = base64.b64encode(token_data).decode('utf-8')
+                # Note: In production, you'd want to update the .env file or use a proper config management system
+                # For now, we'll just save to file as backup
+                print(f"Token updated. To persist in .env, add: GOOGLE_TOKEN_B64={token_b64}")
+            except Exception as e:
+                print(f"Warning: Could not encode token for environment variable: {e}")
+            
+            # Also save to file as backup
             with open(self.token_file, 'wb') as token:
                 pickle.dump(creds, token)
         
