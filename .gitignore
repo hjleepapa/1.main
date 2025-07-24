@@ -6,3 +6,7 @@ shared/credentials.json
 shared/Credentials.json
 shared/token.pickle
 shared/create_token.py
+create_token.py
+Credentials.json
+token.pickle
+
