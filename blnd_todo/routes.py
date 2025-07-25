@@ -136,7 +136,7 @@ def add_reminder():
             reminder.google_calendar_event_id = google_event_id
             db.session.commit()
     except Exception as e:
-        current_app.logger.error(f"Error syncing with Google Calendar: {e}")
+        print(f"Failed to sync reminder with Google Calendar: {e}")
     
     return jsonify({'results': [{'toolCallId': tool_call.id, 'result': 'success'}]})
 
@@ -165,7 +165,7 @@ def delete_reminder():
             calendar_service = get_calendar_service()
             calendar_service.delete_event(reminder.google_calendar_event_id)
         except Exception as e:
-            current_app.logger.error(f"Error deleting Google Calendar event: {e}")
+            print(f"Failed to delete Google Calendar event: {e}")
 
     db.session.delete(reminder)
     db.session.commit()
@@ -187,12 +187,12 @@ def add_calendar_entry():
         try:
             start_time = datetime.fromisoformat(event_from.replace('Z', '+00:00'))
         except:
-            start_time = datetime.now(datetime.timezone.utc)
+            start_time = datetime.utcnow()
     if event_to:
         try:
             end_time = datetime.fromisoformat(event_to.replace('Z', '+00:00'))
         except:
-            end_time = start_time + timedelta(hours=1) if start_time else datetime.now(datetime.timezone.utc) + timedelta(hours=1)
+            end_time = start_time + timedelta(hours=1) if start_time else datetime.utcnow() + timedelta(hours=1)
     
     # Create calendar event in database
     event = BlndCalendarEvent(title=title, description=description, event_from=start_time, event_to=end_time)
@@ -214,12 +214,9 @@ def add_calendar_entry():
             event.google_calendar_event_id = google_event_id
             db.session.commit()
             print(f"✅ Successfully created Google Calendar event: {google_event_id}")
-        else:
-            print("❌ Google Calendar event creation returned None")
+        
     except Exception as e:
         print(f"Failed to sync calendar event with Google Calendar: {e}")
-        import traceback
-        traceback.print_exc()
     
     return jsonify({'results': [{'toolCallId': tool_call.id, 'result': 'success'}]})
 
