@@ -15,7 +15,7 @@ import pickle
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 
 class GoogleCalendarService:
-    def __init__(self, credentials_file: str = 'shared/credentials.json', token_file: str = 'shared/token.pickle'):
+    def __init__(self, credentials_file: str = 'credentials.json', token_file: str = 'token.pickle'):
         """
         Initialize Google Calendar service.
         
@@ -237,4 +237,6 @@ def get_calendar_service() -> GoogleCalendarService:
     return _calendar_service 
 
 if __name__ == "__main__":
-    GoogleCalendarService() 
+    # To generate token.pickle from credentials.json in the project root,
+    # run this script from the project root directory.
+    GoogleCalendarService(credentials_file='credentials.json')
