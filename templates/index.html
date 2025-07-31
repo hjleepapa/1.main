@@ -187,8 +187,8 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
                 <div>
                     <h2 class="text-2xl font-semibold mb-4">Get in Touch</h2>
-                    <p class="text-gray-600 mb-6">
-                            I'm always open to exploring new projects related to AI Contact Centers, sharing creative ideas for migration or integration with existing systems, or discussing ways to enhance customer satisfaction. 
+                    <p class="text-gray-600 mb-6 text-justify">
+                        I'm always open to exploring new projects related to AI Contact Centers, sharing creative ideas for migration or integration with existing systems, or discussing ways to enhance customer satisfaction. 
                         Whether you have a question, are interested in collaborating, or just want to connect, I'd love to hear from you. Feel free to reach out via email, phone, or by filling out the form provided. 
                         I'll get back to you as soon as possible. Looking forward to connecting!
                     </p>
@@ -216,31 +216,6 @@
                     </div>
                 </div>
                 
-                <div class="bg-white p-8 rounded-lg shadow-lg">
-                    <form method="POST" action="{{ url_for('home') }}" class="space-y-6">
-                        <div>
-                            <label for="contact-name" class="block text-sm font-medium text-gray-700">Name</label> <!-- Changed id to contact-name -->
-                            <input type="text" id="contact-name" name="name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label for="contact-email" class="block text-sm font-medium text-gray-700">Email</label> <!-- Changed id to contact-email -->
-                            <input type="email" id="contact-email" name="email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label for="contact-phone" class="block text-sm font-medium text-gray-700">Phone (Optional)</label> <!-- Changed id to contact-phone -->
-                            <input type="tel" id="contact-phone" name="phone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label for="contact-message" class="block text-sm font-medium text-gray-700">Message</label> <!-- Changed id to contact-message -->
-                            <textarea id="contact-message" name="message" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
-                        </div>
-                        <div>
-                            <button type="submit" class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition duration-300">
-                                Send Message
-                            </button>
-                        </div>
-                    </form>
-                </div>
             </div>
         </div>
     </section>

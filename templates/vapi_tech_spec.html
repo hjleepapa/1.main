@@ -29,8 +29,13 @@
                 <h3 class="text-2xl font-semibold mb-6 text-gray-800">Overview</h3>
                 <div class="bg-gray-50 p-6 rounded-lg">
                     <p class="text-gray-700 mb-4">
-                        The VAPI Todo System is a Flask-based REST API that provides todo list, reminder, and calendar management functionality. 
-                        It's designed to integrate with VAPI (Voice API) systems through standardized tool call interfaces.
+                        VAPI is currently the leading Voice AI agent solution for developers in the market. 
+                        This project leverages VAPI to enable users to manage to-do tasks, reminders, and calendar events through natural voice interactions.
+                        <br>
+
+                        Callers can create, update, and delete their tasks, reminders, and events simply by speaking. 
+                        All data is stored in a PostgreSQL database and seamlessly integrated with the user’s Google Calendar and Gmail via the Google Calendar API, 
+                        ensuring real-time synchronization across platforms.
                     </p>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                         <div class="bg-white p-4 rounded border">
@@ -62,14 +67,26 @@
             <div class="mb-12">
                 <h3 class="text-2xl font-semibold mb-6 text-gray-800">Module Structure</h3>
                 <div class="bg-gray-50 p-6 rounded-lg">
-                    <div class="font-mono text-sm bg-white p-4 rounded border overflow-x-auto">
-                        <pre>vapi_todo/
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white p-4 rounded border">
+                            <h4 class="font-semibold text-gray-800 mb-3">Shared Components</h4>
+                            <div class="font-mono text-sm overflow-x-auto">
+                                <pre>shared/
+├── google_calendar.py  # Google Calendar integration service
+├── helpers.py          # Shared utility functions
+└── schemas.py          # Pydantic validation schemas</pre>
+                            </div>
+                        </div>
+                        <div class="bg-white p-4 rounded border">
+                            <h4 class="font-semibold text-gray-800 mb-3">VAPI Todo Components</h4>
+                            <div class="font-mono text-sm overflow-x-auto">
+                                <pre>vapi_todo/
 ├── __init__.py      # Package initialization, exports blueprint
 ├── models.py        # SQLAlchemy database models
-├── schemas.py       # Pydantic validation schemas
-├── helpers.py       # Utility functions and request parsing
 ├── routes.py        # Flask routes and blueprint definition
 └── README_VAPI_toDoList.md  # Documentation</pre>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -208,6 +225,130 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Code Examples -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">Code Examples</h3>
+                <div class="space-y-6">
+                    
+                    <!-- Models Example -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h4 class="text-lg font-semibold mb-3 text-gray-800">Database Models (models.py)</h4>
+                        <pre class="bg-gray-100 p-4 rounded text-sm overflow-x-auto"><code>from extensions import db
+from datetime import datetime
+
+class VapiTodo(db.Model):
+    __tablename__ = 'vapi_todos'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255), index=True)
+    description = db.Column(db.Text)
+    completed = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    google_calendar_event_id = db.Column(db.String(255))
+
+class VapiReminder(db.Model):
+    __tablename__ = 'vapi_reminders'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    reminder_text = db.Column(db.String(500))
+    importance = db.Column(db.String(50))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    google_calendar_event_id = db.Column(db.String(255))</code></pre>
+                    </div>
+
+                    <!-- Routes Example -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h4 class="text-lg font-semibold mb-3 text-gray-800">API Routes (routes.py)</h4>
+                        <pre class="bg-gray-100 p-4 rounded text-sm overflow-x-auto"><code>from flask import Blueprint, request, jsonify
+from shared.helpers import get_validated_tool_call
+from .models import VapiTodo, VapiReminder
+from shared.schemas import TodoResponse, ReminderResponse
+
+vapi_flask_bp = Blueprint('vapi_todo', __name__, url_prefix='/vapi_todo')
+
+@vapi_flask_bp.route('/create_todo', methods=['POST'])
+def create_todo():
+    tool_call = get_validated_tool_call('createTodo')
+    args = tool_call.function.arguments
+    
+    todo = VapiTodo(
+        title=args.get('title', ''),
+        description=args.get('description', '')
+    )
+    db.session.add(todo)
+    db.session.commit()
+    
+    return jsonify({
+        'results': [{
+            'toolCallId': tool_call.id,
+            'result': 'success'
+        }]
+    })</code></pre>
+                    </div>
+
+                    <!-- Shared Components Example -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h4 class="text-lg font-semibold mb-3 text-gray-800">Shared Components</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <h5 class="font-semibold text-gray-800 mb-2">Helpers (shared/helpers.py)</h5>
+                                <pre class="bg-gray-100 p-3 rounded text-sm overflow-x-auto"><code>def get_validated_tool_call(function_name):
+    """Validate and extract tool call from request"""
+    data = request.get_json()
+    if not data or 'toolCalls' not in data:
+        abort(400, description='Invalid request format')
+    
+    tool_call = data['toolCalls'][0]
+    if tool_call['function']['name'] != function_name:
+        abort(400, description=f'Expected {function_name}')
+    
+    return tool_call</code></pre>
+                            </div>
+                            <div>
+                                <h5 class="font-semibold text-gray-800 mb-2">Schemas (shared/schemas.py)</h5>
+                                <pre class="bg-gray-100 p-3 rounded text-sm overflow-x-auto"><code>from pydantic import BaseModel
+from datetime import datetime
+from typing import Optional
+
+class TodoResponse(BaseModel):
+    id: int
+    title: str
+    description: Optional[str]
+    completed: bool
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Google Calendar Integration Example -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h4 class="text-lg font-semibold mb-3 text-gray-800">Google Calendar Integration</h4>
+                        <pre class="bg-gray-100 p-4 rounded text-sm overflow-x-auto"><code>from shared.google_calendar import get_calendar_service
+from datetime import datetime, timedelta
+
+# Create calendar service
+calendar_service = get_calendar_service()
+
+# Create event in Google Calendar
+google_event_id = calendar_service.create_event(
+    title=f"Todo: {todo.title}",
+    description=todo.description or "Task from VAPI Todo System",
+    start_time=datetime.now(),
+    end_time=datetime.now() + timedelta(hours=1)
+)
+
+# Store Google Calendar event ID
+if google_event_id:
+    todo.google_calendar_event_id = google_event_id
+    db.session.commit()</code></pre>
+                    </div>
+
+                </div>
+            </div>
         </div>
     </section>
 
@@ -334,6 +475,166 @@
                             <p class="text-gray-700">Check whether all test cases have been updated to Database tables</p>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Test Results -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">Test Results & Validation</h3>
+                <div class="space-y-8">
+                    
+                    <!-- 1. Create Todo Test Results -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h4 class="text-xl font-semibold mb-4 text-gray-800">1. Create Todo Functionality</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h5 class="font-semibold text-gray-800 mb-2">Database Validation</h5>
+                                <img src="{{ url_for('vapi_flask.static', filename='assets/img/todo_create_db.png') }}" 
+                                     alt="Todo Creation Database" 
+                                     class="w-full rounded border shadow-sm">
+                                <p class="text-sm text-gray-600 mt-2">ToDo Task created successfully in todos table</p>
+                            </div>
+                            <div>
+                                <h5 class="font-semibold text-gray-800 mb-2">GMail Pop-up</h5>
+                                <img src="{{ url_for('vapi_flask.static', filename='assets/img/todo_creation.png') }}" 
+                                     alt="Todo Creation Interface" 
+                                     class="w-full rounded border shadow-sm">
+                                <p class="text-sm text-gray-600 mt-2"></p>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <h5 class="font-semibold text-gray-800 mb-2">Call Transcript</h5>
+                            <img src="{{ url_for('vapi_flask.static', filename='assets/img/call_detail_transcript_create.png') }}" 
+                                 alt="Create Todo Call Transcript" 
+                                 class="w-full rounded border shadow-sm">
+                            <p class="text-sm text-gray-600 mt-2">Voice interaction transcript for todo creation</p>
+                        </div>
+                        <div class="mt-4">
+                            <h5 class="font-semibold text-gray-800 mb-2">Voice Recording</h5>
+                            <audio controls class="w-full">
+                                <source src="{{ url_for('vapi_flask.static', filename='assets/img/vapi_call_creations.wav') }}" type="audio/wav">
+                                Your browser does not support the audio element.
+                            </audio>
+                            <p class="text-sm text-gray-600 mt-2">Voice call recording for todo creation</p>
+                        </div>
+                    </div>
+
+                    <!-- 2. Add Reminders Test Results -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h4 class="text-xl font-semibold mb-4 text-gray-800">2. Add Reminders Functionality</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h5 class="font-semibold text-gray-800 mb-2">Database Validation</h5>
+                                <img src="{{ url_for('vapi_flask.static', filename='assets/img/add_reminders_db.png') }}" 
+                                     alt="Add Reminders Database" 
+                                     class="w-full rounded border shadow-sm">
+                                <p class="text-sm text-gray-600 mt-2">Reminder database entry created</p>
+                            </div>
+                            <div>
+                                <h5 class="font-semibold text-gray-800 mb-2">GMail Pop-up</h5>
+                                <img src="{{ url_for('vapi_flask.static', filename='assets/img/addReminder.png') }}" 
+                                     alt="Add Reminder Interface" 
+                                     class="w-full rounded border shadow-sm">
+                                <p class="text-sm text-gray-600 mt-2"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Add Calendar Events Test Results -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h4 class="text-xl font-semibold mb-4 text-gray-800">3. Add Calendar Events Functionality</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <h5 class="font-semibold text-gray-800 mb-2">Database Validation</h5>
+                                <img src="{{ url_for('vapi_flask.static', filename='assets/img/add_calendar_events_db.png') }}" 
+                                     alt="Add Calendar Events Database" 
+                                     class="w-full rounded border shadow-sm">
+                                <p class="text-sm text-gray-600 mt-2">Calendar event database entry</p>
+                            </div>
+                            <div>
+                                <h5 class="font-semibold text-gray-800 mb-2">Google Calendar Sync 1</h5>
+                                <img src="{{ url_for('vapi_flask.static', filename='assets/img/google_calendar1.png') }}" 
+                                     alt="Google Calendar Sync 1" 
+                                     class="w-full rounded border shadow-sm">
+                                <p class="text-sm text-gray-600 mt-2">Google Calendar integration</p>
+                            </div>
+                            <div>
+                                <h5 class="font-semibold text-gray-800 mb-2">Google Calendar Sync 2</h5>
+                                <img src="{{ url_for('vapi_flask.static', filename='assets/img/google_calendar2.png') }}" 
+                                     alt="Google Calendar Sync 2" 
+                                     class="w-full rounded border shadow-sm">
+                                <p class="text-sm text-gray-600 mt-2">Additional calendar sync view</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Complete Todo Test Results -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h4 class="text-xl font-semibold mb-4 text-gray-800">4. Complete Todo Functionality</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h5 class="font-semibold text-gray-800 mb-2">Database Validation</h5>
+                                <img src="{{ url_for('vapi_flask.static', filename='assets/img/todo_task_completed_db.png') }}" 
+                                     alt="Todo Task Completed Database" 
+                                     class="w-full rounded border shadow-sm">
+                                <p class="text-sm text-gray-600 mt-2">Task completion status in database</p>
+                            </div>
+                            <div>
+                                <h5 class="font-semibold text-gray-800 mb-2">Call Transcript</h5>
+                                <img src="{{ url_for('vapi_flask.static', filename='assets/img/call_detail_completedTodo.png') }}" 
+                                     alt="Complete Todo Call Transcript" 
+                                     class="w-full rounded border shadow-sm">
+                                <p class="text-sm text-gray-600 mt-2">Voice interaction for task completion</p>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <h5 class="font-semibold text-gray-800 mb-2">Voice Recording</h5>
+                            <audio controls class="w-full">
+                                <source src="{{ url_for('vapi_flask.static', filename='assets/img/completeTodo.wav') }}" type="audio/wav">
+                                Your browser does not support the audio element.
+                            </audio>
+                            <p class="text-sm text-gray-600 mt-2">Voice call recording for task completion</p>
+                        </div>
+                    </div>
+
+                    <!-- 5. Delete Calendar Event Test Results -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h4 class="text-xl font-semibold mb-4 text-gray-800">5. Delete Calendar Event Functionality</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h5 class="font-semibold text-gray-800 mb-2">Database Validation</h5>
+                                <img src="{{ url_for('vapi_flask.static', filename='assets/img/calendar_events_deleted_db.png') }}" 
+                                     alt="Calendar Events Deleted Database" 
+                                     class="w-full rounded border shadow-sm">
+                                <p class="text-sm text-gray-600 mt-2">Calendar event deletion from database</p>
+                            </div>
+                            <div>
+                                <h5 class="font-semibold text-gray-800 mb-2">Call Transcript</h5>
+                                <img src="{{ url_for('vapi_flask.static', filename='assets/img/call_detail_transcript_update_delete.png') }}" 
+                                     alt="Delete Calendar Event Call Transcript" 
+                                     class="w-full rounded border shadow-sm">
+                                <p class="text-sm text-gray-600 mt-2">Voice interaction for calendar deletion</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                            <div>
+                                <h5 class="font-semibold text-gray-800 mb-2">Google Calendar Sync</h5>
+                                <img src="{{ url_for('vapi_flask.static', filename='assets/img/google_calendar_deleted.png') }}" 
+                                     alt="Google Calendar Deleted" 
+                                     class="w-full rounded border shadow-sm">
+                                <p class="text-sm text-gray-600 mt-2">One Event deletion from Google Calendar</p>
+                            </div>
+                            <div>
+                                <h5 class="font-semibold text-gray-800 mb-2">Voice Recording</h5>
+                                <audio controls class="w-full">
+                                    <source src="{{ url_for('vapi_flask.static', filename='assets/img/deleteCalendarEvent.wav') }}" type="audio/wav">
+                                    Your browser does not support the audio element.
+                                </audio>
+                                <p class="text-sm text-gray-600 mt-2">Voice call recording for calendar deletion</p>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>

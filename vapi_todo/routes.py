@@ -8,7 +8,13 @@ from shared.schemas import TodoResponse, ReminderResponse, CalendarEventResponse
 from shared.helpers import get_validated_tool_call
 from shared.google_calendar import get_calendar_service
 
-vapi_flask_bp = Blueprint('vapi_flask', __name__, url_prefix='/vapi_project')
+vapi_flask_bp = Blueprint(
+    'vapi_flask',
+    __name__,
+    url_prefix='/vapi_project',
+    static_folder='static',
+    static_url_path='/static'
+)
 
 @vapi_flask_bp.route('/create_todo', methods=['POST'])
 def create_todo():
