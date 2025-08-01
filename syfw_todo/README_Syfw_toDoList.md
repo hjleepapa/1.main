@@ -9,12 +9,12 @@ Start by creating an account if you do not have an account and logging in.
 
 2. Go to Synthflow menu in the left panel and create agent.
 
-<img width="1247" alt="image" src="https://github.com/user-attachments/assets/5d3257dd-457a-4a63-bdc4-276715e359b5" />
+<img width="971" height="395" alt="Image" src="https://github.com/user-attachments/assets/3b3db551-ac4c-459f-b29c-cdce0e923a55" />
 
 3. Go to Actions menu and create Custom Actions.
 + toDoList
     + createTodo
-      ![createTodo_action](https://github.com/user-attachments/assets/2fac6d76-7cbc-4dd4-936d-a06f302f2874)
+      ![createTodo_action](https://github.com/user-attachments/assets/0a3c85df-0e1d-4f07-a8e0-96728cec72b5)
     + getTodos
     + completeTodo
     + deleteTodo
@@ -64,6 +64,7 @@ Start by creating an account if you do not have an account and logging in.
 3. Make a call and say that some tasks were completed
 4. Make a call and say that some tasks were deleted
 5. Check whether all test cases have been updated to Database tables
+6. Check whether all test cases updated to google calendar
 
    
 

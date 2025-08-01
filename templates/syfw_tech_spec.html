@@ -259,5 +259,136 @@
             </div>
         </div>
     </section>
+
+    <!-- Test Results -->
+    <section class="py-16 bg-gray-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-center mb-12">Test Results</h2>
+            
+            <!-- createTodo Test Results -->
+            <div class="mb-12 bg-white p-6 rounded-lg shadow">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">1. createTodo Functionality</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-semibold text-gray-700">Database Record</h4>
+                        <img src="{{ url_for('static', filename='syfw_todo/assets/img/todo_create_db.png') }}" 
+                             alt="Todo Create Database Record" 
+                             class="w-full rounded-lg shadow-md">
+                    </div>
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-semibold text-gray-700">Google Calendar Integration</h4>
+                        <img src="{{ url_for('static', filename='syfw_todo/assets/img/google_calendar_todo_task.png') }}" 
+                             alt="Google Calendar Todo Task" 
+                             class="w-full rounded-lg shadow-md">
+                    </div>
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-semibold text-gray-700">Video Demonstration</h4>
+                        <video controls class="w-full rounded-lg shadow-md">
+                            <source src="{{ url_for('static', filename='syfw_todo/assets/img/todo_create.mp4') }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                </div>
+            </div>
+
+            <!-- completeTodo Test Results -->
+            <div class="mb-12 bg-white p-6 rounded-lg shadow">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">2. completeTodo Functionality</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-semibold text-gray-700">Database Record</h4>
+                        <img src="{{ url_for('static', filename='syfw_todo/assets/img/todo_task_completed_db.png') }}" 
+                             alt="Todo Task Completed Database Record" 
+                             class="w-full rounded-lg shadow-md">
+                    </div>
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-semibold text-gray-700">Google Calendar Integration</h4>
+                        <img src="{{ url_for('static', filename='syfw_todo/assets/img/google_calendar_todo_task_completed.png') }}" 
+                             alt="Google Calendar Todo Task Completed" 
+                             class="w-full rounded-lg shadow-md">
+                    </div>
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-semibold text-gray-700">Video Demonstration</h4>
+                        <video controls class="w-full rounded-lg shadow-md">
+                            <source src="{{ url_for('static', filename='syfw_todo/assets/img/todo_set_completed.mp4') }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                </div>
+            </div>
+
+            <!-- addReminder Test Results -->
+            <div class="mb-12 bg-white p-6 rounded-lg shadow">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">3. addReminder Functionality</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-semibold text-gray-700">Database Record</h4>
+                        <img src="{{ url_for('static', filename='syfw_todo/assets/img/add_reminder_db.png') }}" 
+                             alt="Add Reminder Database Record" 
+                             class="w-full rounded-lg shadow-md">
+                    </div>
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-semibold text-gray-700">Google Calendar Integration</h4>
+                        <img src="{{ url_for('static', filename='syfw_todo/assets/img/google_calendar_reminder_issue.png') }}" 
+                             alt="Google Calendar Reminder Issue" 
+                             class="w-full rounded-lg shadow-md">
+                    </div>
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-semibold text-gray-700">Video Demonstration</h4>
+                        <video controls class="w-full rounded-lg shadow-md">
+                            <source src="{{ url_for('static', filename='syfw_todo/assets/img/add_reminder.mp4') }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                </div>
+            </div>
+
+            <!-- addCalendarEvent Test Results -->
+            <div class="mb-12 bg-white p-6 rounded-lg shadow">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">4. addCalendarEvent Functionality</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-semibold text-gray-700">Video Demonstration</h4>
+                        <video controls class="w-full rounded-lg shadow-md">
+                            <source src="{{ url_for('static', filename='syfw_todo/assets/img/calendar_events_created.mp4') }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-semibold text-gray-700">Google Calendar Integration</h4>
+                        <img src="{{ url_for('static', filename='syfw_todo/assets/img/google_calendar_event_created.png') }}" 
+                             alt="Google Calendar Event Created" 
+                             class="w-full rounded-lg shadow-md">
+                    </div>
+                </div>
+            </div>
+
+            <!-- deleteCalendarEvent Test Results -->
+            <div class="mb-12 bg-white p-6 rounded-lg shadow">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">5. deleteCalendarEvent Functionality</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-semibold text-gray-700">Database Record</h4>
+                        <img src="{{ url_for('static', filename='syfw_todo/assets/img/calendar_events_deleted_db.png') }}" 
+                             alt="Calendar Events Deleted Database Record" 
+                             class="w-full rounded-lg shadow-md">
+                    </div>
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-semibold text-gray-700">Video Demonstration</h4>
+                        <video controls class="w-full rounded-lg shadow-md">
+                            <source src="{{ url_for('static', filename='syfw_todo/assets/img/calendar_events_deleted.mp4') }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-semibold text-gray-700">Google Calendar Integration</h4>
+                        <img src="{{ url_for('static', filename='syfw_todo/assets/img/google_calendar_event_deleted.png') }}" 
+                             alt="Google Calendar Event Deleted" 
+                             class="w-full rounded-lg shadow-md">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 </div>
 {% endblock %}
