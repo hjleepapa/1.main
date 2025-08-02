@@ -28,7 +28,11 @@
                 <h3 class="text-2xl font-semibold mb-6 text-gray-800">Overview</h3>
                 <div class="bg-gray-50 p-6 rounded-lg">
                     <p class="text-gray-700 mb-4">
-                        The Syfw To-Do AI Assistant is a Flask-based REST API that provides to-do list, reminder, and calendar management functionality. It is designed to integrate with Synthflow.ai voice agents through standardized tool call interfaces and custom actions.
+                        The Syfw To-Do AI Assistant is a Flask-based REST API that provides to-do list, reminder, and calendar management functionality. 
+                        It is designed to integrate with Synthflow.ai voice agents through standardized tool call interfaces and custom actions.
+                        <br>
+                        All data is stored in a PostgreSQL database and seamlessly integrated with the user’s Google Calendar and Gmail via the Google Calendar API, 
+                        ensuring real-time synchronization across platforms.
                     </p>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                         <div class="bg-white p-4 rounded border">
@@ -271,22 +275,22 @@
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="space-y-4">
                         <h4 class="text-lg font-semibold text-gray-700">Database Record</h4>
-                        <img src="{{ url_for('static', filename='syfw_todo/assets/img/todo_create_db.png') }}" 
+                        <img src="{{ url_for('syfw_todo.static', filename='assets/img/todo_create_db.png') }}" 
                              alt="Todo Create Database Record" 
                              class="w-full rounded-lg shadow-md">
                     </div>
                     <div class="space-y-4">
                         <h4 class="text-lg font-semibold text-gray-700">Google Calendar Integration</h4>
-                        <img src="{{ url_for('static', filename='syfw_todo/assets/img/google_calendar_todo_task.png') }}" 
+                        <img src="{{ url_for('syfw_todo.static', filename='assets/img/google_calendar_todo_task.png') }}" 
                              alt="Google Calendar Todo Task" 
                              class="w-full rounded-lg shadow-md">
                     </div>
                     <div class="space-y-4">
-                        <h4 class="text-lg font-semibold text-gray-700">Video Demonstration</h4>
-                        <video controls class="w-full rounded-lg shadow-md">
-                            <source src="{{ url_for('static', filename='syfw_todo/assets/img/todo_create.mp4') }}" type="video/mp4">
-                            Your browser does not support the video tag.
-                        </video>
+                        <h4 class="text-lg font-semibold text-gray-700">Audio Demonstration</h4>
+                        <audio controls class="w-full rounded-lg shadow-md">
+                            <source src="{{ url_for('syfw_todo.static', filename='assets/img/todo_create.wav') }}" type="audio/wav">
+                            Your browser does not support the audio tag.
+                        </audio>
                     </div>
                 </div>
             </div>
@@ -297,22 +301,22 @@
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="space-y-4">
                         <h4 class="text-lg font-semibold text-gray-700">Database Record</h4>
-                        <img src="{{ url_for('static', filename='syfw_todo/assets/img/todo_task_completed_db.png') }}" 
+                        <img src="{{ url_for('syfw_todo.static', filename='assets/img/todo_task_completed_db.png') }}" 
                              alt="Todo Task Completed Database Record" 
                              class="w-full rounded-lg shadow-md">
                     </div>
                     <div class="space-y-4">
                         <h4 class="text-lg font-semibold text-gray-700">Google Calendar Integration</h4>
-                        <img src="{{ url_for('static', filename='syfw_todo/assets/img/google_calendar_todo_task_completed.png') }}" 
+                        <img src="{{ url_for('syfw_todo.static', filename='assets/img/google_calendar_todo_task_completed.png') }}" 
                              alt="Google Calendar Todo Task Completed" 
                              class="w-full rounded-lg shadow-md">
                     </div>
                     <div class="space-y-4">
-                        <h4 class="text-lg font-semibold text-gray-700">Video Demonstration</h4>
-                        <video controls class="w-full rounded-lg shadow-md">
-                            <source src="{{ url_for('static', filename='syfw_todo/assets/img/todo_set_completed.mp4') }}" type="video/mp4">
-                            Your browser does not support the video tag.
-                        </video>
+                        <h4 class="text-lg font-semibold text-gray-700">Audio Demonstration</h4>
+                        <audio controls class="w-full rounded-lg shadow-md">
+                            <source src="{{ url_for('syfw_todo.static', filename='assets/img/todo_set_completed.wav') }}" type="audio/wav">
+                            Your browser does not support the audio tag.
+                        </audio>
                     </div>
                 </div>
             </div>
@@ -320,25 +324,30 @@
             <!-- addReminder Test Results -->
             <div class="mb-12 bg-white p-6 rounded-lg shadow">
                 <h3 class="text-2xl font-semibold mb-6 text-gray-800">3. addReminder Functionality</h3>
+                <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p class="text-red-700 text-sm">
+                        <strong>Note:</strong> This addReminder function always failed. Not sure about root cause... No further detail logs available to investigate.
+                    </p>
+                </div>
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="space-y-4">
                         <h4 class="text-lg font-semibold text-gray-700">Database Record</h4>
-                        <img src="{{ url_for('static', filename='syfw_todo/assets/img/add_reminder_db.png') }}" 
+                        <img src="{{ url_for('syfw_todo.static', filename='assets/img/add_reminder_db.png') }}" 
                              alt="Add Reminder Database Record" 
                              class="w-full rounded-lg shadow-md">
                     </div>
                     <div class="space-y-4">
                         <h4 class="text-lg font-semibold text-gray-700">Google Calendar Integration</h4>
-                        <img src="{{ url_for('static', filename='syfw_todo/assets/img/google_calendar_reminder_issue.png') }}" 
+                        <img src="{{ url_for('syfw_todo.static', filename='assets/img/google_calendar_reminder_issue.png') }}" 
                              alt="Google Calendar Reminder Issue" 
                              class="w-full rounded-lg shadow-md">
                     </div>
                     <div class="space-y-4">
-                        <h4 class="text-lg font-semibold text-gray-700">Video Demonstration</h4>
-                        <video controls class="w-full rounded-lg shadow-md">
-                            <source src="{{ url_for('static', filename='syfw_todo/assets/img/add_reminder.mp4') }}" type="video/mp4">
-                            Your browser does not support the video tag.
-                        </video>
+                        <h4 class="text-lg font-semibold text-gray-700">Audio Demonstration</h4>
+                        <audio controls class="w-full rounded-lg shadow-md">
+                            <source src="{{ url_for('syfw_todo.static', filename='assets/img/add_reminder.wav') }}" type="audio/wav">
+                            Your browser does not support the audio tag.
+                        </audio>
                     </div>
                 </div>
             </div>
@@ -348,17 +357,23 @@
                 <h3 class="text-2xl font-semibold mb-6 text-gray-800">4. addCalendarEvent Functionality</h3>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="space-y-4">
-                        <h4 class="text-lg font-semibold text-gray-700">Video Demonstration</h4>
-                        <video controls class="w-full rounded-lg shadow-md">
-                            <source src="{{ url_for('static', filename='syfw_todo/assets/img/calendar_events_created.mp4') }}" type="video/mp4">
-                            Your browser does not support the video tag.
-                        </video>
+                        <h4 class="text-lg font-semibold text-gray-700">Database Record</h4>
+                        <img src="{{ url_for('syfw_todo.static', filename='assets/img/calendar_event_created_db.png') }}" 
+                             alt="Calendar Events Database Record" 
+                             class="w-full rounded-lg shadow-md">
                     </div>
                     <div class="space-y-4">
                         <h4 class="text-lg font-semibold text-gray-700">Google Calendar Integration</h4>
-                        <img src="{{ url_for('static', filename='syfw_todo/assets/img/google_calendar_event_created.png') }}" 
+                        <img src="{{ url_for('syfw_todo.static', filename='assets/img/google_calendar_event_created.png') }}" 
                              alt="Google Calendar Event Created" 
                              class="w-full rounded-lg shadow-md">
+                    </div>
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-semibold text-gray-700">Audio Demonstration</h4>
+                        <audio controls class="w-full rounded-lg shadow-md">
+                            <source src="{{ url_for('syfw_todo.static', filename='assets/img/calendar_event_created.wav') }}" type="audio/wav">
+                            Your browser does not support the audio tag.
+                        </audio>
                     </div>
                 </div>
             </div>
@@ -369,20 +384,20 @@
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="space-y-4">
                         <h4 class="text-lg font-semibold text-gray-700">Database Record</h4>
-                        <img src="{{ url_for('static', filename='syfw_todo/assets/img/calendar_events_deleted_db.png') }}" 
+                        <img src="{{ url_for('syfw_todo.static', filename='assets/img/calendar_event_deleted_db.png') }}" 
                              alt="Calendar Events Deleted Database Record" 
                              class="w-full rounded-lg shadow-md">
                     </div>
                     <div class="space-y-4">
-                        <h4 class="text-lg font-semibold text-gray-700">Video Demonstration</h4>
-                        <video controls class="w-full rounded-lg shadow-md">
-                            <source src="{{ url_for('static', filename='syfw_todo/assets/img/calendar_events_deleted.mp4') }}" type="video/mp4">
-                            Your browser does not support the video tag.
-                        </video>
+                        <h4 class="text-lg font-semibold text-gray-700">Audio Demonstration</h4>
+                        <audio controls class="w-full rounded-lg shadow-md">
+                            <source src="{{ url_for('syfw_todo.static', filename='assets/img/calendar_events_deleted.wav') }}" type="audio/wav">
+                            Your browser does not support the audio tag.
+                        </audio>
                     </div>
                     <div class="space-y-4">
                         <h4 class="text-lg font-semibold text-gray-700">Google Calendar Integration</h4>
-                        <img src="{{ url_for('static', filename='syfw_todo/assets/img/google_calendar_event_deleted.png') }}" 
+                        <img src="{{ url_for('syfw_todo.static', filename='assets/img/google_calendar_event_deleted.png') }}" 
                              alt="Google Calendar Event Deleted" 
                              class="w-full rounded-lg shadow-md">
                     </div>
