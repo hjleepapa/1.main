@@ -84,7 +84,7 @@
 ├── __init__.py      # Package initialization, exports blueprint
 ├── models.py        # SQLAlchemy database models
 ├── routes.py        # Flask routes and blueprint definition
-└── README_VAPI_toDoList.md  # Documentation</pre>
+└── README_vapi.md   # Documentation</pre>
                             </div>
                         </div>
                     </div>
@@ -158,6 +158,24 @@
                 </div>
             </div>
 
+            <!-- Response Format -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">Response Format</h3>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <p class="text-gray-700 mb-4">All API responses follow a consistent structure:</p>
+                    <div class="bg-white p-4 rounded border">
+                        <pre class="text-sm overflow-x-auto"><code>{
+    "results": [
+        {
+            "toolCallId": "string",
+            "result": "success" | object | array
+        }
+            ]
+    }</code></pre>
+                    </div>
+                </div>
+            </div>
+
             <!-- Google Calendar Integration -->
             <div class="mb-12">
                 <h3 class="text-2xl font-semibold mb-6 text-gray-800">Google Calendar Integration</h3>
@@ -208,23 +226,7 @@
                 </div>
             </div>
 
-            <!-- Response Format -->
-            <div class="mb-12">
-                <h3 class="text-2xl font-semibold mb-6 text-gray-800">Response Format</h3>
-                <div class="bg-gray-50 p-6 rounded-lg">
-                    <p class="text-gray-700 mb-4">All API responses follow a consistent structure:</p>
-                    <div class="bg-white p-4 rounded border">
-                        <pre class="text-sm overflow-x-auto"><code>{
-  "results": [
-    {
-      "toolCallId": "string",
-      "result": "success" | object | array
-    }
-  ]
-}</code></pre>
-                    </div>
-                </div>
-            </div>
+            
 
             <!-- Code Examples -->
             <div class="mb-12">
@@ -264,6 +266,7 @@ class VapiReminder(db.Model):
 from shared.helpers import get_validated_tool_call
 from .models import VapiTodo, VapiReminder
 from shared.schemas import TodoResponse, ReminderResponse
+from shared.google_calendar import get_calendar_service
 
 vapi_flask_bp = Blueprint('vapi_todo', __name__, url_prefix='/vapi_todo')
 
@@ -271,20 +274,29 @@ vapi_flask_bp = Blueprint('vapi_todo', __name__, url_prefix='/vapi_todo')
 def create_todo():
     tool_call = get_validated_tool_call('createTodo')
     args = tool_call.function.arguments
+    title = args.get('title', '')
+    description = args.get('description', '')
     
-    todo = VapiTodo(
-        title=args.get('title', ''),
-        description=args.get('description', '')
-    )
+    # Create todo in database
+    todo = VapiTodo(title=title, description=description)
     db.session.add(todo)
     db.session.commit()
+    db.session.refresh(todo)
     
-    return jsonify({
-        'results': [{
-            'toolCallId': tool_call.id,
-            'result': 'success'
-        }]
-    })</code></pre>
+    # Sync with Google Calendar
+    try:
+        calendar_service = get_calendar_service()
+        google_event_id = calendar_service.create_event(
+            title=f"TODO: {title}",
+            description=description or "Task from VAPI Todo System"
+        )
+        if google_event_id:
+            todo.google_calendar_event_id = google_event_id
+            db.session.commit()
+    except Exception as e:
+        print(f"Failed to sync with Google Calendar: {e}")
+    
+    return jsonify({'results': [{'toolCallId': tool_call.id, 'result': 'success'}]})</code></pre>
                     </div>
 
                     <!-- Shared Components Example -->

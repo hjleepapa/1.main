@@ -59,8 +59,9 @@
                 </div>
             </div>
 
+            
             <!-- Module Structure -->
-            <div class="mb-12">
+            <!-- <div class="mb-12">
                 <h3 class="text-2xl font-semibold mb-6 text-gray-800">Module Structure</h3>
                 <div class="bg-gray-50 p-6 rounded-lg">
                     <div class="font-mono text-sm bg-white p-4 rounded border overflow-x-auto">
@@ -72,6 +73,35 @@
 ├── routes.py        # Flask routes and blueprint definition
 ├── README_Syfw_toDoList.md  # Documentation
 </pre>
+                    </div>
+                </div>
+            </div> -->
+
+
+            <!-- Module Structure -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">Module Structure</h3>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white p-4 rounded border">
+                            <h4 class="font-semibold text-gray-800 mb-3">Shared Components</h4>
+                            <div class="font-mono text-sm overflow-x-auto">
+                                <pre>shared/
+├── google_calendar.py  # Google Calendar integration service
+├── helpers.py          # Shared utility functions and request parsing
+└── schemas.py          # Pydantic validation schemas</pre>
+                            </div>
+                        </div>
+                        <div class="bg-white p-4 rounded border">
+                            <h4 class="font-semibold text-gray-800 mb-3">Syfw Todo Components</h4>
+                            <div class="font-mono text-sm overflow-x-auto">
+                                <pre>syfw_todo/
+├── __init__.py      # Package initialization, exports blueprint
+├── models.py        # SQLAlchemy database models
+├── routes.py        # Flask routes and blueprint definition
+└── README_syfw      # Documentation</pre>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
