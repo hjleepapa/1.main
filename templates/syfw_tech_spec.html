@@ -28,11 +28,11 @@
                 <h3 class="text-2xl font-semibold mb-6 text-gray-800">Overview</h3>
                 <div class="bg-gray-50 p-6 rounded-lg">
                     <p class="text-gray-700 mb-4">
-                        The Syfw To-Do AI Assistant is a Flask-based REST API that provides to-do list, reminder, and calendar management functionality. 
-                        It is designed to integrate with Synthflow.ai voice agents through standardized tool call interfaces and custom actions.
-                        <br>
-                        All data is stored in a PostgreSQL database and seamlessly integrated with the user’s Google Calendar and Gmail via the Google Calendar API, 
-                        ensuring real-time synchronization across platforms.
+                        Synthflow is a leading AI voice solution in today’s market. 
+                        The Syfw To-Do AI Assistant is a Flask-based REST API designed to handle task management, reminders, and calendar events. 
+                        It integrates seamlessly with Synthflow.ai voice agents using standardized tool call interfaces and custom actions.
+                        All data is stored in a PostgreSQL database and synchronized in real time with the user’s Google Calendar and Gmail through the Google Calendar API, 
+                        enabling a unified and responsive experience across platforms.
                     </p>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                         <div class="bg-white p-4 rounded border">
@@ -60,22 +60,7 @@
             </div>
 
             
-            <!-- Module Structure -->
-            <!-- <div class="mb-12">
-                <h3 class="text-2xl font-semibold mb-6 text-gray-800">Module Structure</h3>
-                <div class="bg-gray-50 p-6 rounded-lg">
-                    <div class="font-mono text-sm bg-white p-4 rounded border overflow-x-auto">
-                        <pre>syfw_todo/
-├── __init__.py      # Package initialization, exports blueprint
-├── models.py        # SQLAlchemy database models
-├── schemas.py       # Pydantic validation schemas
-├── helpers.py       # Utility functions and request parsing
-├── routes.py        # Flask routes and blueprint definition
-├── README_Syfw_toDoList.md  # Documentation
-</pre>
-                    </div>
-                </div>
-            </div> -->
+            
 
 
             <!-- Module Structure -->
@@ -117,6 +102,7 @@
                             <li>• title: Task title (indexed)</li>
                             <li>• description: Optional task details</li>
                             <li>• completed: Boolean status</li>
+                            <li>• google_calendar_event_id</li>
                         </ul>
                     </div>
                     <div class="bg-white p-6 rounded-lg shadow">
@@ -125,6 +111,7 @@
                             <li>• id: Primary key</li>
                             <li>• reminder_text: Reminder content</li>
                             <li>• importance: Priority level</li>
+                            <li>• google_calendar_event_id</li>
                         </ul>
                     </div>
                     <div class="bg-white p-6 rounded-lg shadow">
@@ -135,7 +122,7 @@
                             <li>• description: Event details</li>
                             <li>• event_from: Start datetime</li>
                             <li>• event_to: End datetime</li>
-                            <li>• google_calendar_event_id: Google Calendar event ID (VARCHAR)</li>
+                            <li>• google_calendar_event_id</li>
                         </ul>
                     </div>
                 </div>

@@ -23,7 +23,7 @@ The entire functionality of the VAPI Todo system is encapsulated within a single
   )
   ```
 * **Modularity**: It has its own dedicated `static_folder`, ensuring its frontend assets are neatly organized and decoupled from the main application or other blueprints.
-* **Integration**: In `app.py`, the blueprint is registered with the main Flask application using a `url_prefix='/vapi_project'`. This means all routes defined within the blueprint (e.g., `/create_todo`, `/get_todos`) are accessible under the prefixed path (e.g., `https://one-main.onrender.com/vapi_project/create_todo`).
+* **Integration**: In `app.py`, the blueprint is registered with the main Flask application using a `url_prefix='/vapi_project'`. This means all routes defined within the blueprint (e.g., `/create_todo`, `/get_todos`) are accessible under the prefixed path (e.g., `https://hjlees.com/vapi_project/create_todo`).
 
 #### b. Voice AI Integration Pattern
 

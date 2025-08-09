@@ -102,6 +102,7 @@
                             <li>• title: Task title (indexed)</li>
                             <li>• description: Optional task details</li>
                             <li>• completed: Boolean status</li>
+                            <li>• google_calendar_event_id</li>
                         </ul>
                     </div>
                     <div class="bg-white p-6 rounded-lg shadow">
@@ -110,6 +111,7 @@
                             <li>• id: Primary key</li>
                             <li>• reminder_text: Reminder content</li>
                             <li>• importance: Priority level</li>
+                            <li>• google_calendar_event_id</li>
                         </ul>
                     </div>
                     <div class="bg-white p-6 rounded-lg shadow">
@@ -120,7 +122,7 @@
                             <li>• description: Event details</li>
                             <li>• event_from: Start datetime</li>
                             <li>• event_to: End datetime</li>
-                            <li>• google_calendar_event_id: Google Calendar event ID (VARCHAR)</li>
+                            <li>• google_calendar_event_id</li>
                         </ul>
                     </div>
                 </div>
@@ -305,33 +307,80 @@ def create_todo():
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <h5 class="font-semibold text-gray-800 mb-2">Helpers (shared/helpers.py)</h5>
-                                <pre class="bg-gray-100 p-3 rounded text-sm overflow-x-auto"><code>def get_validated_tool_call(function_name):
-    """Validate and extract tool call from request"""
-    data = request.get_json()
-    if not data or 'toolCalls' not in data:
-        abort(400, description='Invalid request format')
-    
-    tool_call = data['toolCalls'][0]
-    if tool_call['function']['name'] != function_name:
-        abort(400, description=f'Expected {function_name}')
-    
-    return tool_call</code></pre>
+                                <pre class="bg-gray-100 p-3 rounded text-sm overflow-x-auto"><code>from flask import request, abort
+from pydantic import ValidationError as PydanticValidationError
+from .schemas import ToolRequest, ToolCall
+
+def get_validated_tool_call(expected_function_name: str) -> ToolCall:
+    """
+    Validates the incoming JSON request against the ToolRequest schema
+    and returns the specific tool call matching the expected function name.
+    """
+    json_data = request.get_json()
+    if not json_data:
+        abort(400, description="Invalid JSON payload.")
+
+    try:
+        # Validate the entire request structure
+        tool_req = ToolRequest(**json_data)
+    except PydanticValidationError as e:
+        abort(400, description=f"Invalid request format: {e.errors()}")
+
+    # Find the specific tool call we are looking for
+    for tool_call in tool_req.message.toolCalls:
+        if tool_call.function.name == expected_function_name:
+            # If arguments are a string, parse them into a dict
+            if isinstance(tool_call.function.arguments, str):
+                tool_call.function.arguments = request.json_loads(tool_call.function.arguments)
+            return tool_call
+
+    abort(400, description=f"Tool call with function name '{expected_function_name}' not found.")</code></pre>
                             </div>
                             <div>
                                 <h5 class="font-semibold text-gray-800 mb-2">Schemas (shared/schemas.py)</h5>
-                                <pre class="bg-gray-100 p-3 rounded text-sm overflow-x-auto"><code>from pydantic import BaseModel
-from datetime import datetime
-from typing import Optional
+                                <pre class="bg-gray-100 p-3 rounded text-sm overflow-x-auto"><code>import datetime as dt
+from typing import Union, Dict, Any
+from pydantic import BaseModel, ValidationError as PydanticValidationError
+
+# --- Common Schemas for Tool Calling ---
+
+class ToolCallFunction(BaseModel):
+    name: str
+    arguments: Union[str, Dict[str, Any]]
+
+class ToolCall(BaseModel):
+    id: str
+    function: ToolCallFunction
+
+class Message(BaseModel):
+    toolCalls: list[ToolCall]
+
+class ToolRequest(BaseModel):
+    """A generic request model for any tool-calling service."""
+    message: Message
+
+# --- Common Response Schemas ---
 
 class TodoResponse(BaseModel):
     id: int
     title: str
-    description: Optional[str]
+    description: Union[str, None]
     completed: bool
-    created_at: datetime
-    
-    class Config:
-        from_attributes = True</code></pre>
+    model_config = {'from_attributes': True}
+
+class ReminderResponse(BaseModel):
+    id: int
+    reminder_text: str
+    importance: str
+    model_config = {'from_attributes': True}
+
+class CalendarEventResponse(BaseModel):
+    id: int
+    title: str
+    description: Union[str, None]
+    event_from: dt.datetime
+    event_to: dt.datetime
+    model_config = {'from_attributes': True}</code></pre>
                             </div>
                         </div>
                     </div>
