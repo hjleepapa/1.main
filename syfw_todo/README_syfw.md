@@ -23,7 +23,7 @@ The entire functionality of the SYFW Todo system is encapsulated within a single
   )
   ```
 * **Modularity**: It has its own dedicated `static_folder` and `template_folder`, ensuring its frontend assets are neatly organized and decoupled from the main application or other blueprints.
-* **Integration**: In `app.py`, the blueprint is registered with the main Flask application using a `url_prefix='/syfw_todo'`. This means all routes defined within the blueprint (e.g., `/create_todo`, `/get_todos`) are accessible under the prefixed path (e.g., `https://one-main.onrender.com/syfw_todo/create_todo`).
+* **Integration**: In `app.py`, the blueprint is registered with the main Flask application using a `url_prefix='/syfw_todo'`. This means all routes defined within the blueprint (e.g., `/create_todo`, `/get_todos`) are accessible under the prefixed path (e.g., `https://hjlees.com/syfw_todo/create_todo`).
 
 #### b. Voice AI Integration Pattern
 
