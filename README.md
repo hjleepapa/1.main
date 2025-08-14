@@ -1,12 +1,5 @@
-# VAPI toDoList AI assistant into Portfolio
+# Blog Project
+# VAPI toTo list management AI Assistant
+# Synthflow toTo list management AI Assistant
+# Bland toTo list management AI Assitant on the way.
 
-VAPI toDoList AI assistant project added to Portfolio website
-
-## Table of Contents
-
--[Installation](#installation)
--[Usage](#usage)
--[Contributing](#Contributing)
--[License](#license)
-
-## Installation
