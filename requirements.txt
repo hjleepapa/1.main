@@ -124,7 +124,7 @@ pybars4==0.9.13
 pycparser==2.22
 pydantic>=2.11.4
 pydantic-settings==2.9.1
-pydantic_core==2.33.1
+pydantic_core>=2.33.2
 pyee==13.0.0
 Pygments==2.19.1
 PyJWT==2.10.1

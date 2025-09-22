@@ -9,9 +9,7 @@ shared/create_token.py
 create_token.py
 Credentials.json
 token.pickle
-lgch_todo/token.pickle
-lgch_todo/assistant_graph_todo.ipynb
-__pycache__/
+
 
 
 
@@ -21,4 +19,3 @@ recordings/
 *.mp3
 *.m4a
 
-cl
