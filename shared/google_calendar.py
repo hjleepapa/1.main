@@ -2,7 +2,7 @@ import os
 import json
 import base64
 import tempfile
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -116,7 +116,7 @@ class GoogleCalendarService:
         """
         try:
             if not start_time:
-                start_time = datetime.utcnow()
+                start_time = datetime.now(timezone.utc)
             if not end_time:
                 end_time = start_time + timedelta(hours=1)
             

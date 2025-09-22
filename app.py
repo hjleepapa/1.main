@@ -2,7 +2,7 @@ from flask import Flask, render_template, request # Added request
 import os
 from dotenv import load_dotenv
 import hashlib
-from extensions import db, login_manager, ckeditor, bootstrap, migrate # gravatar # Import migrate
+from extensions import db, login_manager, ckeditor, bootstrap, migrate
 from flask_login import current_user # Import current_user
 import smtplib
 
@@ -35,6 +35,7 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # Initialize extensions
+
     db.init_app(app)
     ckeditor.init_app(app)
     bootstrap.init_app(app)
@@ -61,11 +62,14 @@ def create_app():
     from vapi_todo import vapi_flask_bp
     app.register_blueprint(vapi_flask_bp) # The url_prefix is already set in routes.py
 
-    from syfw_todo import syfw_todo_bp
+    from syfw_todo import syfw_todo_bp # This import might need adjustment if it has websockets too
     app.register_blueprint(syfw_todo_bp)
 
     from blnd_todo.routes import blnd_todo_bp
     app.register_blueprint(blnd_todo_bp)
+
+    from lgch_todo import lgch_todo_bp
+    app.register_blueprint(lgch_todo_bp)
 
     # --- Main Application Routes ---
     @app.route('/', methods=["GET", "POST"])
@@ -135,6 +139,11 @@ def create_app():
     def blnd_tech_spec():
         """Renders the technical specification page for the BLND todo project."""
         return render_template('blnd_tech_spec.html')
+
+    @app.route('/lgch-tech-spec')
+    def lgch_tech_spec():
+        """Renders the technical specification page for the LangGraph + MCP + Langflow todo project."""
+        return render_template('lgch_tech_spec.html')
 
     # --- Context Processors ---
     @app.context_processor
