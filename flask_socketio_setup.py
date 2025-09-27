@@ -1,14 +1,21 @@
 #!/usr/bin/env python3
 """
-Flask-SocketIO setup for WebSocket support
+Flask-SocketIO setup for WebSocket support with Sambanova integration
 """
 
 from flask import Flask
 from flask_socketio import SocketIO, emit
 import os
+import sys
+
+# Add the project directory to the Python path
+sys.path.insert(0, os.path.dirname(__file__))
+
+# Import the main app
+from app import create_app
 
 # Create Flask app with SocketIO support
-app = Flask(__name__)
+app = create_app()
 app.config['SECRET_KEY'] = os.environ.get('FLASK_KEY', 'your-secret-key')
 
 # Initialize SocketIO
