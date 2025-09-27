@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Sambanova Todo Technical Specification{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Sambanova Todo Technical Specification</h1>
+    
+    <div class="tech-spec-section">
+        <h2>Overview</h2>
+        <p>The Sambanova Todo system is a productivity management application that integrates with Sambanova's AI capabilities to provide intelligent task management through voice and web interfaces.</p>
+    </div>
+
+    <div class="tech-spec-section">
+        <h2>Architecture</h2>
+        <ul>
+            <li><strong>Backend:</strong> Flask web framework with SQLAlchemy ORM</li>
+            <li><strong>Database:</strong> PostgreSQL with dedicated sambanova tables</li>
+            <li><strong>AI Integration:</strong> Sambanova AI models for natural language processing</li>
+            <li><strong>Voice Interface:</strong> Twilio integration for phone-based interactions</li>
+            <li><strong>Calendar Sync:</strong> Google Calendar integration for automatic event creation</li>
+            <li><strong>MCP Protocol:</strong> Model Context Protocol for tool integration</li>
+        </ul>
+    </div>
+
+    <div class="tech-spec-section">
+        <h2>Database Schema</h2>
+        <h3>Tables</h3>
+        <ul>
+            <li><code>todos_sambanova</code> - Main todo items with priority and due dates</li>
+            <li><code>reminders_sambanova</code> - Reminder items with importance levels</li>
+            <li><code>calendar_events_sambanova</code> - Calendar events synced with Google Calendar</li>
+            <li><code>call_recordings_sambanova</code> - Voice call recordings and transcriptions</li>
+        </ul>
+    </div>
+
+    <div class="tech-spec-section">
+        <h2>API Endpoints</h2>
+        <ul>
+            <li><code>GET /sambanova_todo/</code> - Main interface</li>
+            <li><code>POST /sambanova_todo/run_agent</code> - Process natural language commands</li>
+            <li><code>POST /sambanova_todo/twilio/call</code> - Handle incoming voice calls</li>
+            <li><code>POST /sambanova_todo/twilio/process_audio</code> - Process voice input</li>
+        </ul>
+    </div>
+
+    <div class="tech-spec-section">
+        <h2>Features</h2>
+        <ul>
+            <li>Natural language todo creation and management</li>
+            <li>Voice-based interaction through Twilio</li>
+            <li>Automatic Google Calendar synchronization</li>
+            <li>Priority-based task organization</li>
+            <li>Reminder system with importance levels</li>
+            <li>Call recording and transcription capabilities</li>
+            <li>Real-time web interface</li>
+        </ul>
+    </div>
+
+    <div class="tech-spec-section">
+        <h2>AI Capabilities</h2>
+        <ul>
+            <li>Sambanova-powered natural language understanding</li>
+            <li>Intelligent task prioritization</li>
+            <li>Context-aware conversation handling</li>
+            <li>Automatic date and time parsing</li>
+            <li>Smart task categorization</li>
+        </ul>
+    </div>
+
+    <div class="tech-spec-section">
+        <h2>Integration Points</h2>
+        <ul>
+            <li><strong>Google Calendar:</strong> Automatic event creation and synchronization</li>
+            <li><strong>Twilio:</strong> Voice call handling and media streaming</li>
+            <li><strong>Sambanova AI:</strong> Core natural language processing</li>
+            <li><strong>MCP Protocol:</strong> Tool integration and database operations</li>
+        </ul>
+    </div>
+
+    <div class="tech-spec-section">
+        <h2>Deployment</h2>
+        <p>The system is designed to run in both development and production environments with automatic ngrok tunnel detection for local development and environment-based configuration for production deployment.</p>
+    </div>
+
+    <div class="tech-spec-section">
+        <h2>Usage</h2>
+        <p>Users can interact with the system through:</p>
+        <ul>
+            <li>Web interface at <code>/sambanova_todo/</code></li>
+            <li>Voice calls through Twilio integration</li>
+            <li>API endpoints for programmatic access</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

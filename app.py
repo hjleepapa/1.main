@@ -71,6 +71,9 @@ def create_app():
     from lgch_todo import lgch_todo_bp
     app.register_blueprint(lgch_todo_bp)
 
+    from sambanova import sambanova_todo_bp
+    app.register_blueprint(sambanova_todo_bp)
+
     # --- Main Application Routes ---
     @app.route('/', methods=["GET", "POST"])
     def home():
@@ -144,6 +147,11 @@ def create_app():
     def lgch_tech_spec():
         """Renders the technical specification page for the LangGraph + MCP + Langflow todo project."""
         return render_template('lgch_tech_spec.html')
+
+    @app.route('/sambanova-tech-spec')
+    def sambanova_tech_spec():
+        """Renders the technical specification page for the Sambanova todo project."""
+        return render_template('sambanova_tech_spec.html')
 
     # --- Context Processors ---
     @app.context_processor

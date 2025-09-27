@@ -1,0 +1,14 @@
+{
+    "mcpServers": {
+        "db": {
+            "command": "python",
+            "args": [
+                "sambanova/mcps/local_servers/db_todo.py"
+            ],
+            "transport": "stdio",
+            "env": {
+                "PYTHONPATH": "."
+            }
+        }
+    }
+}
