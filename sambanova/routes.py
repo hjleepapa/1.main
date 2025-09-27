@@ -26,8 +26,8 @@ def get_webhook_base_url():
 
 def get_websocket_url():
     """Get the WebSocket URL for Twilio Media Streams."""
-    # hjlees.com doesn't support WebSocket, use HTTP-only mode
-    return None
+    # Use hjlees.com with WebSocket support via Uvicorn worker
+    return os.getenv('WEBSOCKET_BASE_URL', 'wss://hjlees.com')
 
 # --- Twilio Voice Routes ---
 @sambanova_todo_bp.route('/twilio/call', methods=['POST'])
