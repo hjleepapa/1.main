@@ -63,12 +63,12 @@ lxml>=5.4.0
 mcp>=1.9.0
 pandas>=2.2.3
 psycopg2-binary>=2.9.10
-# greenlet==3.0.3  # Removed - incompatible with Python 3.13
+greenlet==3.0.3
 gunicorn==21.2.0
 uvicorn[standard]>=0.20.0
 asgiref>=3.6.0
 Flask-SocketIO>=5.0.0
-# eventlet>=0.33.0  # Removed - depends on greenlet which is incompatible with Python 3.13
+eventlet>=0.33.0
 h11==0.14.0
 httpcore==1.0.8
 httpx==0.28.1
