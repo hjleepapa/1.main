@@ -1,3 +1,3 @@
 #!/bin/bash
 # WebSocket-enabled start script for Render.com
-gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:$PORT wsgi_to_asgi_converter:asgi_app
+gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:$PORT app:app

@@ -6,6 +6,12 @@ from extensions import db, login_manager, ckeditor, bootstrap, migrate
 from flask_login import current_user # Import current_user
 import smtplib
 
+# Import eventlet for WebSocket support
+import eventlet
+eventlet.monkey_patch()
+
+from flask_socketio import SocketIO
+
 # --- Global Helper Functions & Configuration ---
 def generate_gravatar_url(email, size=80, default_image='mp', rating='g'):
     """
@@ -153,6 +159,9 @@ def create_app():
         """Renders the technical specification page for the Sambanova todo project."""
         return render_template('sambanova_tech_spec.html')
 
+    # --- Initialize SocketIO for WebSocket support ---
+    socketio = SocketIO(app, cors_allowed_origins="*")
+    
     # --- Context Processors ---
     @app.context_processor
     def utility_processor():

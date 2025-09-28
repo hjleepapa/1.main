@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "WebSocket-enabled Flask app for hjlees.com",
   "scripts": {
-    "start": "gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:$PORT wsgi_to_asgi_converter:asgi_app"
+    "start": "gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:$PORT app:app"
   },
   "engines": {
     "python": "3.12.0"
