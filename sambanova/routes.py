@@ -1,14 +1,19 @@
 from flask import Blueprint, request, jsonify, render_template, Response
+from flask_socketio import emit, join_room, leave_room
 from langchain_core.messages import HumanMessage
 from langgraph.graph import StateGraph
 import asyncio
 import json
 import os
+import logging
 
 from twilio.twiml.voice_response import VoiceResponse, Connect, Gather
 from .state import AgentState
 from .assistant_graph_todo import TodoAgent
 from langchain_mcp_adapters.client import MultiServerMCPClient
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 
 sambanova_todo_bp = Blueprint(
@@ -26,8 +31,8 @@ def get_webhook_base_url():
 
 def get_websocket_url():
     """Get the WebSocket URL for Twilio Media Streams."""
-    # Use hjlees.com with WebSocket support via Uvicorn worker
-    return os.getenv('WEBSOCKET_BASE_URL', 'wss://hjlees.com')
+    # Use integrated WebSocket endpoint on hjlees.com
+    return os.getenv('WEBSOCKET_BASE_URL', 'wss://hjlees.com/sambanova_todo/ws')
 
 # --- Twilio Voice Routes ---
 @sambanova_todo_bp.route('/twilio/call', methods=['POST'])
@@ -239,3 +244,66 @@ def run_agent():
         # Log the full error for debugging
         print(f"Error in /run_agent: {e}")
         return jsonify({"error": str(e)}), 500
+
+
+# WebSocket event handlers for Flask-SocketIO
+@sambanova_todo_bp.route('/ws')
+def websocket_route():
+    """WebSocket route for Twilio Media Streams."""
+    return "WebSocket endpoint available via Socket.IO", 200
+
+
+def register_socketio_events(socketio):
+    """Register Socket.IO events for Sambanova WebSocket functionality."""
+    
+    @socketio.on('connect', namespace='/sambanova_todo')
+    def handle_connect():
+        """Handle WebSocket connection from Twilio."""
+        logger.info(f"WebSocket connection established from {request.remote_addr}")
+        emit('status', {'msg': 'Connected to Sambanova WebSocket'})
+    
+    @socketio.on('disconnect', namespace='/sambanova_todo')
+    def handle_disconnect():
+        """Handle WebSocket disconnection."""
+        logger.info(f"WebSocket connection closed from {request.remote_addr}")
+    
+    @socketio.on('media', namespace='/sambanova_todo')
+    def handle_media(data):
+        """Handle media data from Twilio."""
+        try:
+            # Process media data from Twilio Media Streams
+            logger.info(f"Received media data: {len(data)} bytes")
+            
+            # Here you would integrate with the twilio_handler logic
+            # For now, just acknowledge receipt
+            emit('ack', {'msg': 'Media received'})
+            
+        except Exception as e:
+            logger.error(f"Error handling media: {str(e)}", exc_info=True)
+            emit('error', {'msg': str(e)})
+    
+    @socketio.on('start', namespace='/sambanova_todo')
+    def handle_start(data):
+        """Handle start event from Twilio."""
+        try:
+            logger.info(f"Start event received: {data}")
+            
+            # Initialize conversation with Sambanova agent
+            emit('started', {'msg': 'Conversation started with Sambanova agent'})
+            
+        except Exception as e:
+            logger.error(f"Error handling start: {str(e)}", exc_info=True)
+            emit('error', {'msg': str(e)})
+    
+    @socketio.on('stop', namespace='/sambanova_todo')
+    def handle_stop(data):
+        """Handle stop event from Twilio."""
+        try:
+            logger.info(f"Stop event received: {data}")
+            
+            # Clean up conversation
+            emit('stopped', {'msg': 'Conversation ended'})
+            
+        except Exception as e:
+            logger.error(f"Error handling stop: {str(e)}", exc_info=True)
+            emit('error', {'msg': str(e)})
