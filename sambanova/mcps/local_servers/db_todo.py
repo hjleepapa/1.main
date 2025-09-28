@@ -15,9 +15,7 @@ except ImportError:
     # Fallback for when running as MCP server
     import sys
     import os
-    # Add shared directory to path
-    shared_dir = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'shared')
-    sys.path.append(shared_dir)
+    sys.path.append(os.path.dirname(__file__))
     from google_calendar import get_calendar_service
 
 load_dotenv()

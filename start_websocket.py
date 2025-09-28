@@ -4,8 +4,9 @@ WebSocket-enabled startup script with proper monkey patching
 """
 
 # CRITICAL: Monkey patch must be the VERY FIRST thing
-import eventlet
-eventlet.monkey_patch()
+import gevent
+from gevent import monkey
+monkey.patch_all()
 
 # Now import everything else
 from app import create_app
