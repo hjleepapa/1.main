@@ -9,11 +9,13 @@ eventlet.monkey_patch()
 
 # Now import everything else
 from app import create_app
+from flask_socketio import SocketIO
 
 # Create the app with WebSocket support
 app = create_app()
 
+# Initialize SocketIO for WebSocket support
+socketio = SocketIO(app, cors_allowed_origins="*")
+
 if __name__ == "__main__":
-    from flask_socketio import SocketIO
-    socketio = SocketIO(app, cors_allowed_origins="*")
     socketio.run(app, host="0.0.0.0", port=8000, debug=True)
