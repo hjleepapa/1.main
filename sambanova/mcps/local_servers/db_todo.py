@@ -153,13 +153,20 @@ from sqlalchemy.orm import sessionmaker
 
 # Handle missing DB_URI gracefully
 db_uri = os.getenv("DB_URI")
+print(f"🔍 DEBUG: DB_URI = {db_uri[:20]}..." if db_uri else "🔍 DEBUG: DB_URI = None")
 if not db_uri:
     print("⚠️  Warning: DB_URI not set, MCP server database operations will be disabled")
     engine = None
     SessionLocal = None
 else:
-    engine = create_engine(url=db_uri)
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    try:
+        engine = create_engine(url=db_uri)
+        SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        print("✅ Database connection established successfully")
+    except Exception as e:
+        print(f"❌ Database connection failed: {e}")
+        engine = None
+        SessionLocal = None
 
 # ----------------------------
 # Helper Functions
