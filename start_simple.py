@@ -1,21 +1,13 @@
 #!/usr/bin/env python3
 """
-WebSocket-enabled startup script with proper monkey patching
+Simple startup script for WebSocket support without monkey patching conflicts
 """
 
-# CRITICAL: Monkey patch must be the VERY FIRST thing
-# Only patch if not already patched by Gunicorn
-import os
-if not os.environ.get('GUNICORN_WORKER_CLASS'):
-    import gevent
-    from gevent import monkey
-    monkey.patch_all()
-
-# Now import everything else
+# Import Flask app without any monkey patching
 from app import create_app
 from flask_socketio import SocketIO
 
-# Create the app with WebSocket support
+# Create the app
 app = create_app()
 
 # Initialize SocketIO for WebSocket support
