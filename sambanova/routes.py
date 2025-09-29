@@ -117,8 +117,14 @@ def process_audio_webhook():
             response.hangup()
             return Response(str(response), mimetype='text/xml')
         
-        # Process with the agent
-        agent_response = asyncio.run(_run_agent_async(transcribed_text))
+        # Process with the agent (with timeout to prevent hanging)
+        try:
+            agent_response = asyncio.wait_for(_run_agent_async(transcribed_text), timeout=10.0)
+        except asyncio.TimeoutError:
+            agent_response = "I'm sorry, I'm taking too long to process that request. Please try again with a simpler request."
+        except Exception as e:
+            print(f"Error in agent processing: {e}")
+            agent_response = "I'm sorry, I encountered an error processing your request. Please try again."
         
         # Return TwiML with the agent's response and barge-in capability
         response = VoiceResponse()
@@ -204,9 +210,21 @@ async def _get_agent_graph() -> StateGraph:
                 server_config["args"][0] = absolute_path
     
     try:
-        client = MultiServerMCPClient(connections=mcp_config["mcpServers"])
-        tools = await client.get_tools()
+        # Add timeout to MCP client initialization
+        client = await asyncio.wait_for(
+            MultiServerMCPClient(connections=mcp_config["mcpServers"]),
+            timeout=5.0
+        )
+        tools = await asyncio.wait_for(client.get_tools(), timeout=5.0)
         return TodoAgent(tools=tools).build_graph()
+    except asyncio.TimeoutError:
+        print("MCP client initialization timed out")
+        # Return a simple agent without MCP tools as fallback
+        return TodoAgent(tools=[]).build_graph()
+    except Exception as e:
+        print(f"Error initializing MCP client: {e}")
+        # Return a simple agent without MCP tools as fallback
+        return TodoAgent(tools=[]).build_graph()
     finally:
         os.chdir(original_cwd)
 
@@ -221,13 +239,22 @@ async def _run_agent_async(prompt: str) -> str:
     )
     config = {"configurable": {"thread_id": "flask-thread-1"}}
 
-    # Stream through the graph to execute the agent logic
-    async for _ in agent_graph.astream(input=input_state, stream_mode="values", config=config):
-        pass
+    # Stream through the graph to execute the agent logic with timeout
+    try:
+        async for _ in asyncio.wait_for(
+            agent_graph.astream(input=input_state, stream_mode="values", config=config),
+            timeout=8.0
+        ):
+            pass
 
-    final_state = agent_graph.get_state(config=config)
-    last_message = final_state.values.get("messages")[-1]
-    return getattr(last_message, 'content', "")
+        final_state = agent_graph.get_state(config=config)
+        last_message = final_state.values.get("messages")[-1]
+        return getattr(last_message, 'content', "")
+    except asyncio.TimeoutError:
+        return "I'm sorry, I'm taking too long to process that request. Please try again with a simpler request."
+    except Exception as e:
+        print(f"Error in agent execution: {e}")
+        return "I'm sorry, I encountered an error processing your request. Please try again."
 
 
 @sambanova_todo_bp.route('/run_agent', methods=['POST'])
