@@ -25,7 +25,8 @@ class TodoAgent:
     def __init__(
             self,
             name: str = "Sambanova Assistant",
-            model: str = "gpt-oss-120b",
+            model: str = "gpt-4.1-mini-2025-04-14",
+            #model: str = "gpt-oss-120b",
             #model: str = "gpt-5-nano-2025-08-07",
             #model: str = "gpt-4o-cluster",
             tools: List[BaseTool] = [],
