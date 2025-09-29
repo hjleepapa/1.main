@@ -210,11 +210,8 @@ async def _get_agent_graph() -> StateGraph:
                 server_config["args"][0] = absolute_path
     
     try:
-        # Add timeout to MCP client initialization
-        client = await asyncio.wait_for(
-            MultiServerMCPClient(connections=mcp_config["mcpServers"]),
-            timeout=5.0
-        )
+        # Initialize MCP client (not async)
+        client = MultiServerMCPClient(connections=mcp_config["mcpServers"])
         tools = await asyncio.wait_for(client.get_tools(), timeout=5.0)
         return TodoAgent(tools=tools).build_graph()
     except asyncio.TimeoutError:
@@ -241,15 +238,18 @@ async def _run_agent_async(prompt: str) -> str:
 
     # Stream through the graph to execute the agent logic with timeout
     try:
-        async for _ in asyncio.wait_for(
-            agent_graph.astream(input=input_state, stream_mode="values", config=config),
-            timeout=8.0
-        ):
-            pass
-
-        final_state = agent_graph.get_state(config=config)
-        last_message = final_state.values.get("messages")[-1]
-        return getattr(last_message, 'content', "")
+        # Create the async iterator first
+        stream = agent_graph.astream(input=input_state, stream_mode="values", config=config)
+        
+        # Use wait_for to wrap the entire async for loop
+        async def process_stream():
+            async for _ in stream:
+                pass
+            final_state = agent_graph.get_state(config=config)
+            last_message = final_state.values.get("messages")[-1]
+            return getattr(last_message, 'content', "")
+        
+        return await asyncio.wait_for(process_stream(), timeout=8.0)
     except asyncio.TimeoutError:
         return "I'm sorry, I'm taking too long to process that request. Please try again with a simpler request."
     except Exception as e:
