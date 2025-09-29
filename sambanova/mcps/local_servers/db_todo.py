@@ -151,8 +151,24 @@ class CallRecording(BaseModel):
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-engine = create_engine(url=os.getenv("DB_URI"))
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Handle missing DB_URI gracefully
+db_uri = os.getenv("DB_URI")
+if not db_uri:
+    print("⚠️  Warning: DB_URI not set, MCP server database operations will be disabled")
+    engine = None
+    SessionLocal = None
+else:
+    engine = create_engine(url=db_uri)
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# ----------------------------
+# Helper Functions
+# ----------------------------
+
+def check_database_available():
+    """Check if database is available."""
+    if SessionLocal is None:
+        raise Exception("Database not available - DB_URI not configured")
 
 # ----------------------------
 # MCP Server
@@ -179,6 +195,7 @@ async def create_todo(
     Returns:
         The created todo item.
     """
+    check_database_available()
     with SessionLocal() as session:
         # Set default due date to today if not provided
         if due_date is None:
