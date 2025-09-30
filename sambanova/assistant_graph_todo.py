@@ -104,7 +104,7 @@ class TodoAgent:
     def build_graph(self,) -> CompiledStateGraph:
         builder = StateGraph(AgentState)
 
-        def assistant(state: AgentState):
+        async def assistant(state: AgentState):
             """The main assistant node that uses the LLM to generate responses."""
             # inject todo priorities and reminder importance into the system prompt
             system_prompt = self.system_prompt.format(
@@ -113,20 +113,76 @@ class TodoAgent:
                 )
 
             print(f"🤖 Assistant processing: {state.messages[-1].content if state.messages else 'No messages'}")
-            response = self.llm.invoke([SystemMessage(content=system_prompt)] + state.messages)
+            response = await self.llm.ainvoke([SystemMessage(content=system_prompt)] + state.messages)
             print(f"🤖 Assistant response: {response.content}")
             print(f"🤖 Tool calls: {response.tool_calls if hasattr(response, 'tool_calls') else 'None'}")
             
             state.messages.append(response)
             return state
 
-        def tools_node(state: AgentState):
-            """Execute tools and return results."""
+        async def tools_node(state: AgentState):
+            """Execute async MCP tools and return results."""
             print(f"🔧 Tools node executing with {len(self.tools)} tools available")
-            tool_node = ToolNode(self.tools)
-            result = tool_node.invoke(state)
-            print(f"🔧 Tools result: {result}")
-            return result
+            
+            # Get the last message which should contain tool calls
+            last_message = state.messages[-1]
+            if not hasattr(last_message, 'tool_calls') or not last_message.tool_calls:
+                return state
+            
+            # Execute each tool call
+            tool_messages = []
+            for tool_call in last_message.tool_calls:
+                tool_name = tool_call['name']
+                tool_args = tool_call['args']
+                tool_id = tool_call['id']
+                
+                print(f"🔧 Executing tool: {tool_name} with args: {tool_args}")
+                
+                try:
+                    # Find the tool by name
+                    tool = None
+                    for t in self.tools:
+                        if t.name == tool_name:
+                            tool = t
+                            break
+                    
+                    if tool:
+                        # Execute the async tool
+                        if hasattr(tool, 'ainvoke'):
+                            result = await tool.ainvoke(tool_args)
+                        else:
+                            result = tool.invoke(tool_args)
+                        
+                        from langchain_core.messages import ToolMessage
+                        tool_message = ToolMessage(
+                            content=str(result),
+                            name=tool_name,
+                            tool_call_id=tool_id
+                        )
+                        tool_messages.append(tool_message)
+                        print(f"🔧 Tool {tool_name} result: {result}")
+                    else:
+                        from langchain_core.messages import ToolMessage
+                        tool_message = ToolMessage(
+                            content=f"Tool {tool_name} not found",
+                            name=tool_name,
+                            tool_call_id=tool_id
+                        )
+                        tool_messages.append(tool_message)
+                        
+                except Exception as e:
+                    print(f"🔧 Tool {tool_name} error: {e}")
+                    from langchain_core.messages import ToolMessage
+                    tool_message = ToolMessage(
+                        content=f"Error: {str(e)}",
+                        name=tool_name,
+                        tool_call_id=tool_id
+                    )
+                    tool_messages.append(tool_message)
+            
+            # Add tool messages to state
+            state.messages.extend(tool_messages)
+            return state
 
         builder.add_node(assistant)
         builder.add_node("tools", tools_node)
