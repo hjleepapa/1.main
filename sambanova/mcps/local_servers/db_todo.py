@@ -260,7 +260,19 @@ async def create_todo(
         except Exception as e:
             print(f"Failed to create calendar event or sync with Google Calendar: {e}")
     
-    return Todo.model_validate(new_todo.__dict__).model_dump_json(indent=2)
+    # Convert SQLAlchemy object to dict properly
+    todo_dict = {
+        "id": str(new_todo.id),
+        "created_at": new_todo.created_at.isoformat(),
+        "updated_at": new_todo.updated_at.isoformat(),
+        "title": new_todo.title,
+        "description": new_todo.description,
+        "completed": new_todo.completed,
+        "priority": new_todo.priority,
+        "due_date": new_todo.due_date.isoformat() if new_todo.due_date else None,
+        "google_calendar_event_id": new_todo.google_calendar_event_id
+    }
+    return Todo.model_validate(todo_dict).model_dump_json(indent=2)
 
 @mcp.tool()
 async def get_todos() -> str:
@@ -442,7 +454,17 @@ async def create_reminder(
         except Exception as e:
             print(f"Failed to create calendar event or sync reminder with Google Calendar: {e}")
     
-    return Reminder.model_validate(new_reminder.__dict__).model_dump_json(indent=2)
+    # Convert SQLAlchemy object to dict properly
+    reminder_dict = {
+        "id": str(new_reminder.id),
+        "created_at": new_reminder.created_at.isoformat(),
+        "updated_at": new_reminder.updated_at.isoformat(),
+        "reminder_text": new_reminder.reminder_text,
+        "importance": new_reminder.importance,
+        "reminder_date": new_reminder.reminder_date.isoformat() if new_reminder.reminder_date else None,
+        "google_calendar_event_id": new_reminder.google_calendar_event_id
+    }
+    return Reminder.model_validate(reminder_dict).model_dump_json(indent=2)
 
 @mcp.tool()
 async def get_reminders() -> str:
