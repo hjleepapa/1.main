@@ -25,10 +25,7 @@ class TodoAgent:
     def __init__(
             self,
             name: str = "Sambanova Assistant",
-            model: str = "gpt-4.1-mini-2025-04-14",
-            #model: str = "gpt-oss-120b",
-            #model: str = "gpt-5-nano-2025-08-07",
-            #model: str = "gpt-4o-cluster",
+            model: str = "gpt-4o-mini",
             tools: List[BaseTool] = [],
             system_prompt: str = """You are the Sambanova productivity assistant. You are responsible for helping users manage their todo lists, reminders, and calendar events. You have access to create, update, delete, and query todos, reminders, and calendar events.
 
@@ -86,10 +83,8 @@ class TodoAgent:
         self.llm = ChatOpenAI(
             name=self.name, 
             model=model,
-            api_key=os.getenv("SAMBANOVA_API_KEY"),
-            base_url="https://api.sambanova.ai/v1",
+            api_key=os.getenv("OPENAI_API_KEY"),
             temperature=0.1,
-            top_p=0.1
         ).bind_tools(tools=self.tools)
         self.graph = self.build_graph()
 
