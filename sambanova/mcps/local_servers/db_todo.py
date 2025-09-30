@@ -153,6 +153,9 @@ from sqlalchemy.orm import sessionmaker
 
 # Handle missing DB_URI gracefully
 db_uri = os.getenv("DB_URI")
+print(f"🔍 DEBUG: DB_URI from environment: {'SET' if db_uri else 'NOT SET'}")
+print(f"🔍 DEBUG: All environment variables with DB: {[k for k in os.environ.keys() if 'DB' in k.upper()]}")
+
 if not db_uri:
     print("⚠️  Warning: DB_URI not set, MCP server database operations will be disabled")
     engine = None

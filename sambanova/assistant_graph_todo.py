@@ -49,7 +49,9 @@ class TodoAgent:
             - Work/business: high priority
             - Personal/hobbies: low priority
             - If no priority mentioned: medium priority
-            - If no due date mentioned: use today's date
+            - If no due date mentioned: ALWAYS use today's date (2025-09-30)
+            
+            CRITICAL: Today's date is 2025-09-30. NEVER use dates from 2023 or 2024. Always use 2025-09-30 as the default date when no specific date is provided.
 
             <todo_priorities>
             {todo_priorities}
@@ -80,8 +82,8 @@ class TodoAgent:
             - query_db: Execute SQL queries
 
             EXAMPLES:
-            User: "Create a todo for grocery shopping" → IMMEDIATELY use create_todo with title="Grocery shopping", priority="medium", due_date=today
-            User: "Add Costco shopping to my list" → IMMEDIATELY use create_todo with title="Costco shopping", priority="medium", due_date=today
+            User: "Create a todo for grocery shopping" → IMMEDIATELY use create_todo with title="Grocery shopping", priority="medium", due_date="2025-09-30"
+            User: "Add Costco shopping to my list" → IMMEDIATELY use create_todo with title="Costco shopping", priority="medium", due_date="2025-09-30"
             User: "Create a reminder for the meeting" → IMMEDIATELY use create_reminder with reasonable defaults
             User: "What are my todos?" → IMMEDIATELY use get_todos tool
 
@@ -173,8 +175,17 @@ class TodoAgent:
                 except Exception as e:
                     print(f"🔧 Tool {tool_name} error: {e}")
                     from langchain_core.messages import ToolMessage
+                    
+                    # Provide more user-friendly error messages
+                    if "Database not available" in str(e):
+                        error_msg = "I'm sorry, there's a temporary database issue. Please try again in a moment."
+                    elif "DB_URI" in str(e):
+                        error_msg = "I'm sorry, there's a configuration issue with the database. Please try again later."
+                    else:
+                        error_msg = f"I encountered an error: {str(e)}"
+                    
                     tool_message = ToolMessage(
-                        content=f"Error: {str(e)}",
+                        content=error_msg,
                         name=tool_name,
                         tool_call_id=tool_id
                     )
