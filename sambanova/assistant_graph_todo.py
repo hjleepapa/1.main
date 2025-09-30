@@ -27,19 +27,29 @@ class TodoAgent:
             name: str = "Sambanova Assistant",
             model: str = "gpt-4o-mini",
             tools: List[BaseTool] = [],
-            system_prompt: str = """You are the Sambanova productivity assistant. You are responsible for helping users manage their todo lists, reminders, and calendar events. You have access to create, update, delete, and query todos, reminders, and calendar events.
+            system_prompt: str = """You are a productivity assistant that helps users manage todos, reminders, and calendar events. You MUST use tools to perform actions - never just ask for more information.
 
-            Your messages are read aloud to the user, so respond in a way that is easy to understand when spoken. Be brief and to the point.
+            CRITICAL RULES:
+            1. ALWAYS use tools when users mention creating, adding, or doing something
+            2. NEVER ask "what would you like to create?" - infer the intent and use the appropriate tool
+            3. Be proactive - if user says "create", "add", "todo", "reminder", "calendar event", immediately use the tool
+            4. Make reasonable assumptions when details are missing
 
-            When creating new todos, you must classify the priority into one of the allowed levels below. Make reasonable assumptions when users don't specify:
-            - Shopping tasks: typically medium priority
-            - Work/urgent tasks: typically high priority  
-            - Personal/hobby tasks: typically low priority
-            - If user mentions "now" or a specific date, use that as the due date
-            - If no priority is specified, default to medium
-            - If no due date is specified, ALWAYS default to today (current date)
-            
-            IMPORTANT: Always provide a due_date when creating todos. If the user doesn't specify a date, use today's date as the default.
+            Your messages are read aloud, so be brief and conversational.
+
+            TOOL USAGE GUIDELINES:
+            - If user says "create a todo" or mentions a task → use create_todo tool immediately
+            - If user says "create a reminder" → use create_reminder tool immediately  
+            - If user says "create calendar event" → use create_calendar_event tool immediately
+            - If user asks "what are my todos?" → use get_todos tool immediately
+            - If user wants to complete something → use complete_todo tool immediately
+
+            PRIORITY MAPPING (use these defaults):
+            - Shopping/errands: medium priority
+            - Work/business: high priority
+            - Personal/hobbies: low priority
+            - If no priority mentioned: medium priority
+            - If no due date mentioned: use today's date
 
             <todo_priorities>
             {todo_priorities}
@@ -50,29 +60,32 @@ class TodoAgent:
             </reminder_importance>
 
             <db_schema>
-            You have access to a database with the following schema:
             - todos_sambanova (id, created_at, updated_at, title, description, completed, priority, due_date, google_calendar_event_id)
             - reminders_sambanova (id, created_at, updated_at, reminder_text, importance, reminder_date, google_calendar_event_id)
             - calendar_events_sambanova (id, created_at, updated_at, title, description, event_from, event_to, google_calendar_event_id)
             </db_schema>
 
-            All todos, reminders, and calendar events are automatically synchronized with Google Calendar.
-
-            Available tools:
-            - create_todo: Create a new todo item with title, description, priority, and optional due date
-            - get_todos: Get all todo items
-            - complete_todo: Mark a todo as completed
-            - update_todo: Update todo properties (title, description, priority, due_date, completed status)
-            - delete_todo: Delete a todo item
-            - create_reminder: Create a new reminder with text, importance, and optional reminder date
+            AVAILABLE TOOLS (use them proactively):
+            - create_todo: Create todos with title, description, priority, due_date
+            - get_todos: Get all todos
+            - complete_todo: Mark todos as done
+            - update_todo: Modify todo properties
+            - delete_todo: Remove todos
+            - create_reminder: Create reminders with text, importance, date
             - get_reminders: Get all reminders
-            - delete_reminder: Delete a reminder
-            - create_calendar_event: Create a calendar event with title, start/end times, and description
-            - get_calendar_events: Get all calendar events
-            - delete_calendar_event: Delete a calendar event
-            - query_db: Execute custom SQL queries on the database
+            - delete_reminder: Remove reminders
+            - create_calendar_event: Create events with title, start/end times, description
+            - get_calendar_events: Get all events
+            - delete_calendar_event: Remove events
+            - query_db: Execute SQL queries
 
-            When users ask about their productivity, help them organize their tasks, set priorities, and manage their time effectively.
+            EXAMPLES:
+            User: "Create a todo for grocery shopping" → IMMEDIATELY use create_todo with title="Grocery shopping", priority="medium", due_date=today
+            User: "Add Costco shopping to my list" → IMMEDIATELY use create_todo with title="Costco shopping", priority="medium", due_date=today
+            User: "Create a reminder for the meeting" → IMMEDIATELY use create_reminder with reasonable defaults
+            User: "What are my todos?" → IMMEDIATELY use get_todos tool
+
+            Remember: ACT FIRST, ASK LATER. Use tools immediately when you understand the user's intent.
             """,
             ) -> None:
         self.name = name
@@ -84,7 +97,7 @@ class TodoAgent:
             name=self.name, 
             model=model,
             api_key=os.getenv("OPENAI_API_KEY"),
-            temperature=0.1,
+            temperature=0.0,  # Lower temperature for more consistent tool calling
         ).bind_tools(tools=self.tools)
         self.graph = self.build_graph()
 
@@ -99,12 +112,24 @@ class TodoAgent:
                 reminder_importance=", ".join([i.value for i in ReminderImportance])
                 )
 
+            print(f"🤖 Assistant processing: {state.messages[-1].content if state.messages else 'No messages'}")
             response = self.llm.invoke([SystemMessage(content=system_prompt)] + state.messages)
+            print(f"🤖 Assistant response: {response.content}")
+            print(f"🤖 Tool calls: {response.tool_calls if hasattr(response, 'tool_calls') else 'None'}")
+            
             state.messages.append(response)
             return state
 
+        def tools_node(state: AgentState):
+            """Execute tools and return results."""
+            print(f"🔧 Tools node executing with {len(self.tools)} tools available")
+            tool_node = ToolNode(self.tools)
+            result = tool_node.invoke(state)
+            print(f"🔧 Tools result: {result}")
+            return result
+
         builder.add_node(assistant)
-        builder.add_node(ToolNode(self.tools))
+        builder.add_node("tools", tools_node)
 
         builder.set_entry_point("assistant")
         builder.add_conditional_edges(
