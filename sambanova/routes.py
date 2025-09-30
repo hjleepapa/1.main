@@ -200,7 +200,7 @@ async def _get_agent_graph() -> StateGraph:
     original_cwd = os.getcwd()
     os.chdir(project_root)
     
-    # Update the MCP config with absolute paths
+    # Update the MCP config with absolute paths and environment variables
     for server_name, server_config in mcp_config["mcpServers"].items():
         if "args" in server_config and len(server_config["args"]) > 0:
             # Convert relative path to absolute path
@@ -208,6 +208,19 @@ async def _get_agent_graph() -> StateGraph:
             if not os.path.isabs(relative_path):
                 absolute_path = os.path.join(project_root, relative_path)
                 server_config["args"][0] = absolute_path
+        
+        # Handle environment variable substitution in env section
+        if "env" in server_config:
+            for env_key, env_value in server_config["env"].items():
+                if isinstance(env_value, str) and env_value.startswith("${") and env_value.endswith("}"):
+                    # Extract environment variable name
+                    env_var_name = env_value[2:-1]
+                    env_var_value = os.getenv(env_var_name)
+                    if env_var_value:
+                        server_config["env"][env_key] = env_var_value
+                        print(f"🔧 MCP config: Set {env_key}={env_var_name} from environment")
+                    else:
+                        print(f"⚠️  MCP config: Environment variable {env_var_name} not found")
     
     try:
         # Initialize MCP client (not async)
