@@ -9,14 +9,15 @@ import os
 from pydantic import BaseModel
 from enum import StrEnum
 import pandas as pd
-try:
-    from google_calendar import get_calendar_service
-except ImportError:
-    # Fallback for when running as MCP server
-    import sys
-    import os
-    sys.path.append(os.path.dirname(__file__))
-    from google_calendar import get_calendar_service
+# Google Calendar integration disabled to avoid browser authentication issues
+# try:
+#     from google_calendar import get_calendar_service
+# except ImportError:
+#     # Fallback for when running as MCP server
+#     import sys
+#     import os
+#     sys.path.append(os.path.dirname(__file__))
+#     from google_calendar import get_calendar_service
 
 load_dotenv()
 
@@ -311,17 +312,8 @@ async def complete_todo(id: UUID) -> str:
         todo.completed = True
         session.commit()
         
-        # Update Google Calendar event
-        if todo.google_calendar_event_id:
-            try:
-                calendar_service = get_calendar_service()
-                calendar_service.update_event(
-                    event_id=todo.google_calendar_event_id,
-                    title=f"COMPLETED: {todo.title}",
-                    description=f"{todo.description or ''}\n\nPriority: {todo.priority}\nStatus: Completed\nFrom: Sambanova Todo System"
-                )
-            except Exception as e:
-                print(f"Failed to update Google Calendar event: {e}")
+        # Google Calendar sync disabled
+        print(f"✅ Todo '{todo.title}' marked as completed")
         
         session.refresh(todo)
     
@@ -385,13 +377,8 @@ async def delete_todo(id: UUID) -> str:
         if not todo:
             return "Todo not found"
         
-        # Delete from Google Calendar first
-        if todo.google_calendar_event_id:
-            try:
-                calendar_service = get_calendar_service()
-                calendar_service.delete_event(todo.google_calendar_event_id)
-            except Exception as e:
-                print(f"Failed to delete Google Calendar event: {e}")
+        # Google Calendar sync disabled
+        print(f"🗑️ Deleting todo: {todo.title}")
         
         session.delete(todo)
         session.commit()
@@ -478,13 +465,8 @@ async def delete_reminder(id: UUID) -> str:
         if not reminder:
             return "Reminder not found"
         
-        # Delete from Google Calendar first
-        if reminder.google_calendar_event_id:
-            try:
-                calendar_service = get_calendar_service()
-                calendar_service.delete_event(reminder.google_calendar_event_id)
-            except Exception as e:
-                print(f"Failed to delete Google Calendar event: {e}")
+        # Google Calendar sync disabled
+        print(f"🗑️ Deleting reminder: {reminder.reminder_text}")
         
         session.delete(reminder)
         session.commit()
@@ -563,13 +545,8 @@ async def delete_calendar_event(id: UUID) -> str:
         if not event:
             return "Calendar event not found"
         
-        # Delete from Google Calendar first
-        if event.google_calendar_event_id:
-            try:
-                calendar_service = get_calendar_service()
-                calendar_service.delete_event(event.google_calendar_event_id)
-            except Exception as e:
-                print(f"Failed to delete Google Calendar event: {e}")
+        # Google Calendar sync disabled
+        print(f"🗑️ Deleting calendar event: {event.title}")
         
         session.delete(event)
         session.commit()
