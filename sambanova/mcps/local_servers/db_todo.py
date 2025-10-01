@@ -259,28 +259,6 @@ async def create_todo(
             print(f"🔧 MCP create_todo: Refreshing object...")
             session.refresh(new_todo)
             print(f"🔧 MCP create_todo: Todo created successfully with ID: {new_todo.id}")
-            
-            # Create corresponding calendar event (simplified to avoid timeouts)
-            try:
-                # Set default times for calendar event
-                start_time = due_date if due_date else datetime.now(timezone.utc)
-                end_time = start_time + timedelta(hours=1)
-                
-                # Create local calendar event only (skip Google Calendar for now to avoid timeouts)
-                new_event = DBCalendarEvent(
-                    title=f"TODO: {title}",
-                    description=f"{description or ''}\n\nPriority: {priority.value}\nFrom: Sambanova Todo System",
-                    event_from=start_time,
-                    event_to=end_time,
-                )
-                session.add(new_event)
-                session.commit()
-                session.refresh(new_event)
-                print(f"✅ Created local calendar event for todo '{title}'")
-                
-            except Exception as e:
-                print(f"⚠️  Failed to create calendar event for todo '{title}': {e}")
-                print("Todo created successfully without calendar event")
     
         # Convert SQLAlchemy object to dict properly
         todo_dict = {
@@ -452,28 +430,7 @@ async def create_reminder(
             session.add(new_reminder)
             session.commit()
             session.refresh(new_reminder)
-            
-            # Create corresponding calendar event (simplified to avoid timeouts)
-            try:
-                # Set default times for calendar event
-                start_time = reminder_date if reminder_date else datetime.now(timezone.utc)
-                end_time = start_time + timedelta(minutes=30)  # Reminders are typically shorter events
-                
-                # Create local calendar event only (skip Google Calendar for now to avoid timeouts)
-                new_event = DBCalendarEvent(
-                    title=f"REMINDER: {reminder_text}",
-                    description=f"Importance: {importance_value}\nFrom: Sambanova Todo System",
-                    event_from=start_time,
-                    event_to=end_time,
-                )
-                session.add(new_event)
-                session.commit()
-                session.refresh(new_event)
-                print(f"✅ Created local calendar event for reminder '{reminder_text}'")
-                
-            except Exception as e:
-                print(f"⚠️  Failed to create calendar event for reminder '{reminder_text}': {e}")
-                print("Reminder created successfully without calendar event")
+            print(f"🔧 MCP create_reminder: Reminder created successfully with ID: {new_reminder.id}")
     
         # Convert SQLAlchemy object to dict properly
         reminder_dict = {
