@@ -151,23 +151,35 @@ class CallRecording(BaseModel):
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-# Handle missing DB_URI gracefully
+# Lazy database connection - don't connect at import time
 db_uri = os.getenv("DB_URI")
-print(f"🔍 DEBUG: DB_URI from environment: {'SET' if db_uri else 'NOT SET'}")
-print(f"🔍 DEBUG: All environment variables with DB: {[k for k in os.environ.keys() if 'DB' in k.upper()]}")
+engine = None
+SessionLocal = None
+_db_initialized = False
 
-if not db_uri:
-    print("⚠️  Warning: DB_URI not set, MCP server database operations will be disabled")
-    engine = None
-    SessionLocal = None
-else:
+def _init_database():
+    """Initialize database connection (lazy loading)."""
+    global engine, SessionLocal, _db_initialized
+    
+    if _db_initialized:
+        return
+    
+    _db_initialized = True
+    
+    if not db_uri:
+        print("⚠️  Warning: DB_URI not set, MCP server database operations will be disabled")
+        return
+    
     try:
-        # Create engine with connection timeout to prevent hanging
+        # Create engine with optimized settings
         engine = create_engine(
             url=db_uri,
-            pool_timeout=5,  # 5 second timeout
-            pool_recycle=3600,  # Recycle connections every hour
-            connect_args={"connect_timeout": 5}  # 5 second connection timeout
+            pool_pre_ping=True,  # Verify connections before using them
+            pool_size=2,  # Small pool for MCP server
+            max_overflow=0,  # No overflow
+            pool_timeout=3,  # 3 second timeout
+            pool_recycle=1800,  # Recycle connections every 30 mins
+            connect_args={"connect_timeout": 3}  # 3 second connection timeout
         )
         SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
         print("✅ Database connection configured successfully")
@@ -182,6 +194,7 @@ else:
 
 def check_database_available():
     """Check if database is available."""
+    _init_database()  # Lazy init on first use
     if SessionLocal is None:
         raise Exception("Database not available - DB_URI not configured")
 

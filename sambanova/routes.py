@@ -225,23 +225,26 @@ async def _get_agent_graph() -> StateGraph:
     try:
         # Initialize MCP client (not async)
         client = MultiServerMCPClient(connections=mcp_config["mcpServers"])
-        tools = await asyncio.wait_for(client.get_tools(), timeout=5.0)
+        tools = await asyncio.wait_for(client.get_tools(), timeout=10.0)  # Increase timeout to 10s
+        print(f"✅ MCP client initialized successfully with {len(tools)} tools")
         return TodoAgent(tools=tools).build_graph()
     except asyncio.TimeoutError:
-        print("MCP client initialization timed out")
-        # Return a simple agent without MCP tools as fallback
-        return TodoAgent(tools=[]).build_graph()
+        print("❌ MCP client initialization timed out after 10 seconds")
+        raise Exception("Database connection timed out. Please try again.")
     except Exception as e:
-        print(f"Error initializing MCP client: {e}")
-        # Return a simple agent without MCP tools as fallback
-        return TodoAgent(tools=[]).build_graph()
+        print(f"❌ Error initializing MCP client: {e}")
+        raise Exception(f"Database initialization failed: {str(e)}")
     finally:
         os.chdir(original_cwd)
 
 
 async def _run_agent_async(prompt: str) -> str:
     """Runs the agent for a given prompt and returns the final response."""
-    agent_graph = await _get_agent_graph()
+    try:
+        agent_graph = await _get_agent_graph()
+    except Exception as e:
+        print(f"❌ Failed to initialize agent: {e}")
+        return "I'm sorry, there's a temporary system issue. Please try again in a moment."
 
     input_state = AgentState(
         messages=[HumanMessage(content=prompt)],
