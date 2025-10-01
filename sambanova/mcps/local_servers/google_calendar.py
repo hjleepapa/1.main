@@ -42,8 +42,13 @@ class GoogleCalendarService:
                 print(f"Warning: Could not load token from environment variable: {e}")
                 creds = None
         elif os.path.exists(self.token_file):
-            with open(self.token_file, 'rb') as token:
-                creds = pickle.load(token)
+            try:
+                with open(self.token_file, 'rb') as token:
+                    creds = pickle.load(token)
+            except Exception as e:
+                print(f"Warning: Could not load token from file {self.token_file}: {e}")
+                print("Token file appears to be corrupted, will re-authenticate")
+                creds = None
         
         # If there are no (valid) credentials available, let the user log in.
         if not creds or not creds.valid:

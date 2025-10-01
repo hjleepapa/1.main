@@ -244,19 +244,26 @@ async def create_todo(
             session.refresh(new_event)
             
             # Sync with Google Calendar
-            calendar_service = get_calendar_service()
-            google_event_id = calendar_service.create_event(
-                title=f"TODO: {title}",
-                description=f"{description or ''}\n\nPriority: {priority.value}\nFrom: Sambanova Todo System",
-                start_time=start_time,
-                end_time=end_time
-            )
-            if google_event_id:
-                new_event.google_calendar_event_id = google_event_id
-                new_todo.google_calendar_event_id = google_event_id
-                session.commit()
-                session.refresh(new_todo)
-                session.refresh(new_event)
+            try:
+                calendar_service = get_calendar_service()
+                google_event_id = calendar_service.create_event(
+                    title=f"TODO: {title}",
+                    description=f"{description or ''}\n\nPriority: {priority.value}\nFrom: Sambanova Todo System",
+                    start_time=start_time,
+                    end_time=end_time
+                )
+                if google_event_id:
+                    new_event.google_calendar_event_id = google_event_id
+                    new_todo.google_calendar_event_id = google_event_id
+                    session.commit()
+                    session.refresh(new_todo)
+                    session.refresh(new_event)
+                    print(f"✅ Successfully synced todo '{title}' with Google Calendar")
+                else:
+                    print(f"⚠️  Google Calendar sync failed for todo '{title}' - event created locally only")
+            except Exception as google_error:
+                print(f"⚠️  Google Calendar sync failed for todo '{title}': {google_error}")
+                print("Todo created successfully without Google Calendar sync")
         except Exception as e:
             print(f"Failed to create calendar event or sync with Google Calendar: {e}")
     
@@ -438,19 +445,26 @@ async def create_reminder(
             session.refresh(new_event)
             
             # Sync with Google Calendar
-            calendar_service = get_calendar_service()
-            google_event_id = calendar_service.create_event(
-                title=f"REMINDER: {reminder_text}",
-                description=f"Importance: {importance_value}\nFrom: Sambanova Todo System",
-                start_time=start_time,
-                end_time=end_time
-            )
-            if google_event_id:
-                new_event.google_calendar_event_id = google_event_id
-                new_reminder.google_calendar_event_id = google_event_id
-                session.commit()
-                session.refresh(new_reminder)
-                session.refresh(new_event)
+            try:
+                calendar_service = get_calendar_service()
+                google_event_id = calendar_service.create_event(
+                    title=f"REMINDER: {reminder_text}",
+                    description=f"Importance: {importance_value}\nFrom: Sambanova Todo System",
+                    start_time=start_time,
+                    end_time=end_time
+                )
+                if google_event_id:
+                    new_event.google_calendar_event_id = google_event_id
+                    new_reminder.google_calendar_event_id = google_event_id
+                    session.commit()
+                    session.refresh(new_reminder)
+                    session.refresh(new_event)
+                    print(f"✅ Successfully synced reminder '{reminder_text}' with Google Calendar")
+                else:
+                    print(f"⚠️  Google Calendar sync failed for reminder '{reminder_text}' - event created locally only")
+            except Exception as google_error:
+                print(f"⚠️  Google Calendar sync failed for reminder '{reminder_text}': {google_error}")
+                print("Reminder created successfully without Google Calendar sync")
         except Exception as e:
             print(f"Failed to create calendar event or sync reminder with Google Calendar: {e}")
     
