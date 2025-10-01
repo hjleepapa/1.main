@@ -194,7 +194,12 @@ def _init_database():
 
 def check_database_available():
     """Check if database is available."""
-    _init_database()  # Lazy init on first use
+    try:
+        _init_database()  # Lazy init on first use
+    except Exception as e:
+        print(f"❌ Failed to initialize database: {e}")
+        raise Exception(f"Database initialization failed: {str(e)}")
+    
     if SessionLocal is None:
         raise Exception("Database not available - DB_URI not configured")
 
