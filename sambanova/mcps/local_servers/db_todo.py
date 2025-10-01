@@ -171,18 +171,19 @@ def _init_database():
         return
     
     try:
-        # Create engine with optimized settings
+        print("🔄 Initializing database connection...")
+        # Create engine with very aggressive timeout settings
         engine = create_engine(
             url=db_uri,
-            pool_pre_ping=True,  # Verify connections before using them
-            pool_size=2,  # Small pool for MCP server
+            pool_pre_ping=False,  # Skip pre-ping to avoid hanging
+            pool_size=1,  # Minimal pool for MCP server
             max_overflow=0,  # No overflow
-            pool_timeout=3,  # 3 second timeout
+            pool_timeout=1,  # 1 second timeout
             pool_recycle=1800,  # Recycle connections every 30 mins
-            connect_args={"connect_timeout": 3}  # 3 second connection timeout
+            connect_args={"connect_timeout": 1}  # 1 second connection timeout
         )
         SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-        print("✅ Database connection configured successfully")
+        print("✅ Database connection configured successfully (no test)")
     except Exception as e:
         print(f"❌ Database connection failed: {e}")
         engine = None
@@ -209,6 +210,10 @@ def check_database_available():
 
 mcp = FastMCP("db_todo")
 
+@mcp.tool()
+async def test_connection() -> str:
+    """Test if the MCP server is working."""
+    return "MCP server is working!"
 
 @mcp.tool()
 async def create_todo(
