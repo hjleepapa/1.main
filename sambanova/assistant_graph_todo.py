@@ -153,12 +153,24 @@ class TodoAgent:
                         # Execute the async tool with timeout
                         try:
                             if hasattr(tool, 'ainvoke'):
-                                result = await asyncio.wait_for(tool.ainvoke(tool_args), timeout=4.0)
+                                result = await asyncio.wait_for(tool.ainvoke(tool_args), timeout=5.0)
                             else:
-                                result = await asyncio.wait_for(asyncio.to_thread(tool.invoke, tool_args), timeout=4.0)
+                                result = await asyncio.wait_for(asyncio.to_thread(tool.invoke, tool_args), timeout=5.0)
+                            print(f"✅ Tool {tool_name} completed successfully")
                         except asyncio.TimeoutError:
-                            result = f"Tool {tool_name} timed out after 4 seconds"
-                            print(f"⏰ Tool {tool_name} timed out")
+                            result = "I'm sorry, the database operation timed out. Please try again."
+                            print(f"⏰ Tool {tool_name} timed out after 5 seconds")
+                        except Exception as tool_error:
+                            error_str = str(tool_error)
+                            print(f"❌ Tool {tool_name} error: {error_str}")
+                            
+                            # Provide user-friendly error messages
+                            if "Database not available" in error_str or "DB_URI" in error_str:
+                                result = "I'm sorry, there's a database connection issue. Please try again in a moment."
+                            elif "validation" in error_str.lower():
+                                result = "I encountered a data validation error. Let me try again."
+                            else:
+                                result = f"I encountered an error: {error_str[:100]}"
                         
                         from langchain_core.messages import ToolMessage
                         tool_message = ToolMessage(
