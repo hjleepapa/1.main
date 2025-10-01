@@ -228,8 +228,11 @@ async def create_todo(
     Returns:
         The created todo item.
     """
-    check_database_available()
-    with SessionLocal() as session:
+    try:
+        print(f"🔧 MCP create_todo: Starting with title='{title}', priority={priority}")
+        check_database_available()
+        
+        with SessionLocal() as session:
         # Set default due date to today if not provided
         if due_date is None:
             due_date = datetime.now(timezone.utc)
@@ -266,19 +269,26 @@ async def create_todo(
             print(f"⚠️  Failed to create calendar event for todo '{title}': {e}")
             print("Todo created successfully without calendar event")
     
-    # Convert SQLAlchemy object to dict properly
-    todo_dict = {
-        "id": str(new_todo.id),
-        "created_at": new_todo.created_at.isoformat(),
-        "updated_at": new_todo.updated_at.isoformat(),
-        "title": new_todo.title,
-        "description": new_todo.description,
-        "completed": new_todo.completed,
-        "priority": new_todo.priority,
-        "due_date": new_todo.due_date.isoformat() if new_todo.due_date else None,
-        "google_calendar_event_id": new_todo.google_calendar_event_id
-    }
-    return Todo.model_validate(todo_dict).model_dump_json(indent=2)
+        # Convert SQLAlchemy object to dict properly
+        todo_dict = {
+            "id": str(new_todo.id),
+            "created_at": new_todo.created_at.isoformat(),
+            "updated_at": new_todo.updated_at.isoformat(),
+            "title": new_todo.title,
+            "description": new_todo.description,
+            "completed": new_todo.completed,
+            "priority": new_todo.priority,
+            "due_date": new_todo.due_date.isoformat() if new_todo.due_date else None,
+            "google_calendar_event_id": new_todo.google_calendar_event_id
+        }
+        result = Todo.model_validate(todo_dict).model_dump_json(indent=2)
+        print(f"✅ MCP create_todo: Successfully created todo '{title}'")
+        return result
+        
+    except Exception as e:
+        error_msg = f"Error executing tool create_todo: {str(e)}"
+        print(f"❌ MCP create_todo: {error_msg}")
+        return error_msg
 
 @mcp.tool()
 async def get_todos() -> str:
@@ -413,7 +423,11 @@ async def create_reminder(
     Returns:
         The created reminder.
     """
-    with SessionLocal() as session:
+    try:
+        print(f"🔧 MCP create_reminder: Starting with text='{reminder_text}', importance={importance}")
+        check_database_available()
+        
+        with SessionLocal() as session:
         # Handle both string and enum inputs for importance
         importance_value = importance.value if hasattr(importance, 'value') else importance
         
@@ -448,17 +462,24 @@ async def create_reminder(
             print(f"⚠️  Failed to create calendar event for reminder '{reminder_text}': {e}")
             print("Reminder created successfully without calendar event")
     
-    # Convert SQLAlchemy object to dict properly
-    reminder_dict = {
-        "id": str(new_reminder.id),
-        "created_at": new_reminder.created_at.isoformat(),
-        "updated_at": new_reminder.updated_at.isoformat(),
-        "reminder_text": new_reminder.reminder_text,
-        "importance": new_reminder.importance,
-        "reminder_date": new_reminder.reminder_date.isoformat() if new_reminder.reminder_date else None,
-        "google_calendar_event_id": new_reminder.google_calendar_event_id
-    }
-    return Reminder.model_validate(reminder_dict).model_dump_json(indent=2)
+        # Convert SQLAlchemy object to dict properly
+        reminder_dict = {
+            "id": str(new_reminder.id),
+            "created_at": new_reminder.created_at.isoformat(),
+            "updated_at": new_reminder.updated_at.isoformat(),
+            "reminder_text": new_reminder.reminder_text,
+            "importance": new_reminder.importance,
+            "reminder_date": new_reminder.reminder_date.isoformat() if new_reminder.reminder_date else None,
+            "google_calendar_event_id": new_reminder.google_calendar_event_id
+        }
+        result = Reminder.model_validate(reminder_dict).model_dump_json(indent=2)
+        print(f"✅ MCP create_reminder: Successfully created reminder '{reminder_text}'")
+        return result
+        
+    except Exception as e:
+        error_msg = f"Error executing tool create_reminder: {str(e)}"
+        print(f"❌ MCP create_reminder: {error_msg}")
+        return error_msg
 
 @mcp.tool()
 async def get_reminders() -> str:
@@ -518,7 +539,11 @@ async def create_calendar_event(
     Returns:
         The created calendar event.
     """
-    with SessionLocal() as session:
+    try:
+        print(f"🔧 MCP create_calendar_event: Starting with title='{title}'")
+        check_database_available()
+        
+        with SessionLocal() as session:
         new_event = DBCalendarEvent(
             title=title,
             description=description,
@@ -551,7 +576,14 @@ async def create_calendar_event(
             import traceback
             traceback.print_exc()
     
-    return CalendarEvent.model_validate(new_event.__dict__).model_dump_json(indent=2)
+        result = CalendarEvent.model_validate(new_event.__dict__).model_dump_json(indent=2)
+        print(f"✅ MCP create_calendar_event: Successfully created event '{title}'")
+        return result
+        
+    except Exception as e:
+        error_msg = f"Error executing tool create_calendar_event: {str(e)}"
+        print(f"❌ MCP create_calendar_event: {error_msg}")
+        return error_msg
 
 @mcp.tool()
 async def get_calendar_events() -> str:
