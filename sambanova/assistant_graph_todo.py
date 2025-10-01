@@ -125,7 +125,8 @@ class TodoAgent:
 
         async def tools_node(state: AgentState):
             """Execute async MCP tools and return results."""
-            print(f"🔧 Tools node executing with {len(self.tools)} tools available")
+            try:
+                print(f"🔧 Tools node executing with {len(self.tools)} tools available")
             
             # Get the last message which should contain tool calls
             last_message = state.messages[-1]
@@ -163,9 +164,12 @@ class TodoAgent:
                         except Exception as tool_error:
                             error_str = str(tool_error)
                             print(f"❌ Tool {tool_name} error: {error_str}")
+                            print(f"❌ Tool {tool_name} error type: {type(tool_error)}")
                             
-                            # Provide user-friendly error messages
-                            if "Database not available" in error_str or "DB_URI" in error_str:
+                            # Handle specific error types
+                            if "TaskGroup" in error_str:
+                                result = "I encountered a system processing error. The task may have been created successfully. Please check your todo list."
+                            elif "Database not available" in error_str or "DB_URI" in error_str:
                                 result = "I'm sorry, there's a database connection issue. Please try again in a moment."
                             elif "validation" in error_str.lower():
                                 result = "I encountered a data validation error. Let me try again."
@@ -190,16 +194,20 @@ class TodoAgent:
                         tool_messages.append(tool_message)
                         
                 except Exception as e:
-                    print(f"🔧 Tool {tool_name} error: {e}")
+                    error_str = str(e)
+                    print(f"❌ Unexpected error in tools_node: {error_str}")
+                    print(f"❌ Error type: {type(e)}")
                     from langchain_core.messages import ToolMessage
                     
-                    # Provide more user-friendly error messages
-                    if "Database not available" in str(e):
+                    # Handle TaskGroup errors specifically
+                    if "TaskGroup" in error_str:
+                        error_msg = "I encountered a system processing error. The task may have been created successfully. Please check your todo list."
+                    elif "Database not available" in error_str:
                         error_msg = "I'm sorry, there's a temporary database issue. Please try again in a moment."
-                    elif "DB_URI" in str(e):
+                    elif "DB_URI" in error_str:
                         error_msg = "I'm sorry, there's a configuration issue with the database. Please try again later."
                     else:
-                        error_msg = f"I encountered an error: {str(e)}"
+                        error_msg = f"I encountered an error: {error_str[:100]}"
                     
                     tool_message = ToolMessage(
                         content=error_msg,
@@ -208,9 +216,24 @@ class TodoAgent:
                     )
                     tool_messages.append(tool_message)
             
-            # Add tool messages to state
-            state.messages.extend(tool_messages)
-            return state
+                # Add tool messages to state
+                state.messages.extend(tool_messages)
+                return state
+                
+            except Exception as e:
+                error_str = str(e)
+                print(f"❌ Critical error in tools_node: {error_str}")
+                print(f"❌ Error type: {type(e)}")
+                
+                # Return a user-friendly error message
+                from langchain_core.messages import ToolMessage
+                error_message = ToolMessage(
+                    content="I encountered a system processing error. The task may have been created successfully. Please check your todo list.",
+                    name="system_error",
+                    tool_call_id="error_handling"
+                )
+                state.messages.append(error_message)
+                return state
 
         builder.add_node(assistant)
         builder.add_node("tools", tools_node)

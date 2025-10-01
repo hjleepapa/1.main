@@ -119,7 +119,7 @@ def process_audio_webhook():
         
         # Process with the agent (with timeout to prevent hanging)
         try:
-            agent_response = asyncio.run(asyncio.wait_for(_run_agent_async(transcribed_text), timeout=8.0))
+            agent_response = asyncio.run(asyncio.wait_for(_run_agent_async(transcribed_text), timeout=12.0))
         except asyncio.TimeoutError:
             agent_response = "I'm sorry, I'm taking too long to process that request. Please try again with a simpler request."
         except Exception as e:
@@ -265,7 +265,7 @@ async def _run_agent_async(prompt: str) -> str:
             last_message = final_state.values.get("messages")[-1]
             return getattr(last_message, 'content', "")
         
-        return await asyncio.wait_for(process_stream(), timeout=6.0)
+        return await asyncio.wait_for(process_stream(), timeout=10.0)
     except asyncio.TimeoutError:
         return "I'm sorry, I'm taking too long to process that request. Please try again with a simpler request."
     except Exception as e:
