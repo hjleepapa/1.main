@@ -214,7 +214,31 @@ mcp = FastMCP("db_todo")
 @mcp.tool()
 async def test_connection() -> str:
     """Test if the MCP server is working."""
+    print("🔧 MCP test_connection: Function called")
     return "MCP server is working!"
+
+@mcp.tool()
+async def simple_test() -> str:
+    """Simple test without database."""
+    print("🔧 MCP simple_test: Function called")
+    return "Simple test successful!"
+
+@mcp.tool()
+async def test_database() -> str:
+    """Test database connection only."""
+    try:
+        print("🔧 MCP test_database: Starting")
+        check_database_available()
+        print("🔧 MCP test_database: Database available")
+        
+        with SessionLocal() as session:
+            print("🔧 MCP test_database: Session created")
+            result = session.execute(text("SELECT 1 as test")).fetchone()
+            print(f"🔧 MCP test_database: Query result: {result}")
+            return f"Database test successful: {result[0]}"
+    except Exception as e:
+        print(f"❌ MCP test_database: Error: {e}")
+        return f"Database test failed: {str(e)}"
 
 @mcp.tool()
 async def create_todo(
