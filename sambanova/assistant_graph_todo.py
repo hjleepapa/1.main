@@ -149,11 +149,15 @@ class TodoAgent:
                             break
                     
                     if tool:
-                        # Execute the async tool
-                        if hasattr(tool, 'ainvoke'):
-                            result = await tool.ainvoke(tool_args)
-                        else:
-                            result = tool.invoke(tool_args)
+                        # Execute the async tool with timeout
+                        try:
+                            if hasattr(tool, 'ainvoke'):
+                                result = await asyncio.wait_for(tool.ainvoke(tool_args), timeout=4.0)
+                            else:
+                                result = await asyncio.wait_for(asyncio.to_thread(tool.invoke, tool_args), timeout=4.0)
+                        except asyncio.TimeoutError:
+                            result = f"Tool {tool_name} timed out after 4 seconds"
+                            print(f"⏰ Tool {tool_name} timed out")
                         
                         from langchain_core.messages import ToolMessage
                         tool_message = ToolMessage(

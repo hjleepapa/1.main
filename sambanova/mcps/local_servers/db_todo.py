@@ -226,13 +226,13 @@ async def create_todo(
         session.commit()
         session.refresh(new_todo)
         
-        # Create corresponding calendar event
+        # Create corresponding calendar event (simplified to avoid timeouts)
         try:
             # Set default times for calendar event
             start_time = due_date if due_date else datetime.now(timezone.utc)
             end_time = start_time + timedelta(hours=1)
             
-            # Create local calendar event
+            # Create local calendar event only (skip Google Calendar for now to avoid timeouts)
             new_event = DBCalendarEvent(
                 title=f"TODO: {title}",
                 description=f"{description or ''}\n\nPriority: {priority.value}\nFrom: Sambanova Todo System",
@@ -242,30 +242,11 @@ async def create_todo(
             session.add(new_event)
             session.commit()
             session.refresh(new_event)
+            print(f"✅ Created local calendar event for todo '{title}'")
             
-            # Sync with Google Calendar
-            try:
-                calendar_service = get_calendar_service()
-                google_event_id = calendar_service.create_event(
-                    title=f"TODO: {title}",
-                    description=f"{description or ''}\n\nPriority: {priority.value}\nFrom: Sambanova Todo System",
-                    start_time=start_time,
-                    end_time=end_time
-                )
-                if google_event_id:
-                    new_event.google_calendar_event_id = google_event_id
-                    new_todo.google_calendar_event_id = google_event_id
-                    session.commit()
-                    session.refresh(new_todo)
-                    session.refresh(new_event)
-                    print(f"✅ Successfully synced todo '{title}' with Google Calendar")
-                else:
-                    print(f"⚠️  Google Calendar sync failed for todo '{title}' - event created locally only")
-            except Exception as google_error:
-                print(f"⚠️  Google Calendar sync failed for todo '{title}': {google_error}")
-                print("Todo created successfully without Google Calendar sync")
         except Exception as e:
-            print(f"Failed to create calendar event or sync with Google Calendar: {e}")
+            print(f"⚠️  Failed to create calendar event for todo '{title}': {e}")
+            print("Todo created successfully without calendar event")
     
     # Convert SQLAlchemy object to dict properly
     todo_dict = {
@@ -427,13 +408,13 @@ async def create_reminder(
         session.commit()
         session.refresh(new_reminder)
         
-        # Create corresponding calendar event
+        # Create corresponding calendar event (simplified to avoid timeouts)
         try:
             # Set default times for calendar event
             start_time = reminder_date if reminder_date else datetime.now(timezone.utc)
             end_time = start_time + timedelta(minutes=30)  # Reminders are typically shorter events
             
-            # Create local calendar event
+            # Create local calendar event only (skip Google Calendar for now to avoid timeouts)
             new_event = DBCalendarEvent(
                 title=f"REMINDER: {reminder_text}",
                 description=f"Importance: {importance_value}\nFrom: Sambanova Todo System",
@@ -443,30 +424,11 @@ async def create_reminder(
             session.add(new_event)
             session.commit()
             session.refresh(new_event)
+            print(f"✅ Created local calendar event for reminder '{reminder_text}'")
             
-            # Sync with Google Calendar
-            try:
-                calendar_service = get_calendar_service()
-                google_event_id = calendar_service.create_event(
-                    title=f"REMINDER: {reminder_text}",
-                    description=f"Importance: {importance_value}\nFrom: Sambanova Todo System",
-                    start_time=start_time,
-                    end_time=end_time
-                )
-                if google_event_id:
-                    new_event.google_calendar_event_id = google_event_id
-                    new_reminder.google_calendar_event_id = google_event_id
-                    session.commit()
-                    session.refresh(new_reminder)
-                    session.refresh(new_event)
-                    print(f"✅ Successfully synced reminder '{reminder_text}' with Google Calendar")
-                else:
-                    print(f"⚠️  Google Calendar sync failed for reminder '{reminder_text}' - event created locally only")
-            except Exception as google_error:
-                print(f"⚠️  Google Calendar sync failed for reminder '{reminder_text}': {google_error}")
-                print("Reminder created successfully without Google Calendar sync")
         except Exception as e:
-            print(f"Failed to create calendar event or sync reminder with Google Calendar: {e}")
+            print(f"⚠️  Failed to create calendar event for reminder '{reminder_text}': {e}")
+            print("Reminder created successfully without calendar event")
     
     # Convert SQLAlchemy object to dict properly
     reminder_dict = {
