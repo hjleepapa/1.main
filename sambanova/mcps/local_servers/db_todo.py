@@ -235,22 +235,30 @@ async def create_todo(
     """
     try:
         print(f"🔧 MCP create_todo: Starting with title='{title}', priority={priority}")
+        print(f"🔧 MCP create_todo: Checking database availability...")
         check_database_available()
+        print(f"🔧 MCP create_todo: Database available, creating session...")
         
         with SessionLocal() as session:
+            print(f"🔧 MCP create_todo: Session created, setting due date...")
             # Set default due date to today if not provided
             if due_date is None:
                 due_date = datetime.now(timezone.utc)
                 
+            print(f"🔧 MCP create_todo: Creating DBTodo object...")
             new_todo = DBTodo(
                 title=title,
                 description=description,
                 priority=priority.value,
                 due_date=due_date,
                 )
+            print(f"🔧 MCP create_todo: Adding todo to session...")
             session.add(new_todo)
+            print(f"🔧 MCP create_todo: Committing to database...")
             session.commit()
+            print(f"🔧 MCP create_todo: Refreshing object...")
             session.refresh(new_todo)
+            print(f"🔧 MCP create_todo: Todo created successfully with ID: {new_todo.id}")
             
             # Create corresponding calendar event (simplified to avoid timeouts)
             try:
@@ -559,27 +567,8 @@ async def create_calendar_event(
             session.commit()
             session.refresh(new_event)
             
-            # Sync with Google Calendar
-            try:
-                print(f"🔄 Attempting to sync calendar event: {title}")
-                calendar_service = get_calendar_service()
-                google_event_id = calendar_service.create_event(
-                    title=title,
-                    description=f"{description or ''}\n\nFrom: Sambanova Todo System",
-                    start_time=event_from,
-                    end_time=event_to
-                )
-                if google_event_id:
-                    new_event.google_calendar_event_id = google_event_id
-                    session.commit()
-                    session.refresh(new_event)
-                    print(f"✅ Successfully created Google Calendar event: {google_event_id}")
-                else:
-                    print("❌ Google Calendar event creation returned None")
-            except Exception as e:
-                print(f"❌ Failed to sync calendar event with Google Calendar: {e}")
-                import traceback
-                traceback.print_exc()
+            # Skip Google Calendar sync to avoid browser authentication issues
+            print(f"📅 Calendar event '{title}' created locally (Google Calendar sync disabled)")
     
         result = CalendarEvent.model_validate(new_event.__dict__).model_dump_json(indent=2)
         print(f"✅ MCP create_calendar_event: Successfully created event '{title}'")
