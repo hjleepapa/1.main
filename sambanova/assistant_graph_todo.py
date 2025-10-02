@@ -26,7 +26,7 @@ class TodoAgent:
     def __init__(
             self,
             name: str = "Sambanova Assistant",
-            model: str = "gpt-4o-mini",
+            model: str = "gpt-4.1-mini-2025-04-14",
             tools: List[BaseTool] = [],
             system_prompt: str = """You are a productivity assistant that helps users manage todos, reminders, and calendar events. You MUST use tools to perform actions - never just ask for more information.
 
