@@ -43,7 +43,24 @@ class TodoAgent:
             - If user says "create a reminder" → use create_reminder tool immediately  
             - If user says "create calendar event" → use create_calendar_event tool immediately
             - If user asks "what are my todos?" → use get_todos tool immediately
-            - If user wants to complete something → use complete_todo tool immediately
+            - If user says "completed something → use complete_todo tool immediately
+            - If user says "delete a todo" → use delete_todo tool immediately
+            - If user says "delete a reminder" → use delete_reminder tool immediately
+            - If user says "delete a calendar event" → use delete_calendar_event tool immediately
+            - If user says "update a todo" → use update_todo tool immediately
+            - If user says "update a reminder" → use update_reminder tool immediately
+            - If user says "update a calendar event" → use update_calendar_event tool immediately
+            - If user says "get todos" → use get_todos tool immediately
+            - If user says "get reminders" → use get_reminders tool immediately
+            - If user says "get calendar events" → use get_calendar_events tool immediately
+            - If user says "get all todos" → use get_todos tool immediately
+            - If user says "get all reminders" → use get_reminders tool immediately
+            - If user says "get all calendar events" → use get_calendar_events tool immediately
+            - If user says "get all todos and reminders" → use get_todos tool immediately
+            - If user says "get all todos and calendar events" → use get_todos tool immediately
+            - If user says "get all reminders and calendar events" → use get_reminders tool immediately
+            - If user says "get all todos, reminders, and calendar events" → use get_todos tool immediately
+            - If user says "get all todos, reminders, and calendar events" → use get_todos tool immediately
 
             PRIORITY MAPPING (use these defaults):
             - Shopping/errands: medium priority
