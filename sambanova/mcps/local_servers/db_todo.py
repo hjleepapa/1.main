@@ -23,6 +23,60 @@ except ImportError:
         print("⚠️  Warning: Google Calendar integration not available - google_calendar module not found")
         get_calendar_service = None
 
+# Service Account Google Calendar integration
+try:
+    from google.oauth2 import service_account
+    from googleapiclient.discovery import build
+    from googleapiclient.errors import HttpError
+    import base64
+    import pickle
+    import json
+    
+    def get_service_account_calendar_service():
+        """Get Google Calendar service using service account credentials"""
+        try:
+            # Check for base64 encoded credentials in environment
+            if os.getenv('GOOGLE_CREDENTIALS_B64'):
+                print("🔧 Using GOOGLE_CREDENTIALS_B64 environment variable")
+                creds_data = base64.b64decode(os.getenv('GOOGLE_CREDENTIALS_B64'))
+                creds = service_account.Credentials.from_service_account_info(
+                    json.loads(creds_data.decode('utf-8')),
+                    scopes=['https://www.googleapis.com/auth/calendar']
+                )
+            # Check for base64 encoded token in environment
+            elif os.getenv('GOOGLE_TOKEN_B64'):
+                print("🔧 Using GOOGLE_TOKEN_B64 environment variable")
+                token_data = base64.b64decode(os.getenv('GOOGLE_TOKEN_B64'))
+                creds = pickle.loads(token_data)
+                if hasattr(creds, 'refresh_token') and creds.expired:
+                    from google.auth.transport.requests import Request
+                    creds.refresh(Request())
+            # Check for local credentials.json file
+            elif os.path.exists('credentials.json'):
+                print("🔧 Using local credentials.json file")
+                creds = service_account.Credentials.from_service_account_file(
+                    'credentials.json',
+                    scopes=['https://www.googleapis.com/auth/calendar']
+                )
+            else:
+                print("❌ No Google Calendar credentials found")
+                return None
+                
+            service = build('calendar', 'v3', credentials=creds)
+            print("✅ Google Calendar service created successfully")
+            return service
+            
+        except Exception as e:
+            print(f"❌ Error creating Google Calendar service: {e}")
+            return None
+            
+    # Override the original get_calendar_service function
+    get_calendar_service = get_service_account_calendar_service
+    
+except ImportError as e:
+    print(f"⚠️  Warning: Google Calendar service account integration not available: {e}")
+    get_service_account_calendar_service = None
+
 load_dotenv()
 
 # ----------------------------
