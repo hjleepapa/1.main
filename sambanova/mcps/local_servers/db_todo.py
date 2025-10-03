@@ -1222,6 +1222,113 @@ async def query_db(query: str) -> str:
     return pd.DataFrame(result.all(), columns=result.keys()).to_json(orient="records", indent=2)
 
 @mcp.tool()
+async def check_calendar_visibility() -> str:
+    """Check which calendar events are being created in and provide visibility instructions.
+    
+    This function will show you exactly which calendar your events are being created in
+    and provide instructions on how to make them visible in your personal calendar.
+    
+    Returns:
+        Detailed information about calendar visibility and sharing instructions.
+    """
+    try:
+        print("🔧 Checking calendar visibility...")
+        check_database_available()
+        
+        if not get_calendar_service:
+            return "❌ Google Calendar service not available. Please check your Google Calendar configuration."
+        
+        calendar_service = get_calendar_service()
+        
+        # Get list of available calendars
+        try:
+            calendar_list = calendar_service.calendarList().list().execute()
+            calendars = calendar_list.get('items', [])
+            
+            result = "📅 Available Calendars:\n\n"
+            primary_calendar = None
+            
+            for cal in calendars:
+                cal_id = cal.get('id', 'Unknown')
+                cal_name = cal.get('summary', 'Unknown')
+                is_primary = cal.get('primary', False)
+                access_role = cal.get('accessRole', 'Unknown')
+                
+                result += f"• {cal_name}\n"
+                result += f"  ID: {cal_id}\n"
+                result += f"  Primary: {is_primary}\n"
+                result += f"  Access Role: {access_role}\n\n"
+                
+                if is_primary:
+                    primary_calendar = cal
+            
+            # Create a test event to see where it goes
+            test_event_body = {
+                'summary': "Calendar Visibility Test",
+                'description': "This event is created to test which calendar it appears in",
+                'start': {
+                    'dateTime': (datetime.now(timezone.utc) + timedelta(minutes=1)).isoformat(),
+                    'timeZone': 'UTC',
+                },
+                'end': {
+                    'dateTime': (datetime.now(timezone.utc) + timedelta(minutes=2)).isoformat(),
+                    'timeZone': 'UTC',
+                },
+            }
+            
+            created_event = calendar_service.events().insert(
+                calendarId='primary', 
+                body=test_event_body
+            ).execute()
+            
+            test_event_id = created_event.get('id')
+            organizer_email = created_event.get('organizer', {}).get('email', 'Unknown')
+            calendar_id = created_event.get('organizer', {}).get('email', 'Unknown')
+            
+            result += f"🧪 Test Event Created:\n"
+            result += f"• Event ID: {test_event_id}\n"
+            result += f"• Organizer: {organizer_email}\n"
+            result += f"• Calendar ID: {calendar_id}\n\n"
+            
+            # Try to delete the test event
+            try:
+                calendar_service.events().delete(
+                    calendarId='primary', 
+                    eventId=test_event_id
+                ).execute()
+                result += "✅ Test event deleted successfully\n\n"
+            except Exception as delete_error:
+                result += f"⚠️  Could not delete test event: {delete_error}\n\n"
+            
+            # Provide instructions
+            result += "📋 To see events in your personal calendar:\n\n"
+            result += "1. Go to Google Calendar (calendar.google.com)\n"
+            result += "2. Find your main calendar in the left sidebar\n"
+            result += "3. Click the 3 dots (⋮) next to your calendar name\n"
+            result += "4. Select 'Settings and sharing'\n"
+            result += "5. Scroll to 'Share with specific people'\n"
+            result += "6. Click 'Add people'\n"
+            result += f"7. Add this email: google-calendar-api2@dark-window-206618.iam.gserviceaccount.com\n"
+            result += "8. Set permission to 'Make changes to events'\n"
+            result += "9. Click 'Send'\n\n"
+            
+            if organizer_email and 'gserviceaccount.com' in organizer_email:
+                result += "⚠️  Events are currently being created in the service account's calendar.\n"
+                result += "You need to share your personal calendar with the service account to see the events.\n"
+            else:
+                result += "✅ Events appear to be created in your personal calendar.\n"
+            
+            return result
+            
+        except Exception as list_error:
+            return f"❌ Error checking calendars: {list_error}"
+            
+    except Exception as e:
+        error_msg = f"Error checking calendar visibility: {str(e)}"
+        print(f"❌ {error_msg}")
+        return error_msg
+
+@mcp.tool()
 async def sync_google_calendar_events() -> str:
     """Sync all existing todos, reminders, and calendar events with Google Calendar.
     
