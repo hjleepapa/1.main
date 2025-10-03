@@ -298,10 +298,20 @@ async def test_google_calendar() -> str:
             calendar_service = get_calendar_service()
             print(f"✅ Calendar service obtained: {calendar_service}")
             
+            # First, let's check what calendars are available
+            try:
+                calendar_list = calendar_service.calendarList().list().execute()
+                calendars = calendar_list.get('items', [])
+                print(f"🔧 Available calendars: {len(calendars)}")
+                for cal in calendars:
+                    print(f"  - {cal.get('summary', 'Unknown')} (ID: {cal.get('id', 'Unknown')}) - Primary: {cal.get('primary', False)}")
+            except Exception as list_error:
+                print(f"⚠️  Could not list calendars: {list_error}")
+            
             # Try to create a test event using proper Google Calendar API
             test_event_body = {
-                'summary': "Test Event",
-                'description': "This is a test event to verify Google Calendar integration",
+                'summary': "Test Event - Sambanova Integration",
+                'description': "This is a test event to verify Google Calendar integration. If you can see this, the integration is working!",
                 'start': {
                     'dateTime': datetime.now(timezone.utc).isoformat(),
                     'timeZone': 'UTC',
@@ -318,6 +328,8 @@ async def test_google_calendar() -> str:
             ).execute()
             
             test_event_id = created_event.get('id')
+            organizer_email = created_event.get('organizer', {}).get('email', 'Unknown')
+            print(f"🔧 Event created by organizer: {organizer_email}")
             
             if test_event_id:
                 print(f"✅ Test event created successfully with ID: {test_event_id}")
@@ -331,7 +343,7 @@ async def test_google_calendar() -> str:
                     success = True
                     if success:
                         print(f"✅ Test event deleted successfully")
-                        return f"✅ Google Calendar service is working correctly!\nTest event created and deleted: {test_event_id}"
+                        return f"✅ Google Calendar service is working correctly!\nTest event created and deleted: {test_event_id}\nEvent created by: {organizer_email}\n\n📋 To see events in your personal calendar, you need to share your calendar with: google-calendar-api2@dark-window-206618.iam.gserviceaccount.com"
                     else:
                         return f"⚠️  Google Calendar service created event but failed to delete it: {test_event_id}"
                 except Exception as delete_error:
