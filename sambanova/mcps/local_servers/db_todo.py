@@ -298,20 +298,37 @@ async def test_google_calendar() -> str:
             calendar_service = get_calendar_service()
             print(f"✅ Calendar service obtained: {calendar_service}")
             
-            # Try to create a test event
-            test_event_id = calendar_service.create_event(
-                title="Test Event",
-                description="This is a test event to verify Google Calendar integration",
-                start_time=datetime.now(timezone.utc),
-                end_time=datetime.now(timezone.utc) + timedelta(minutes=15)
-            )
+            # Try to create a test event using proper Google Calendar API
+            test_event_body = {
+                'summary': "Test Event",
+                'description': "This is a test event to verify Google Calendar integration",
+                'start': {
+                    'dateTime': datetime.now(timezone.utc).isoformat(),
+                    'timeZone': 'UTC',
+                },
+                'end': {
+                    'dateTime': (datetime.now(timezone.utc) + timedelta(minutes=15)).isoformat(),
+                    'timeZone': 'UTC',
+                },
+            }
+            
+            created_event = calendar_service.events().insert(
+                calendarId='primary', 
+                body=test_event_body
+            ).execute()
+            
+            test_event_id = created_event.get('id')
             
             if test_event_id:
                 print(f"✅ Test event created successfully with ID: {test_event_id}")
                 
                 # Try to delete the test event
                 try:
-                    success = calendar_service.delete_event(test_event_id)
+                    calendar_service.events().delete(
+                        calendarId='primary', 
+                        eventId=test_event_id
+                    ).execute()
+                    success = True
                     if success:
                         print(f"✅ Test event deleted successfully")
                         return f"✅ Google Calendar service is working correctly!\nTest event created and deleted: {test_event_id}"
@@ -409,12 +426,28 @@ async def create_todo(
                     event_end = due_date + timedelta(hours=1)
                     print(f"🔧 MCP create_todo: Event times - start: {event_start}, end: {event_end}")
                     
-                    google_event_id = calendar_service.create_event(
-                        title=f"Todo: {title}",
-                        description=description or "",
-                        start_time=event_start,
-                        end_time=event_end
-                    )
+                    # Create Google Calendar event using the proper API format
+                    event_body = {
+                        'summary': f"Todo: {title}",
+                        'description': description or "",
+                        'start': {
+                            'dateTime': event_start.isoformat(),
+                            'timeZone': 'UTC',
+                        },
+                        'end': {
+                            'dateTime': event_end.isoformat(),
+                            'timeZone': 'UTC',
+                        },
+                    }
+                    
+                    print(f"🔧 MCP create_todo: Creating event with body: {event_body}")
+                    created_event = calendar_service.events().insert(
+                        calendarId='primary', 
+                        body=event_body
+                    ).execute()
+                    
+                    google_event_id = created_event.get('id')
+                    print(f"🔧 MCP create_todo: Created event response: {created_event}")
                     print(f"🔧 MCP create_todo: Calendar service returned: {google_event_id}")
                     
                     if google_event_id:
@@ -584,7 +617,11 @@ async def delete_todo(id: UUID) -> str:
             try:
                 print(f"🔧 MCP delete_todo: Deleting Google Calendar event: {todo.google_calendar_event_id}")
                 calendar_service = get_calendar_service()
-                success = calendar_service.delete_event(todo.google_calendar_event_id)
+                calendar_service.events().delete(
+                    calendarId='primary', 
+                    eventId=todo.google_calendar_event_id
+                ).execute()
+                success = True
                 if success:
                     print(f"✅ MCP delete_todo: Google Calendar event deleted successfully")
                 else:
@@ -642,12 +679,26 @@ async def create_reminder(
                     event_start = reminder_date or datetime.now(timezone.utc)
                     event_end = event_start + timedelta(minutes=30)
                     
-                    google_event_id = calendar_service.create_event(
-                        title=f"Reminder: {reminder_text}",
-                        description=f"Reminder - Importance: {importance_value}",
-                        start_time=event_start,
-                        end_time=event_end
-                    )
+                    # Create Google Calendar event using the proper API format
+                    event_body = {
+                        'summary': f"Reminder: {reminder_text}",
+                        'description': f"Reminder - Importance: {importance_value}",
+                        'start': {
+                            'dateTime': event_start.isoformat(),
+                            'timeZone': 'UTC',
+                        },
+                        'end': {
+                            'dateTime': event_end.isoformat(),
+                            'timeZone': 'UTC',
+                        },
+                    }
+                    
+                    created_event = calendar_service.events().insert(
+                        calendarId='primary', 
+                        body=event_body
+                    ).execute()
+                    
+                    google_event_id = created_event.get('id')
                     
                     if google_event_id:
                         print(f"✅ MCP create_reminder: Google Calendar event created with ID: {google_event_id}")
@@ -780,7 +831,11 @@ async def delete_reminder(id: UUID) -> str:
             try:
                 print(f"🔧 MCP delete_reminder: Deleting Google Calendar event: {reminder.google_calendar_event_id}")
                 calendar_service = get_calendar_service()
-                success = calendar_service.delete_event(reminder.google_calendar_event_id)
+                calendar_service.events().delete(
+                    calendarId='primary', 
+                    eventId=reminder.google_calendar_event_id
+                ).execute()
+                success = True
                 if success:
                     print(f"✅ MCP delete_reminder: Google Calendar event deleted successfully")
                 else:
@@ -834,12 +889,26 @@ async def create_calendar_event(
                     print(f"🔧 MCP create_calendar_event: Creating Google Calendar event...")
                     calendar_service = get_calendar_service()
                     
-                    google_event_id = calendar_service.create_event(
-                        title=title,
-                        description=description or "",
-                        start_time=event_from,
-                        end_time=event_to
-                    )
+                    # Create Google Calendar event using the proper API format
+                    event_body = {
+                        'summary': title,
+                        'description': description or "",
+                        'start': {
+                            'dateTime': event_from.isoformat(),
+                            'timeZone': 'UTC',
+                        },
+                        'end': {
+                            'dateTime': event_to.isoformat(),
+                            'timeZone': 'UTC',
+                        },
+                    }
+                    
+                    created_event = calendar_service.events().insert(
+                        calendarId='primary', 
+                        body=event_body
+                    ).execute()
+                    
+                    google_event_id = created_event.get('id')
                     
                     if google_event_id:
                         print(f"✅ MCP create_calendar_event: Google Calendar event created with ID: {google_event_id}")
@@ -967,7 +1036,11 @@ async def delete_calendar_event(id: UUID) -> str:
             try:
                 print(f"🔧 MCP delete_calendar_event: Deleting Google Calendar event: {event.google_calendar_event_id}")
                 calendar_service = get_calendar_service()
-                success = calendar_service.delete_event(event.google_calendar_event_id)
+                calendar_service.events().delete(
+                    calendarId='primary', 
+                    eventId=event.google_calendar_event_id
+                ).execute()
+                success = True
                 if success:
                     print(f"✅ MCP delete_calendar_event: Google Calendar event deleted successfully")
                 else:
@@ -1175,12 +1248,26 @@ async def sync_google_calendar_events() -> str:
                     event_start = todo.due_date or datetime.now(timezone.utc)
                     event_end = event_start + timedelta(hours=1)
                     
-                    google_event_id = calendar_service.create_event(
-                        title=f"Todo: {todo.title}",
-                        description=todo.description or "",
-                        start_time=event_start,
-                        end_time=event_end
-                    )
+                    # Create Google Calendar event using the proper API format
+                    event_body = {
+                        'summary': f"Todo: {todo.title}",
+                        'description': todo.description or "",
+                        'start': {
+                            'dateTime': event_start.isoformat(),
+                            'timeZone': 'UTC',
+                        },
+                        'end': {
+                            'dateTime': event_end.isoformat(),
+                            'timeZone': 'UTC',
+                        },
+                    }
+                    
+                    created_event = calendar_service.events().insert(
+                        calendarId='primary', 
+                        body=event_body
+                    ).execute()
+                    
+                    google_event_id = created_event.get('id')
                     
                     if google_event_id:
                         todo.google_calendar_event_id = google_event_id
@@ -1204,12 +1291,26 @@ async def sync_google_calendar_events() -> str:
                     event_start = reminder.reminder_date or datetime.now(timezone.utc)
                     event_end = event_start + timedelta(minutes=30)
                     
-                    google_event_id = calendar_service.create_event(
-                        title=f"Reminder: {reminder.reminder_text}",
-                        description=f"Reminder - Importance: {reminder.importance}",
-                        start_time=event_start,
-                        end_time=event_end
-                    )
+                    # Create Google Calendar event using the proper API format
+                    event_body = {
+                        'summary': f"Reminder: {reminder.reminder_text}",
+                        'description': f"Reminder - Importance: {reminder.importance}",
+                        'start': {
+                            'dateTime': event_start.isoformat(),
+                            'timeZone': 'UTC',
+                        },
+                        'end': {
+                            'dateTime': event_end.isoformat(),
+                            'timeZone': 'UTC',
+                        },
+                    }
+                    
+                    created_event = calendar_service.events().insert(
+                        calendarId='primary', 
+                        body=event_body
+                    ).execute()
+                    
+                    google_event_id = created_event.get('id')
                     
                     if google_event_id:
                         reminder.google_calendar_event_id = google_event_id
@@ -1229,12 +1330,26 @@ async def sync_google_calendar_events() -> str:
             for event in events:
                 sync_summary["events_processed"] += 1
                 try:
-                    google_event_id = calendar_service.create_event(
-                        title=event.title,
-                        description=event.description or "",
-                        start_time=event.event_from,
-                        end_time=event.event_to
-                    )
+                    # Create Google Calendar event using the proper API format
+                    event_body = {
+                        'summary': event.title,
+                        'description': event.description or "",
+                        'start': {
+                            'dateTime': event.event_from.isoformat(),
+                            'timeZone': 'UTC',
+                        },
+                        'end': {
+                            'dateTime': event.event_to.isoformat(),
+                            'timeZone': 'UTC',
+                        },
+                    }
+                    
+                    created_event = calendar_service.events().insert(
+                        calendarId='primary', 
+                        body=event_body
+                    ).execute()
+                    
+                    google_event_id = created_event.get('id')
                     
                     if google_event_id:
                         event.google_calendar_event_id = google_event_id
