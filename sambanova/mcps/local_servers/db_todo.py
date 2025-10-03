@@ -1025,6 +1025,144 @@ async def query_db(query: str) -> str:
         
     return pd.DataFrame(result.all(), columns=result.keys()).to_json(orient="records", indent=2)
 
+@mcp.tool()
+async def sync_google_calendar_events() -> str:
+    """Sync all existing todos, reminders, and calendar events with Google Calendar.
+    
+    This function will create Google Calendar events for any items that don't already have
+    a google_calendar_event_id. Useful for syncing existing data.
+    
+    Returns:
+        Summary of sync operations performed.
+    """
+    try:
+        print("🔄 Starting Google Calendar sync for existing items...")
+        check_database_available()
+        
+        if not get_calendar_service:
+            return "Google Calendar service not available. Please check your Google Calendar configuration."
+        
+        calendar_service = get_calendar_service()
+        sync_summary = {
+            "todos_processed": 0,
+            "todos_created": 0,
+            "reminders_processed": 0,
+            "reminders_created": 0,
+            "events_processed": 0,
+            "events_created": 0,
+            "errors": []
+        }
+        
+        with SessionLocal() as session:
+            # Sync todos
+            print("🔧 Syncing todos...")
+            todos = session.query(DBTodo).filter(DBTodo.google_calendar_event_id.is_(None)).all()
+            for todo in todos:
+                sync_summary["todos_processed"] += 1
+                try:
+                    # Use due_date as the event start time, with 1 hour duration
+                    event_start = todo.due_date or datetime.now(timezone.utc)
+                    event_end = event_start + timedelta(hours=1)
+                    
+                    google_event_id = calendar_service.create_event(
+                        title=f"Todo: {todo.title}",
+                        description=todo.description or "",
+                        start_time=event_start,
+                        end_time=event_end
+                    )
+                    
+                    if google_event_id:
+                        todo.google_calendar_event_id = google_event_id
+                        sync_summary["todos_created"] += 1
+                        print(f"✅ Created Google Calendar event for todo: {todo.title}")
+                    else:
+                        sync_summary["errors"].append(f"Failed to create calendar event for todo: {todo.title}")
+                        print(f"⚠️  Failed to create calendar event for todo: {todo.title}")
+                except Exception as e:
+                    error_msg = f"Error syncing todo '{todo.title}': {str(e)}"
+                    sync_summary["errors"].append(error_msg)
+                    print(f"❌ {error_msg}")
+            
+            # Sync reminders
+            print("🔧 Syncing reminders...")
+            reminders = session.query(DBReminder).filter(DBReminder.google_calendar_event_id.is_(None)).all()
+            for reminder in reminders:
+                sync_summary["reminders_processed"] += 1
+                try:
+                    # Use reminder_date as the event start time, with 30 minutes duration
+                    event_start = reminder.reminder_date or datetime.now(timezone.utc)
+                    event_end = event_start + timedelta(minutes=30)
+                    
+                    google_event_id = calendar_service.create_event(
+                        title=f"Reminder: {reminder.reminder_text}",
+                        description=f"Reminder - Importance: {reminder.importance}",
+                        start_time=event_start,
+                        end_time=event_end
+                    )
+                    
+                    if google_event_id:
+                        reminder.google_calendar_event_id = google_event_id
+                        sync_summary["reminders_created"] += 1
+                        print(f"✅ Created Google Calendar event for reminder: {reminder.reminder_text}")
+                    else:
+                        sync_summary["errors"].append(f"Failed to create calendar event for reminder: {reminder.reminder_text}")
+                        print(f"⚠️  Failed to create calendar event for reminder: {reminder.reminder_text}")
+                except Exception as e:
+                    error_msg = f"Error syncing reminder '{reminder.reminder_text}': {str(e)}"
+                    sync_summary["errors"].append(error_msg)
+                    print(f"❌ {error_msg}")
+            
+            # Sync calendar events
+            print("🔧 Syncing calendar events...")
+            events = session.query(DBCalendarEvent).filter(DBCalendarEvent.google_calendar_event_id.is_(None)).all()
+            for event in events:
+                sync_summary["events_processed"] += 1
+                try:
+                    google_event_id = calendar_service.create_event(
+                        title=event.title,
+                        description=event.description or "",
+                        start_time=event.event_from,
+                        end_time=event.event_to
+                    )
+                    
+                    if google_event_id:
+                        event.google_calendar_event_id = google_event_id
+                        sync_summary["events_created"] += 1
+                        print(f"✅ Created Google Calendar event for calendar event: {event.title}")
+                    else:
+                        sync_summary["errors"].append(f"Failed to create calendar event for: {event.title}")
+                        print(f"⚠️  Failed to create calendar event for: {event.title}")
+                except Exception as e:
+                    error_msg = f"Error syncing calendar event '{event.title}': {str(e)}"
+                    sync_summary["errors"].append(error_msg)
+                    print(f"❌ {error_msg}")
+            
+            # Commit all changes
+            session.commit()
+            print("✅ All changes committed to database")
+        
+        # Generate summary
+        summary = f"""Google Calendar Sync Complete!
+
+📊 Summary:
+- Todos processed: {sync_summary['todos_processed']}, created: {sync_summary['todos_created']}
+- Reminders processed: {sync_summary['reminders_processed']}, created: {sync_summary['reminders_created']}
+- Calendar events processed: {sync_summary['events_processed']}, created: {sync_summary['events_created']}
+- Errors: {len(sync_summary['errors'])}
+
+✅ Total Google Calendar events created: {sync_summary['todos_created'] + sync_summary['reminders_created'] + sync_summary['events_created']}"""
+
+        if sync_summary['errors']:
+            summary += f"\n\n❌ Errors encountered:\n" + "\n".join(sync_summary['errors'])
+        
+        print(summary)
+        return summary
+        
+    except Exception as e:
+        error_msg = f"Error during Google Calendar sync: {str(e)}"
+        print(f"❌ {error_msg}")
+        return error_msg
+
 
 if __name__ == "__main__":
     mcp.run(transport="stdio")
