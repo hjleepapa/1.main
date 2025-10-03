@@ -9,15 +9,19 @@ import os
 from pydantic import BaseModel
 from enum import StrEnum
 import pandas as pd
-# Google Calendar integration disabled to avoid browser authentication issues
-# try:
-#     from google_calendar import get_calendar_service
-# except ImportError:
-#     # Fallback for when running as MCP server
-#     import sys
-#     import os
-#     sys.path.append(os.path.dirname(__file__))
-#     from google_calendar import get_calendar_service
+# Google Calendar integration
+try:
+    from google_calendar import get_calendar_service
+except ImportError:
+    # Fallback for when running as MCP server
+    import sys
+    import os
+    sys.path.append(os.path.dirname(__file__))
+    try:
+        from google_calendar import get_calendar_service
+    except ImportError:
+        print("⚠️  Warning: Google Calendar integration not available - google_calendar module not found")
+        get_calendar_service = None
 
 load_dotenv()
 
@@ -284,6 +288,37 @@ async def create_todo(
             print(f"🔧 MCP create_todo: Refreshing object...")
             session.refresh(new_todo)
             print(f"🔧 MCP create_todo: Todo created successfully with ID: {new_todo.id}")
+            
+            # Create corresponding Google Calendar event
+            google_event_id = None
+            if get_calendar_service:
+                try:
+                    print(f"🔧 MCP create_todo: Creating Google Calendar event...")
+                    calendar_service = get_calendar_service()
+                    
+                    # Use due_date as the event start time, with 1 hour duration
+                    event_start = due_date
+                    event_end = due_date + timedelta(hours=1)
+                    
+                    google_event_id = calendar_service.create_event(
+                        title=f"Todo: {title}",
+                        description=description or "",
+                        start_time=event_start,
+                        end_time=event_end
+                    )
+                    
+                    if google_event_id:
+                        print(f"✅ MCP create_todo: Google Calendar event created with ID: {google_event_id}")
+                        # Update the todo with the Google Calendar event ID
+                        new_todo.google_calendar_event_id = google_event_id
+                        session.commit()
+                        session.refresh(new_todo)
+                    else:
+                        print(f"⚠️  MCP create_todo: Failed to create Google Calendar event")
+                except Exception as calendar_error:
+                    print(f"⚠️  MCP create_todo: Google Calendar error (continuing): {calendar_error}")
+            else:
+                print(f"⚠️  MCP create_todo: Google Calendar service not available")
     
         # Convert SQLAlchemy object to dict properly
         todo_dict = {
@@ -383,6 +418,36 @@ async def update_todo(
 
         session.commit()
         session.refresh(todo)
+        
+        # Update Google Calendar event if it exists
+        if todo.google_calendar_event_id and get_calendar_service:
+            try:
+                print(f"🔧 MCP update_todo: Updating Google Calendar event: {todo.google_calendar_event_id}")
+                calendar_service = get_calendar_service()
+                
+                # Prepare update data
+                update_data = {}
+                if title:
+                    update_data['title'] = f"Todo: {title}"
+                if description is not None:
+                    update_data['description'] = description or ""
+                if due_date is not None:
+                    update_data['start_time'] = due_date
+                    update_data['end_time'] = due_date + timedelta(hours=1)
+                
+                if update_data:
+                    success = calendar_service.update_event(
+                        event_id=todo.google_calendar_event_id,
+                        **update_data
+                    )
+                    if success:
+                        print(f"✅ MCP update_todo: Google Calendar event updated successfully")
+                    else:
+                        print(f"⚠️  MCP update_todo: Failed to update Google Calendar event")
+                else:
+                    print(f"ℹ️  MCP update_todo: No calendar-relevant fields updated")
+            except Exception as calendar_error:
+                print(f"⚠️  MCP update_todo: Google Calendar error (continuing): {calendar_error}")
     
     return Todo.model_validate(todo.__dict__).model_dump_json(indent=2)
 
@@ -401,8 +466,20 @@ async def delete_todo(id: UUID) -> str:
         if not todo:
             return "Todo not found"
         
-        # Google Calendar sync disabled
         print(f"🗑️ Deleting todo: {todo.title}")
+        
+        # Delete from Google Calendar if event exists
+        if todo.google_calendar_event_id and get_calendar_service:
+            try:
+                print(f"🔧 MCP delete_todo: Deleting Google Calendar event: {todo.google_calendar_event_id}")
+                calendar_service = get_calendar_service()
+                success = calendar_service.delete_event(todo.google_calendar_event_id)
+                if success:
+                    print(f"✅ MCP delete_todo: Google Calendar event deleted successfully")
+                else:
+                    print(f"⚠️  MCP delete_todo: Failed to delete Google Calendar event")
+            except Exception as calendar_error:
+                print(f"⚠️  MCP delete_todo: Google Calendar error (continuing): {calendar_error}")
         
         session.delete(todo)
         session.commit()
@@ -442,6 +519,37 @@ async def create_reminder(
             session.commit()
             session.refresh(new_reminder)
             print(f"🔧 MCP create_reminder: Reminder created successfully with ID: {new_reminder.id}")
+            
+            # Create corresponding Google Calendar event
+            google_event_id = None
+            if get_calendar_service:
+                try:
+                    print(f"🔧 MCP create_reminder: Creating Google Calendar event...")
+                    calendar_service = get_calendar_service()
+                    
+                    # Use reminder_date as the event start time, with 30 minutes duration
+                    event_start = reminder_date or datetime.now(timezone.utc)
+                    event_end = event_start + timedelta(minutes=30)
+                    
+                    google_event_id = calendar_service.create_event(
+                        title=f"Reminder: {reminder_text}",
+                        description=f"Reminder - Importance: {importance_value}",
+                        start_time=event_start,
+                        end_time=event_end
+                    )
+                    
+                    if google_event_id:
+                        print(f"✅ MCP create_reminder: Google Calendar event created with ID: {google_event_id}")
+                        # Update the reminder with the Google Calendar event ID
+                        new_reminder.google_calendar_event_id = google_event_id
+                        session.commit()
+                        session.refresh(new_reminder)
+                    else:
+                        print(f"⚠️  MCP create_reminder: Failed to create Google Calendar event")
+                except Exception as calendar_error:
+                    print(f"⚠️  MCP create_reminder: Google Calendar error (continuing): {calendar_error}")
+            else:
+                print(f"⚠️  MCP create_reminder: Google Calendar service not available")
     
         # Convert SQLAlchemy object to dict properly
         reminder_dict = {
@@ -475,6 +583,71 @@ async def get_reminders() -> str:
     return f"[{', \n'.join(reminders_list)}]"
 
 @mcp.tool()
+async def update_reminder(
+    id: UUID,
+    reminder_text: Optional[str] = None,
+    importance: Optional[ReminderImportance] = None,
+    reminder_date: Optional[datetime] = None,
+    ) -> str:
+    """Update a reminder by id.
+    
+    Args:
+        id: The id of the reminder to update.
+        reminder_text: The new text content of the reminder.
+        importance: The new importance level of the reminder. Options are: low, medium, high, urgent
+        reminder_date: The new date/time for the reminder.
+
+    Returns:
+        The updated reminder.
+    """
+    with SessionLocal() as session:
+        reminder = session.query(DBReminder).filter(DBReminder.id == id).first()
+        if not reminder:
+            return "Reminder not found"
+        
+        if reminder_text:
+            reminder.reminder_text = reminder_text
+        if importance:
+            reminder.importance = importance.value
+        if reminder_date is not None:
+            reminder.reminder_date = reminder_date
+
+        session.commit()
+        session.refresh(reminder)
+        
+        # Update Google Calendar event if it exists
+        if reminder.google_calendar_event_id and get_calendar_service:
+            try:
+                print(f"🔧 MCP update_reminder: Updating Google Calendar event: {reminder.google_calendar_event_id}")
+                calendar_service = get_calendar_service()
+                
+                # Prepare update data
+                update_data = {}
+                if reminder_text:
+                    update_data['title'] = f"Reminder: {reminder_text}"
+                if importance:
+                    update_data['description'] = f"Reminder - Importance: {importance.value}"
+                if reminder_date is not None:
+                    update_data['start_time'] = reminder_date
+                    update_data['end_time'] = reminder_date + timedelta(minutes=30)
+                
+                if update_data:
+                    success = calendar_service.update_event(
+                        event_id=reminder.google_calendar_event_id,
+                        **update_data
+                    )
+                    if success:
+                        print(f"✅ MCP update_reminder: Google Calendar event updated successfully")
+                    else:
+                        print(f"⚠️  MCP update_reminder: Failed to update Google Calendar event")
+                else:
+                    print(f"ℹ️  MCP update_reminder: No calendar-relevant fields updated")
+            except Exception as calendar_error:
+                print(f"⚠️  MCP update_reminder: Google Calendar error (continuing): {calendar_error}")
+    
+    return Reminder.model_validate(reminder.__dict__).model_dump_json(indent=2)
+
+@mcp.tool()
 async def delete_reminder(id: UUID) -> str:
     """Delete a reminder by id.
     
@@ -489,8 +662,20 @@ async def delete_reminder(id: UUID) -> str:
         if not reminder:
             return "Reminder not found"
         
-        # Google Calendar sync disabled
         print(f"🗑️ Deleting reminder: {reminder.reminder_text}")
+        
+        # Delete from Google Calendar if event exists
+        if reminder.google_calendar_event_id and get_calendar_service:
+            try:
+                print(f"🔧 MCP delete_reminder: Deleting Google Calendar event: {reminder.google_calendar_event_id}")
+                calendar_service = get_calendar_service()
+                success = calendar_service.delete_event(reminder.google_calendar_event_id)
+                if success:
+                    print(f"✅ MCP delete_reminder: Google Calendar event deleted successfully")
+                else:
+                    print(f"⚠️  MCP delete_reminder: Failed to delete Google Calendar event")
+            except Exception as calendar_error:
+                print(f"⚠️  MCP delete_reminder: Google Calendar error (continuing): {calendar_error}")
         
         session.delete(reminder)
         session.commit()
@@ -529,9 +714,34 @@ async def create_calendar_event(
             session.add(new_event)
             session.commit()
             session.refresh(new_event)
+            print(f"🔧 MCP create_calendar_event: Event created successfully with ID: {new_event.id}")
             
-            # Skip Google Calendar sync to avoid browser authentication issues
-            print(f"📅 Calendar event '{title}' created locally (Google Calendar sync disabled)")
+            # Create corresponding Google Calendar event
+            google_event_id = None
+            if get_calendar_service:
+                try:
+                    print(f"🔧 MCP create_calendar_event: Creating Google Calendar event...")
+                    calendar_service = get_calendar_service()
+                    
+                    google_event_id = calendar_service.create_event(
+                        title=title,
+                        description=description or "",
+                        start_time=event_from,
+                        end_time=event_to
+                    )
+                    
+                    if google_event_id:
+                        print(f"✅ MCP create_calendar_event: Google Calendar event created with ID: {google_event_id}")
+                        # Update the event with the Google Calendar event ID
+                        new_event.google_calendar_event_id = google_event_id
+                        session.commit()
+                        session.refresh(new_event)
+                    else:
+                        print(f"⚠️  MCP create_calendar_event: Failed to create Google Calendar event")
+                except Exception as calendar_error:
+                    print(f"⚠️  MCP create_calendar_event: Google Calendar error (continuing): {calendar_error}")
+            else:
+                print(f"⚠️  MCP create_calendar_event: Google Calendar service not available")
     
         result = CalendarEvent.model_validate(new_event.__dict__).model_dump_json(indent=2)
         print(f"✅ MCP create_calendar_event: Successfully created event '{title}'")
@@ -555,6 +765,76 @@ async def get_calendar_events() -> str:
     return f"[{', \n'.join(events_list)}]"
 
 @mcp.tool()
+async def update_calendar_event(
+    id: UUID,
+    title: Optional[str] = None,
+    event_from: Optional[datetime] = None,
+    event_to: Optional[datetime] = None,
+    description: Optional[str] = None,
+    ) -> str:
+    """Update a calendar event by id.
+    
+    Args:
+        id: The id of the calendar event to update.
+        title: The new title of the calendar event.
+        event_from: The new start date and time of the event.
+        event_to: The new end date and time of the event.
+        description: The new description of the event.
+
+    Returns:
+        The updated calendar event.
+    """
+    with SessionLocal() as session:
+        event = session.query(DBCalendarEvent).filter(DBCalendarEvent.id == id).first()
+        if not event:
+            return "Calendar event not found"
+        
+        if title:
+            event.title = title
+        if event_from is not None:
+            event.event_from = event_from
+        if event_to is not None:
+            event.event_to = event_to
+        if description is not None:
+            event.description = description
+
+        session.commit()
+        session.refresh(event)
+        
+        # Update Google Calendar event if it exists
+        if event.google_calendar_event_id and get_calendar_service:
+            try:
+                print(f"🔧 MCP update_calendar_event: Updating Google Calendar event: {event.google_calendar_event_id}")
+                calendar_service = get_calendar_service()
+                
+                # Prepare update data
+                update_data = {}
+                if title:
+                    update_data['title'] = title
+                if description is not None:
+                    update_data['description'] = description or ""
+                if event_from is not None:
+                    update_data['start_time'] = event_from
+                if event_to is not None:
+                    update_data['end_time'] = event_to
+                
+                if update_data:
+                    success = calendar_service.update_event(
+                        event_id=event.google_calendar_event_id,
+                        **update_data
+                    )
+                    if success:
+                        print(f"✅ MCP update_calendar_event: Google Calendar event updated successfully")
+                    else:
+                        print(f"⚠️  MCP update_calendar_event: Failed to update Google Calendar event")
+                else:
+                    print(f"ℹ️  MCP update_calendar_event: No calendar-relevant fields updated")
+            except Exception as calendar_error:
+                print(f"⚠️  MCP update_calendar_event: Google Calendar error (continuing): {calendar_error}")
+    
+    return CalendarEvent.model_validate(event.__dict__).model_dump_json(indent=2)
+
+@mcp.tool()
 async def delete_calendar_event(id: UUID) -> str:
     """Delete a calendar event by id.
     
@@ -569,8 +849,20 @@ async def delete_calendar_event(id: UUID) -> str:
         if not event:
             return "Calendar event not found"
         
-        # Google Calendar sync disabled
         print(f"🗑️ Deleting calendar event: {event.title}")
+        
+        # Delete from Google Calendar if event exists
+        if event.google_calendar_event_id and get_calendar_service:
+            try:
+                print(f"🔧 MCP delete_calendar_event: Deleting Google Calendar event: {event.google_calendar_event_id}")
+                calendar_service = get_calendar_service()
+                success = calendar_service.delete_event(event.google_calendar_event_id)
+                if success:
+                    print(f"✅ MCP delete_calendar_event: Google Calendar event deleted successfully")
+                else:
+                    print(f"⚠️  MCP delete_calendar_event: Failed to delete Google Calendar event")
+            except Exception as calendar_error:
+                print(f"⚠️  MCP delete_calendar_event: Google Calendar error (continuing): {calendar_error}")
         
         session.delete(event)
         session.commit()
