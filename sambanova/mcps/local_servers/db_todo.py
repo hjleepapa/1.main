@@ -228,6 +228,56 @@ async def simple_test() -> str:
     return "Simple test successful!"
 
 @mcp.tool()
+async def test_google_calendar() -> str:
+    """Test Google Calendar service availability and credentials."""
+    try:
+        print("🔧 Testing Google Calendar service...")
+        
+        # Check if get_calendar_service is available
+        if not get_calendar_service:
+            return "❌ Google Calendar service not available - get_calendar_service is None"
+        
+        print("✅ get_calendar_service function is available")
+        
+        # Try to get the calendar service
+        try:
+            calendar_service = get_calendar_service()
+            print(f"✅ Calendar service obtained: {calendar_service}")
+            
+            # Try to create a test event
+            test_event_id = calendar_service.create_event(
+                title="Test Event",
+                description="This is a test event to verify Google Calendar integration",
+                start_time=datetime.now(timezone.utc),
+                end_time=datetime.now(timezone.utc) + timedelta(minutes=15)
+            )
+            
+            if test_event_id:
+                print(f"✅ Test event created successfully with ID: {test_event_id}")
+                
+                # Try to delete the test event
+                try:
+                    success = calendar_service.delete_event(test_event_id)
+                    if success:
+                        print(f"✅ Test event deleted successfully")
+                        return f"✅ Google Calendar service is working correctly!\nTest event created and deleted: {test_event_id}"
+                    else:
+                        return f"⚠️  Google Calendar service created event but failed to delete it: {test_event_id}"
+                except Exception as delete_error:
+                    return f"⚠️  Google Calendar service created event but delete failed: {delete_error}"
+            else:
+                return "❌ Google Calendar service failed to create test event - returned None"
+                
+        except Exception as service_error:
+            print(f"❌ Error getting calendar service: {service_error}")
+            return f"❌ Google Calendar service error: {service_error}"
+            
+    except Exception as e:
+        error_msg = f"Error testing Google Calendar: {str(e)}"
+        print(f"❌ {error_msg}")
+        return error_msg
+
+@mcp.tool()
 async def test_database() -> str:
     """Test database connection only."""
     try:
@@ -291,14 +341,19 @@ async def create_todo(
             
             # Create corresponding Google Calendar event
             google_event_id = None
+            print(f"🔧 MCP create_todo: Checking Google Calendar service availability...")
+            print(f"🔧 MCP create_todo: get_calendar_service = {get_calendar_service}")
+            
             if get_calendar_service:
                 try:
                     print(f"🔧 MCP create_todo: Creating Google Calendar event...")
                     calendar_service = get_calendar_service()
+                    print(f"🔧 MCP create_todo: Calendar service obtained: {calendar_service}")
                     
                     # Use due_date as the event start time, with 1 hour duration
                     event_start = due_date
                     event_end = due_date + timedelta(hours=1)
+                    print(f"🔧 MCP create_todo: Event times - start: {event_start}, end: {event_end}")
                     
                     google_event_id = calendar_service.create_event(
                         title=f"Todo: {title}",
@@ -306,6 +361,7 @@ async def create_todo(
                         start_time=event_start,
                         end_time=event_end
                     )
+                    print(f"🔧 MCP create_todo: Calendar service returned: {google_event_id}")
                     
                     if google_event_id:
                         print(f"✅ MCP create_todo: Google Calendar event created with ID: {google_event_id}")
@@ -314,11 +370,12 @@ async def create_todo(
                         session.commit()
                         session.refresh(new_todo)
                     else:
-                        print(f"⚠️  MCP create_todo: Failed to create Google Calendar event")
+                        print(f"⚠️  MCP create_todo: Failed to create Google Calendar event - returned None")
                 except Exception as calendar_error:
                     print(f"⚠️  MCP create_todo: Google Calendar error (continuing): {calendar_error}")
+                    print(f"⚠️  MCP create_todo: Error type: {type(calendar_error)}")
             else:
-                print(f"⚠️  MCP create_todo: Google Calendar service not available")
+                print(f"⚠️  MCP create_todo: Google Calendar service not available - get_calendar_service is None")
     
         # Convert SQLAlchemy object to dict properly
         todo_dict = {

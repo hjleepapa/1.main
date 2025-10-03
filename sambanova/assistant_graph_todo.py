@@ -62,6 +62,7 @@ class TodoAgent:
             - If user says "get all todos, reminders, and calendar events" → use get_todos tool immediately
             - If user says "get all todos, reminders, and calendar events" → use get_todos tool immediately
             - If user says "sync google calendar" or "sync calendar" → use sync_google_calendar_events tool immediately
+            - If user says "test google calendar" or "check google calendar" → use test_google_calendar tool immediately
 
             PRIORITY MAPPING (use these defaults):
             - Shopping/errands: medium priority
