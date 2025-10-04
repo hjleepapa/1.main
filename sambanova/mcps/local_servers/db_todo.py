@@ -398,6 +398,37 @@ async def test_connection() -> str:
     return "MCP server is working!"
 
 @mcp.tool()
+async def test_env_vars() -> str:
+    """Test environment variables loading."""
+    print("🔧 MCP test_env_vars: Testing environment variables...")
+    
+    result = "🔧 Environment Variables Test:\n\n"
+    result += f"• GOOGLE_OAUTH2_TOKEN_B64: {'✅ SET' if os.getenv('GOOGLE_OAUTH2_TOKEN_B64') else '❌ NOT SET'}\n"
+    result += f"• GOOGLE_CREDENTIALS_B64: {'✅ SET' if os.getenv('GOOGLE_CREDENTIALS_B64') else '❌ NOT SET'}\n"
+    result += f"• GOOGLE_TOKEN_B64: {'✅ SET' if os.getenv('GOOGLE_TOKEN_B64') else '❌ NOT SET'}\n"
+    result += f"• GOOGLE_CLIENT_ID: {'✅ SET' if os.getenv('GOOGLE_CLIENT_ID') else '❌ NOT SET'}\n"
+    result += f"• GOOGLE_CLIENT_SECRET: {'✅ SET' if os.getenv('GOOGLE_CLIENT_SECRET') else '❌ NOT SET'}\n"
+    result += f"• DB_URI: {'✅ SET' if os.getenv('DB_URI') else '❌ NOT SET'}\n"
+    
+    # Test get_calendar_service function
+    result += f"\n🔧 Function Tests:\n"
+    result += f"• get_calendar_service: {'✅ Available' if get_calendar_service else '❌ None'}\n"
+    
+    if get_calendar_service:
+        try:
+            result += f"\n🔧 Testing get_calendar_service()...\n"
+            calendar_service = get_calendar_service()
+            if calendar_service:
+                result += f"✅ Calendar service created successfully\n"
+            else:
+                result += f"❌ Calendar service returned None\n"
+        except Exception as e:
+            result += f"❌ Calendar service error: {e}\n"
+    
+    print(f"🔧 MCP test_env_vars: Result: {result}")
+    return result
+
+@mcp.tool()
 async def simple_test() -> str:
     """Simple test without database."""
     print("🔧 MCP simple_test: Function called")
