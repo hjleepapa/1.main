@@ -82,21 +82,44 @@ try:
             # Check for OAuth2 token in environment
             if os.getenv('GOOGLE_OAUTH2_TOKEN_B64'):
                 print("🔧 Using GOOGLE_OAUTH2_TOKEN_B64 environment variable")
-                token_data = base64.b64decode(os.getenv('GOOGLE_OAUTH2_TOKEN_B64'))
-                creds = pickle.loads(token_data)
-                if creds.expired and creds.refresh_token:
-                    creds.refresh(Request())
+                try:
+                    token_data = base64.b64decode(os.getenv('GOOGLE_OAUTH2_TOKEN_B64'))
+                    print(f"🔧 Token data decoded, length: {len(token_data)} bytes")
+                    creds = pickle.loads(token_data)
+                    print(f"🔧 Credentials loaded: valid={creds.valid}, expired={creds.expired}")
+                    
+                    if creds.expired and creds.refresh_token:
+                        print("🔧 Token expired, attempting refresh...")
+                        try:
+                            creds.refresh(Request())
+                            print("✅ Token refreshed successfully")
+                        except Exception as refresh_error:
+                            print(f"❌ Token refresh failed: {refresh_error}")
+                            return None
+                    
+                    if not creds.valid:
+                        print("❌ OAuth2 token is not valid after loading/refresh")
+                        return None
+                        
+                except Exception as token_error:
+                    print(f"❌ Error loading OAuth2 token: {token_error}")
+                    return None
+                    
             # Check for local token.pickle file
             elif os.path.exists('token.pickle'):
                 print("🔧 Using local token.pickle file")
-                with open('token.pickle', 'rb') as token:
-                    creds = pickle.load(token)
-                if creds.expired and creds.refresh_token:
-                    creds.refresh(Request())
+                try:
+                    with open('token.pickle', 'rb') as token:
+                        creds = pickle.load(token)
+                    if creds.expired and creds.refresh_token:
+                        creds.refresh(Request())
+                except Exception as file_error:
+                    print(f"❌ Error loading local token.pickle: {file_error}")
+                    return None
             
             # If no valid credentials, try to create OAuth2 credentials from environment
             if not creds or not creds.valid:
-                print("🔧 Attempting OAuth2 flow with environment variables")
+                print("🔧 No valid OAuth2 credentials found, checking client credentials...")
                 
                 # Check for OAuth2 client credentials in environment
                 client_id = os.getenv('GOOGLE_CLIENT_ID')
@@ -129,12 +152,16 @@ try:
                     print("❌ No OAuth2 credentials found")
                     return None
             
+            print("🔧 Building Google Calendar service with OAuth2 credentials...")
             service = build('calendar', 'v3', credentials=creds)
             print("✅ Google Calendar OAuth2 service created successfully")
             return service
             
         except Exception as e:
             print(f"❌ Error creating Google Calendar OAuth2 service: {e}")
+            print(f"❌ Error type: {type(e)}")
+            import traceback
+            print(f"❌ Traceback: {traceback.format_exc()}")
             return None
 
     def get_calendar_service():
