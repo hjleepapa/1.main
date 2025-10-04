@@ -501,6 +501,14 @@ async def create_todo(
             google_event_id = None
             print(f"🔧 MCP create_todo: Checking Google Calendar service availability...")
             print(f"🔧 MCP create_todo: get_calendar_service = {get_calendar_service}")
+            print(f"🔧 MCP create_todo: get_calendar_service type = {type(get_calendar_service)}")
+            
+            # Check environment variables
+            print(f"🔧 MCP create_todo: GOOGLE_CREDENTIALS_B64 = {'SET' if os.getenv('GOOGLE_CREDENTIALS_B64') else 'NOT SET'}")
+            print(f"🔧 MCP create_todo: GOOGLE_TOKEN_B64 = {'SET' if os.getenv('GOOGLE_TOKEN_B64') else 'NOT SET'}")
+            print(f"🔧 MCP create_todo: GOOGLE_OAUTH2_TOKEN_B64 = {'SET' if os.getenv('GOOGLE_OAUTH2_TOKEN_B64') else 'NOT SET'}")
+            print(f"🔧 MCP create_todo: GOOGLE_CLIENT_ID = {'SET' if os.getenv('GOOGLE_CLIENT_ID') else 'NOT SET'}")
+            print(f"🔧 MCP create_todo: GOOGLE_CLIENT_SECRET = {'SET' if os.getenv('GOOGLE_CLIENT_SECRET') else 'NOT SET'}")
             
             if get_calendar_service:
                 try:
