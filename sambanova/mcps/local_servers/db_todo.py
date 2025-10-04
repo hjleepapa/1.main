@@ -166,14 +166,34 @@ try:
 
     def get_calendar_service():
         """Get Google Calendar service - tries OAuth2 first, then service account"""
+        print("🔧 get_calendar_service: Starting authentication check...")
+        
+        # Debug: Check what environment variables are available
+        print("🔧 Environment variables check:")
+        print(f"  • GOOGLE_OAUTH2_TOKEN_B64: {'SET' if os.getenv('GOOGLE_OAUTH2_TOKEN_B64') else 'NOT SET'}")
+        print(f"  • GOOGLE_CREDENTIALS_B64: {'SET' if os.getenv('GOOGLE_CREDENTIALS_B64') else 'NOT SET'}")
+        print(f"  • GOOGLE_TOKEN_B64: {'SET' if os.getenv('GOOGLE_TOKEN_B64') else 'NOT SET'}")
+        print(f"  • GOOGLE_CLIENT_ID: {'SET' if os.getenv('GOOGLE_CLIENT_ID') else 'NOT SET'}")
+        print(f"  • GOOGLE_CLIENT_SECRET: {'SET' if os.getenv('GOOGLE_CLIENT_SECRET') else 'NOT SET'}")
+        
         # Try OAuth2 first (for user's personal calendar)
+        print("🔧 Trying OAuth2 authentication...")
         oauth2_service = get_oauth2_calendar_service()
         if oauth2_service:
+            print("✅ OAuth2 authentication successful")
             return oauth2_service
+        else:
+            print("❌ OAuth2 authentication failed")
         
         # Fallback to service account
         print("🔄 Falling back to service account authentication")
-        return get_service_account_calendar_service()
+        service_account_service = get_service_account_calendar_service()
+        if service_account_service:
+            print("✅ Service account authentication successful")
+            return service_account_service
+        else:
+            print("❌ Service account authentication also failed")
+            return None
     
 except ImportError as e:
     print(f"⚠️  Warning: Google Calendar service account integration not available: {e}")
@@ -531,11 +551,12 @@ async def create_todo(
             print(f"🔧 MCP create_todo: get_calendar_service type = {type(get_calendar_service)}")
             
             # Check environment variables
-            print(f"🔧 MCP create_todo: GOOGLE_CREDENTIALS_B64 = {'SET' if os.getenv('GOOGLE_CREDENTIALS_B64') else 'NOT SET'}")
-            print(f"🔧 MCP create_todo: GOOGLE_TOKEN_B64 = {'SET' if os.getenv('GOOGLE_TOKEN_B64') else 'NOT SET'}")
-            print(f"🔧 MCP create_todo: GOOGLE_OAUTH2_TOKEN_B64 = {'SET' if os.getenv('GOOGLE_OAUTH2_TOKEN_B64') else 'NOT SET'}")
-            print(f"🔧 MCP create_todo: GOOGLE_CLIENT_ID = {'SET' if os.getenv('GOOGLE_CLIENT_ID') else 'NOT SET'}")
-            print(f"🔧 MCP create_todo: GOOGLE_CLIENT_SECRET = {'SET' if os.getenv('GOOGLE_CLIENT_SECRET') else 'NOT SET'}")
+            print(f"🔧 MCP create_todo: Environment variables check:")
+            print(f"  • GOOGLE_CREDENTIALS_B64 = {'SET' if os.getenv('GOOGLE_CREDENTIALS_B64') else 'NOT SET'}")
+            print(f"  • GOOGLE_TOKEN_B64 = {'SET' if os.getenv('GOOGLE_TOKEN_B64') else 'NOT SET'}")
+            print(f"  • GOOGLE_OAUTH2_TOKEN_B64 = {'SET' if os.getenv('GOOGLE_OAUTH2_TOKEN_B64') else 'NOT SET'}")
+            print(f"  • GOOGLE_CLIENT_ID = {'SET' if os.getenv('GOOGLE_CLIENT_ID') else 'NOT SET'}")
+            print(f"  • GOOGLE_CLIENT_SECRET = {'SET' if os.getenv('GOOGLE_CLIENT_SECRET') else 'NOT SET'}")
             
             if get_calendar_service:
                 try:
