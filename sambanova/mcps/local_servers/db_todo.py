@@ -1305,6 +1305,70 @@ async def query_db(query: str) -> str:
     return pd.DataFrame(result.all(), columns=result.keys()).to_json(orient="records", indent=2)
 
 @mcp.tool()
+async def test_authentication() -> str:
+    """Test Google Calendar authentication status and show what's available."""
+    try:
+        result = "🔧 Authentication Status Check:\n\n"
+        
+        # Check environment variables
+        result += "📋 Environment Variables:\n"
+        result += f"• GOOGLE_CREDENTIALS_B64: {'✅ SET' if os.getenv('GOOGLE_CREDENTIALS_B64') else '❌ NOT SET'}\n"
+        result += f"• GOOGLE_TOKEN_B64: {'✅ SET' if os.getenv('GOOGLE_TOKEN_B64') else '❌ NOT SET'}\n"
+        result += f"• GOOGLE_OAUTH2_TOKEN_B64: {'✅ SET' if os.getenv('GOOGLE_OAUTH2_TOKEN_B64') else '❌ NOT SET'}\n"
+        result += f"• GOOGLE_CLIENT_ID: {'✅ SET' if os.getenv('GOOGLE_CLIENT_ID') else '❌ NOT SET'}\n"
+        result += f"• GOOGLE_CLIENT_SECRET: {'✅ SET' if os.getenv('GOOGLE_CLIENT_SECRET') else '❌ NOT SET'}\n\n"
+        
+        # Check function availability
+        result += "🔧 Function Availability:\n"
+        result += f"• get_calendar_service: {'✅ Available' if get_calendar_service else '❌ None'}\n"
+        result += f"• get_service_account_calendar_service: {'✅ Available' if 'get_service_account_calendar_service' in globals() else '❌ Not Available'}\n"
+        result += f"• get_oauth2_calendar_service: {'✅ Available' if 'get_oauth2_calendar_service' in globals() else '❌ Not Available'}\n\n"
+        
+        # Test service account authentication
+        if os.getenv('GOOGLE_CREDENTIALS_B64'):
+            try:
+                result += "🧪 Testing Service Account Authentication:\n"
+                creds_data = base64.b64decode(os.getenv('GOOGLE_CREDENTIALS_B64'))
+                creds_info = json.loads(creds_data.decode('utf-8'))
+                result += f"• Service Account Email: {creds_info.get('client_email', 'Unknown')}\n"
+                result += f"• Project ID: {creds_info.get('project_id', 'Unknown')}\n"
+                result += "✅ Service Account credentials are valid\n\n"
+            except Exception as e:
+                result += f"❌ Service Account credentials error: {e}\n\n"
+        
+        # Test OAuth2 authentication
+        if os.getenv('GOOGLE_OAUTH2_TOKEN_B64'):
+            try:
+                result += "🧪 Testing OAuth2 Authentication:\n"
+                token_data = base64.b64decode(os.getenv('GOOGLE_OAUTH2_TOKEN_B64'))
+                token_info = pickle.loads(token_data)
+                result += f"• Token Valid: {token_info.valid if hasattr(token_info, 'valid') else 'Unknown'}\n"
+                result += f"• Token Expired: {token_info.expired if hasattr(token_info, 'expired') else 'Unknown'}\n"
+                result += f"• Has Refresh Token: {bool(token_info.refresh_token) if hasattr(token_info, 'refresh_token') else 'Unknown'}\n"
+                result += "✅ OAuth2 token is available\n\n"
+            except Exception as e:
+                result += f"❌ OAuth2 token error: {e}\n\n"
+        
+        # Test get_calendar_service function
+        if get_calendar_service:
+            try:
+                result += "🧪 Testing get_calendar_service function:\n"
+                calendar_service = get_calendar_service()
+                if calendar_service:
+                    result += "✅ Calendar service created successfully\n"
+                else:
+                    result += "❌ Calendar service returned None\n"
+            except Exception as e:
+                result += f"❌ Calendar service error: {e}\n"
+        else:
+            result += "❌ get_calendar_service function is None\n"
+        
+        return result
+        
+    except Exception as e:
+        return f"❌ Authentication test error: {str(e)}"
+
+@mcp.tool()
 async def check_calendar_visibility() -> str:
     """Check which calendar events are being created in and provide visibility instructions.
     
