@@ -70,8 +70,83 @@ try:
             print(f"❌ Error creating Google Calendar service: {e}")
             return None
             
-    # Override the original get_calendar_service function
-    get_calendar_service = get_service_account_calendar_service
+    def get_oauth2_calendar_service():
+        """Get Google Calendar service using OAuth2 client credentials"""
+        try:
+            from google.oauth2.credentials import Credentials
+            from google_auth_oauthlib.flow import InstalledAppFlow
+            from google.auth.transport.requests import Request
+            
+            creds = None
+            
+            # Check for OAuth2 token in environment
+            if os.getenv('GOOGLE_OAUTH2_TOKEN_B64'):
+                print("🔧 Using GOOGLE_OAUTH2_TOKEN_B64 environment variable")
+                token_data = base64.b64decode(os.getenv('GOOGLE_OAUTH2_TOKEN_B64'))
+                creds = pickle.loads(token_data)
+                if creds.expired and creds.refresh_token:
+                    creds.refresh(Request())
+            # Check for local token.pickle file
+            elif os.path.exists('token.pickle'):
+                print("🔧 Using local token.pickle file")
+                with open('token.pickle', 'rb') as token:
+                    creds = pickle.load(token)
+                if creds.expired and creds.refresh_token:
+                    creds.refresh(Request())
+            
+            # If no valid credentials, try to create OAuth2 credentials from environment
+            if not creds or not creds.valid:
+                print("🔧 Attempting OAuth2 flow with environment variables")
+                
+                # Check for OAuth2 client credentials in environment
+                client_id = os.getenv('GOOGLE_CLIENT_ID')
+                client_secret = os.getenv('GOOGLE_CLIENT_SECRET')
+                
+                if client_id and client_secret:
+                    print("🔧 Using GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET")
+                    
+                    # Create OAuth2 flow
+                    client_config = {
+                        "installed": {
+                            "client_id": client_id,
+                            "client_secret": client_secret,
+                            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                            "token_uri": "https://oauth2.googleapis.com/token",
+                            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+                            "redirect_uris": ["http://localhost"]
+                        }
+                    }
+                    
+                    flow = InstalledAppFlow.from_client_config(
+                        client_config, 
+                        ['https://www.googleapis.com/auth/calendar']
+                    )
+                    
+                    # This will need user interaction for first time setup
+                    print("⚠️  OAuth2 flow requires user interaction - this won't work in server environment")
+                    return None
+                else:
+                    print("❌ No OAuth2 credentials found")
+                    return None
+            
+            service = build('calendar', 'v3', credentials=creds)
+            print("✅ Google Calendar OAuth2 service created successfully")
+            return service
+            
+        except Exception as e:
+            print(f"❌ Error creating Google Calendar OAuth2 service: {e}")
+            return None
+
+    def get_calendar_service():
+        """Get Google Calendar service - tries OAuth2 first, then service account"""
+        # Try OAuth2 first (for user's personal calendar)
+        oauth2_service = get_oauth2_calendar_service()
+        if oauth2_service:
+            return oauth2_service
+        
+        # Fallback to service account
+        print("🔄 Falling back to service account authentication")
+        return get_service_account_calendar_service()
     
 except ImportError as e:
     print(f"⚠️  Warning: Google Calendar service account integration not available: {e}")
