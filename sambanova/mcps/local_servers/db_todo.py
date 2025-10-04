@@ -6,9 +6,14 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship,
 from uuid import UUID, uuid4
 from datetime import datetime, timedelta, timezone
 import os
+import sys
+import logging
 from pydantic import BaseModel
 from enum import StrEnum
 import pandas as pd
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 # Google Calendar integration
 try:
     from google_calendar import get_calendar_service
@@ -81,28 +86,45 @@ try:
             
             # Check for OAuth2 token in environment
             if os.getenv('GOOGLE_OAUTH2_TOKEN_B64'):
-                print("🔧 Using GOOGLE_OAUTH2_TOKEN_B64 environment variable")
+                msg = "🔧 Using GOOGLE_OAUTH2_TOKEN_B64 environment variable"
+                print(msg, flush=True)
+                logging.info(msg)
                 try:
                     token_data = base64.b64decode(os.getenv('GOOGLE_OAUTH2_TOKEN_B64'))
-                    print(f"🔧 Token data decoded, length: {len(token_data)} bytes")
+                    msg = f"🔧 Token data decoded, length: {len(token_data)} bytes"
+                    print(msg, flush=True)
+                    logging.info(msg)
+                    
                     creds = pickle.loads(token_data)
-                    print(f"🔧 Credentials loaded: valid={creds.valid}, expired={creds.expired}")
+                    msg = f"🔧 Credentials loaded: valid={creds.valid}, expired={creds.expired}"
+                    print(msg, flush=True)
+                    logging.info(msg)
                     
                     if creds.expired and creds.refresh_token:
-                        print("🔧 Token expired, attempting refresh...")
+                        msg = "🔧 Token expired, attempting refresh..."
+                        print(msg, flush=True)
+                        logging.info(msg)
                         try:
                             creds.refresh(Request())
-                            print("✅ Token refreshed successfully")
+                            msg = "✅ Token refreshed successfully"
+                            print(msg, flush=True)
+                            logging.info(msg)
                         except Exception as refresh_error:
-                            print(f"❌ Token refresh failed: {refresh_error}")
+                            msg = f"❌ Token refresh failed: {refresh_error}"
+                            print(msg, flush=True)
+                            logging.info(msg)
                             return None
                     
                     if not creds.valid:
-                        print("❌ OAuth2 token is not valid after loading/refresh")
+                        msg = "❌ OAuth2 token is not valid after loading/refresh"
+                        print(msg, flush=True)
+                        logging.info(msg)
                         return None
                         
                 except Exception as token_error:
-                    print(f"❌ Error loading OAuth2 token: {token_error}")
+                    msg = f"❌ Error loading OAuth2 token: {token_error}"
+                    print(msg, flush=True)
+                    logging.info(msg)
                     return None
                     
             # Check for local token.pickle file
@@ -166,33 +188,72 @@ try:
 
     def get_calendar_service():
         """Get Google Calendar service - tries OAuth2 first, then service account"""
-        print("🔧 get_calendar_service: Starting authentication check...")
+        msg = "🔧 get_calendar_service: Starting authentication check..."
+        print(msg, flush=True)
+        logging.info(msg)
         
         # Debug: Check what environment variables are available
-        print("🔧 Environment variables check:")
-        print(f"  • GOOGLE_OAUTH2_TOKEN_B64: {'SET' if os.getenv('GOOGLE_OAUTH2_TOKEN_B64') else 'NOT SET'}")
-        print(f"  • GOOGLE_CREDENTIALS_B64: {'SET' if os.getenv('GOOGLE_CREDENTIALS_B64') else 'NOT SET'}")
-        print(f"  • GOOGLE_TOKEN_B64: {'SET' if os.getenv('GOOGLE_TOKEN_B64') else 'NOT SET'}")
-        print(f"  • GOOGLE_CLIENT_ID: {'SET' if os.getenv('GOOGLE_CLIENT_ID') else 'NOT SET'}")
-        print(f"  • GOOGLE_CLIENT_SECRET: {'SET' if os.getenv('GOOGLE_CLIENT_SECRET') else 'NOT SET'}")
+        msg = "🔧 Environment variables check:"
+        print(msg, flush=True)
+        logging.info(msg)
+        
+        oauth2_status = 'SET' if os.getenv('GOOGLE_OAUTH2_TOKEN_B64') else 'NOT SET'
+        credentials_status = 'SET' if os.getenv('GOOGLE_CREDENTIALS_B64') else 'NOT SET'
+        token_status = 'SET' if os.getenv('GOOGLE_TOKEN_B64') else 'NOT SET'
+        client_id_status = 'SET' if os.getenv('GOOGLE_CLIENT_ID') else 'NOT SET'
+        client_secret_status = 'SET' if os.getenv('GOOGLE_CLIENT_SECRET') else 'NOT SET'
+        
+        msg = f"  • GOOGLE_OAUTH2_TOKEN_B64: {oauth2_status}"
+        print(msg, flush=True)
+        logging.info(msg)
+        
+        msg = f"  • GOOGLE_CREDENTIALS_B64: {credentials_status}"
+        print(msg, flush=True)
+        logging.info(msg)
+        
+        msg = f"  • GOOGLE_TOKEN_B64: {token_status}"
+        print(msg, flush=True)
+        logging.info(msg)
+        
+        msg = f"  • GOOGLE_CLIENT_ID: {client_id_status}"
+        print(msg, flush=True)
+        logging.info(msg)
+        
+        msg = f"  • GOOGLE_CLIENT_SECRET: {client_secret_status}"
+        print(msg, flush=True)
+        logging.info(msg)
         
         # Try OAuth2 first (for user's personal calendar)
-        print("🔧 Trying OAuth2 authentication...")
+        msg = "🔧 Trying OAuth2 authentication..."
+        print(msg, flush=True)
+        logging.info(msg)
+        
         oauth2_service = get_oauth2_calendar_service()
         if oauth2_service:
-            print("✅ OAuth2 authentication successful")
+            msg = "✅ OAuth2 authentication successful"
+            print(msg, flush=True)
+            logging.info(msg)
             return oauth2_service
         else:
-            print("❌ OAuth2 authentication failed")
+            msg = "❌ OAuth2 authentication failed"
+            print(msg, flush=True)
+            logging.info(msg)
         
         # Fallback to service account
-        print("🔄 Falling back to service account authentication")
+        msg = "🔄 Falling back to service account authentication"
+        print(msg, flush=True)
+        logging.info(msg)
+        
         service_account_service = get_service_account_calendar_service()
         if service_account_service:
-            print("✅ Service account authentication successful")
+            msg = "✅ Service account authentication successful"
+            print(msg, flush=True)
+            logging.info(msg)
             return service_account_service
         else:
-            print("❌ Service account authentication also failed")
+            msg = "❌ Service account authentication also failed"
+            print(msg, flush=True)
+            logging.info(msg)
             return None
     
 except ImportError as e:
@@ -400,7 +461,7 @@ async def test_connection() -> str:
 @mcp.tool()
 async def test_env_vars() -> str:
     """Test environment variables loading."""
-    print("🔧 MCP test_env_vars: Testing environment variables...")
+    print("🔧 MCP test_env_vars: Testing environment variables...", flush=True)
     
     result = "🔧 Environment Variables Test:\n\n"
     result += f"• GOOGLE_OAUTH2_TOKEN_B64: {'✅ SET' if os.getenv('GOOGLE_OAUTH2_TOKEN_B64') else '❌ NOT SET'}\n"
@@ -582,12 +643,35 @@ async def create_todo(
             print(f"🔧 MCP create_todo: get_calendar_service type = {type(get_calendar_service)}")
             
             # Check environment variables
-            print(f"🔧 MCP create_todo: Environment variables check:")
-            print(f"  • GOOGLE_CREDENTIALS_B64 = {'SET' if os.getenv('GOOGLE_CREDENTIALS_B64') else 'NOT SET'}")
-            print(f"  • GOOGLE_TOKEN_B64 = {'SET' if os.getenv('GOOGLE_TOKEN_B64') else 'NOT SET'}")
-            print(f"  • GOOGLE_OAUTH2_TOKEN_B64 = {'SET' if os.getenv('GOOGLE_OAUTH2_TOKEN_B64') else 'NOT SET'}")
-            print(f"  • GOOGLE_CLIENT_ID = {'SET' if os.getenv('GOOGLE_CLIENT_ID') else 'NOT SET'}")
-            print(f"  • GOOGLE_CLIENT_SECRET = {'SET' if os.getenv('GOOGLE_CLIENT_SECRET') else 'NOT SET'}")
+            msg = "🔧 MCP create_todo: Environment variables check:"
+            print(msg, flush=True)
+            logging.info(msg)
+            
+            oauth2_status = 'SET' if os.getenv('GOOGLE_OAUTH2_TOKEN_B64') else 'NOT SET'
+            credentials_status = 'SET' if os.getenv('GOOGLE_CREDENTIALS_B64') else 'NOT SET'
+            token_status = 'SET' if os.getenv('GOOGLE_TOKEN_B64') else 'NOT SET'
+            client_id_status = 'SET' if os.getenv('GOOGLE_CLIENT_ID') else 'NOT SET'
+            client_secret_status = 'SET' if os.getenv('GOOGLE_CLIENT_SECRET') else 'NOT SET'
+            
+            msg = f"  • GOOGLE_CREDENTIALS_B64 = {credentials_status}"
+            print(msg, flush=True)
+            logging.info(msg)
+            
+            msg = f"  • GOOGLE_TOKEN_B64 = {token_status}"
+            print(msg, flush=True)
+            logging.info(msg)
+            
+            msg = f"  • GOOGLE_OAUTH2_TOKEN_B64 = {oauth2_status}"
+            print(msg, flush=True)
+            logging.info(msg)
+            
+            msg = f"  • GOOGLE_CLIENT_ID = {client_id_status}"
+            print(msg, flush=True)
+            logging.info(msg)
+            
+            msg = f"  • GOOGLE_CLIENT_SECRET = {client_secret_status}"
+            print(msg, flush=True)
+            logging.info(msg)
             
             if get_calendar_service:
                 try:
@@ -625,18 +709,18 @@ async def create_todo(
                     print(f"🔧 MCP create_todo: Calendar service returned: {google_event_id}")
                     
                     if google_event_id:
-                        print(f"✅ MCP create_todo: Google Calendar event created with ID: {google_event_id}")
+                        print(f"✅ MCP create_todo: Google Calendar event created with ID: {google_event_id}", flush=True)
                         # Update the todo with the Google Calendar event ID
                         new_todo.google_calendar_event_id = google_event_id
                         session.commit()
                         session.refresh(new_todo)
                     else:
-                        print(f"⚠️  MCP create_todo: Failed to create Google Calendar event - returned None")
+                        print(f"⚠️  MCP create_todo: Failed to create Google Calendar event - returned None", flush=True)
                 except Exception as calendar_error:
-                    print(f"⚠️  MCP create_todo: Google Calendar error (continuing): {calendar_error}")
+                    print(f"⚠️  MCP create_todo: Google Calendar error (continuing): {calendar_error}", flush=True)
                     print(f"⚠️  MCP create_todo: Error type: {type(calendar_error)}")
             else:
-                print(f"⚠️  MCP create_todo: Google Calendar service not available - get_calendar_service is None")
+                print(f"⚠️  MCP create_todo: Google Calendar service not available - get_calendar_service is None", flush=True)
     
         # Convert SQLAlchemy object to dict properly
         todo_dict = {
