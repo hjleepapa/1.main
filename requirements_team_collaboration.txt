@@ -1,0 +1,3 @@
+# Additional requirements for team collaboration features
+PyJWT==2.8.0
+bcrypt==4.0.1

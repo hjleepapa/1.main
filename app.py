@@ -73,8 +73,17 @@ def create_app():
     from lgch_todo import lgch_todo_bp
     app.register_blueprint(lgch_todo_bp)
 
-    from sambanova import sambanova_todo_bp
+    from sambanova.routes import sambanova_todo_bp
     app.register_blueprint(sambanova_todo_bp)
+    
+    # Register new authentication and team collaboration blueprints
+    from sambanova.routes.auth_routes import auth_bp
+    from sambanova.routes.team_routes import team_bp
+    from sambanova.routes.team_todo_routes import team_todo_bp
+    
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(team_bp)
+    app.register_blueprint(team_todo_bp)
 
     # --- Main Application Routes ---
     @app.route('/', methods=["GET", "POST"])
@@ -154,6 +163,11 @@ def create_app():
     def sambanova_tech_spec():
         """Renders the technical specification page for the Sambanova todo project."""
         return render_template('sambanova_tech_spec.html')
+    
+    @app.route('/team-dashboard')
+    def team_dashboard():
+        """Renders the team collaboration dashboard."""
+        return render_template('team_dashboard.html')
 
     # --- Context Processors ---
     @app.context_processor

@@ -2,6 +2,7 @@ from mcp.server.fastmcp import FastMCP
 from dotenv import load_dotenv
 from typing import List, Optional
 from sqlalchemy import ForeignKey, String, text
+from sqlalchemy.dialects.postgresql import UUID as PostgresUUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, Session
 from uuid import UUID, uuid4
 from datetime import datetime, timedelta, timezone
@@ -282,6 +283,17 @@ class DBTodo(Base):
     priority: Mapped[str] = mapped_column(String, nullable=False, server_default=text("medium"))
     due_date: Mapped[Optional[datetime]] = mapped_column(nullable=True)
     google_calendar_event_id: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    
+    # Team collaboration fields
+    creator_id: Mapped[Optional[UUID]] = mapped_column(PostgresUUID(as_uuid=True), nullable=True, index=True)  # User who created the todo
+    assignee_id: Mapped[Optional[UUID]] = mapped_column(PostgresUUID(as_uuid=True), nullable=True, index=True)  # User assigned to the todo
+    team_id: Mapped[Optional[UUID]] = mapped_column(PostgresUUID(as_uuid=True), nullable=True, index=True)      # Team the todo belongs to
+    is_private: Mapped[bool] = mapped_column(nullable=False, server_default=text("false")) # Whether todo is private to creator
+    
+    # Relationships (will be defined after we import the models)
+    creator = None  # Will be set up after importing user models
+    assignee = None  # Will be set up after importing user models
+    team = None  # Will be set up after importing team models
 
 
 class DBReminder(Base):
