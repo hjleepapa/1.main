@@ -21,6 +21,8 @@ def run_migration():
         print("❌ DB_URI environment variable not set")
         return False
     
+    print(f"🔧 Using database URI: {db_uri[:20]}...")
+    
     try:
         print("🔄 Starting team collaboration migration...")
         
