@@ -26,15 +26,12 @@ except ImportError:
     try:
         from google_calendar import get_calendar_service
     except ImportError:
-        print("⚠️  Warning: Google Calendar integration not available - google_calendar module not found")
+        # Google Calendar not available - continue without it
         get_calendar_service = None
 
-# Team collaboration imports
-try:
-    from sambanova.models.user_models import User, Team, TeamMembership, TeamRole
-except ImportError:
-    print("⚠️  Warning: Team collaboration models not available")
-    User = Team = TeamMembership = TeamRole = None
+# Team collaboration imports - avoid circular import by defining models locally
+# We'll define these models locally to avoid importing from sambanova package
+User = Team = TeamMembership = TeamRole = None
 
 # Service Account Google Calendar integration
 try:
@@ -50,7 +47,7 @@ try:
         try:
             # Check for base64 encoded credentials in environment
             if os.getenv('GOOGLE_CREDENTIALS_B64'):
-                print("🔧 Using GOOGLE_CREDENTIALS_B64 environment variable")
+                # Using GOOGLE_CREDENTIALS_B64 environment variable
                 creds_data = base64.b64decode(os.getenv('GOOGLE_CREDENTIALS_B64'))
                 creds = service_account.Credentials.from_service_account_info(
                     json.loads(creds_data.decode('utf-8')),
@@ -58,7 +55,7 @@ try:
                 )
             # Check for base64 encoded token in environment
             elif os.getenv('GOOGLE_TOKEN_B64'):
-                print("🔧 Using GOOGLE_TOKEN_B64 environment variable")
+                # Using GOOGLE_TOKEN_B64 environment variable
                 token_data = base64.b64decode(os.getenv('GOOGLE_TOKEN_B64'))
                 creds = pickle.loads(token_data)
                 if hasattr(creds, 'refresh_token') and creds.expired:
@@ -66,21 +63,21 @@ try:
                     creds.refresh(Request())
             # Check for local credentials.json file
             elif os.path.exists('credentials.json'):
-                print("🔧 Using local credentials.json file")
+                # Using local credentials.json file
                 creds = service_account.Credentials.from_service_account_file(
                     'credentials.json',
                     scopes=['https://www.googleapis.com/auth/calendar']
                 )
             else:
-                print("❌ No Google Calendar credentials found")
+                # No Google Calendar credentials found
                 return None
                 
             service = build('calendar', 'v3', credentials=creds)
-            print("✅ Google Calendar service created successfully")
+            # Google Calendar service created successfully
             return service
             
         except Exception as e:
-            print(f"❌ Error creating Google Calendar service: {e}")
+            # Error creating Google Calendar service
             return None
             
     def get_oauth2_calendar_service():
@@ -95,68 +92,68 @@ try:
             # Check for OAuth2 token in environment
             if os.getenv('GOOGLE_OAUTH2_TOKEN_B64'):
                 msg = "🔧 Using GOOGLE_OAUTH2_TOKEN_B64 environment variable"
-                print(msg, flush=True)
+                # print(msg, flush=True)  # Removed to avoid MCP protocol issues
                 logging.info(msg)
                 try:
                     token_data = base64.b64decode(os.getenv('GOOGLE_OAUTH2_TOKEN_B64'))
                     msg = f"🔧 Token data decoded, length: {len(token_data)} bytes"
-                    print(msg, flush=True)
+                    # print(msg, flush=True)  # Removed to avoid MCP protocol issues
                     logging.info(msg)
                     
                     creds = pickle.loads(token_data)
                     msg = f"🔧 Credentials loaded: valid={creds.valid}, expired={creds.expired}"
-                    print(msg, flush=True)
+                    # print(msg, flush=True)  # Removed to avoid MCP protocol issues
                     logging.info(msg)
                     
                     if creds.expired and creds.refresh_token:
                         msg = "🔧 Token expired, attempting refresh..."
-                        print(msg, flush=True)
+                        # print(msg, flush=True)  # Removed to avoid MCP protocol issues
                         logging.info(msg)
                         try:
                             creds.refresh(Request())
                             msg = "✅ Token refreshed successfully"
-                            print(msg, flush=True)
+                            # print(msg, flush=True)  # Removed to avoid MCP protocol issues
                             logging.info(msg)
                         except Exception as refresh_error:
                             msg = f"❌ Token refresh failed: {refresh_error}"
-                            print(msg, flush=True)
+                            # print(msg, flush=True)  # Removed to avoid MCP protocol issues
                             logging.info(msg)
                             return None
                     
                     if not creds.valid:
                         msg = "❌ OAuth2 token is not valid after loading/refresh"
-                        print(msg, flush=True)
+                        # print(msg, flush=True)  # Removed to avoid MCP protocol issues
                         logging.info(msg)
                         return None
                         
                 except Exception as token_error:
                     msg = f"❌ Error loading OAuth2 token: {token_error}"
-                    print(msg, flush=True)
+                    # print(msg, flush=True)  # Removed to avoid MCP protocol issues
                     logging.info(msg)
                     return None
                     
             # Check for local token.pickle file
             elif os.path.exists('token.pickle'):
-                print("🔧 Using local token.pickle file")
+                # Using local token.pickle file
                 try:
                     with open('token.pickle', 'rb') as token:
                         creds = pickle.load(token)
                     if creds.expired and creds.refresh_token:
                         creds.refresh(Request())
                 except Exception as file_error:
-                    print(f"❌ Error loading local token.pickle: {file_error}")
+                    # Error loading local token.pickle
                     return None
             
             # If no valid credentials, try to create OAuth2 credentials from environment
             if not creds or not creds.valid:
-                print("🔧 No valid OAuth2 credentials found, checking client credentials...")
+                # No valid OAuth2 credentials found, checking client credentials...
                 
                 # Check for OAuth2 client credentials in environment
                 client_id = os.getenv('GOOGLE_CLIENT_ID')
                 client_secret = os.getenv('GOOGLE_CLIENT_SECRET')
                 
                 if client_id and client_secret:
-                    print("🔧 Using GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET")
+                    # Using GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET
                     
                     # Create OAuth2 flow
                     client_config = {
@@ -176,33 +173,33 @@ try:
                     )
                     
                     # This will need user interaction for first time setup
-                    print("⚠️  OAuth2 flow requires user interaction - this won't work in server environment")
+                    # OAuth2 flow requires user interaction - this won't work in server environment
                     return None
                 else:
-                    print("❌ No OAuth2 credentials found")
+                    # No OAuth2 credentials found
                     return None
             
-            print("🔧 Building Google Calendar service with OAuth2 credentials...")
+            # Building Google Calendar service with OAuth2 credentials...
             service = build('calendar', 'v3', credentials=creds)
-            print("✅ Google Calendar OAuth2 service created successfully")
+            # Google Calendar OAuth2 service created successfully
             return service
             
         except Exception as e:
-            print(f"❌ Error creating Google Calendar OAuth2 service: {e}")
-            print(f"❌ Error type: {type(e)}")
+            # Error creating Google Calendar OAuth2 service
+            # Error type logged
             import traceback
-            print(f"❌ Traceback: {traceback.format_exc()}")
+            # Traceback logged
             return None
 
     def get_calendar_service():
         """Get Google Calendar service - tries OAuth2 first, then service account"""
         msg = "🔧 get_calendar_service: Starting authentication check..."
-        print(msg, flush=True)
+                    # print(msg, flush=True)  # Removed to avoid MCP protocol issues
         logging.info(msg)
         
         # Debug: Check what environment variables are available
         msg = "🔧 Environment variables check:"
-        print(msg, flush=True)
+                    # print(msg, flush=True)  # Removed to avoid MCP protocol issues
         logging.info(msg)
         
         oauth2_status = 'SET' if os.getenv('GOOGLE_OAUTH2_TOKEN_B64') else 'NOT SET'
@@ -212,60 +209,60 @@ try:
         client_secret_status = 'SET' if os.getenv('GOOGLE_CLIENT_SECRET') else 'NOT SET'
         
         msg = f"  • GOOGLE_OAUTH2_TOKEN_B64: {oauth2_status}"
-        print(msg, flush=True)
+                    # print(msg, flush=True)  # Removed to avoid MCP protocol issues
         logging.info(msg)
         
         msg = f"  • GOOGLE_CREDENTIALS_B64: {credentials_status}"
-        print(msg, flush=True)
+                    # print(msg, flush=True)  # Removed to avoid MCP protocol issues
         logging.info(msg)
         
         msg = f"  • GOOGLE_TOKEN_B64: {token_status}"
-        print(msg, flush=True)
+                    # print(msg, flush=True)  # Removed to avoid MCP protocol issues
         logging.info(msg)
         
         msg = f"  • GOOGLE_CLIENT_ID: {client_id_status}"
-        print(msg, flush=True)
+                    # print(msg, flush=True)  # Removed to avoid MCP protocol issues
         logging.info(msg)
         
         msg = f"  • GOOGLE_CLIENT_SECRET: {client_secret_status}"
-        print(msg, flush=True)
+                    # print(msg, flush=True)  # Removed to avoid MCP protocol issues
         logging.info(msg)
         
         # Try OAuth2 first (for user's personal calendar)
         msg = "🔧 Trying OAuth2 authentication..."
-        print(msg, flush=True)
+                    # print(msg, flush=True)  # Removed to avoid MCP protocol issues
         logging.info(msg)
         
         oauth2_service = get_oauth2_calendar_service()
         if oauth2_service:
             msg = "✅ OAuth2 authentication successful"
-            print(msg, flush=True)
+                    # print(msg, flush=True)  # Removed to avoid MCP protocol issues
             logging.info(msg)
             return oauth2_service
         else:
             msg = "❌ OAuth2 authentication failed"
-            print(msg, flush=True)
+                    # print(msg, flush=True)  # Removed to avoid MCP protocol issues
             logging.info(msg)
         
         # Fallback to service account
         msg = "🔄 Falling back to service account authentication"
-        print(msg, flush=True)
+                    # print(msg, flush=True)  # Removed to avoid MCP protocol issues
         logging.info(msg)
         
         service_account_service = get_service_account_calendar_service()
         if service_account_service:
             msg = "✅ Service account authentication successful"
-            print(msg, flush=True)
+                    # print(msg, flush=True)  # Removed to avoid MCP protocol issues
             logging.info(msg)
             return service_account_service
         else:
             msg = "❌ Service account authentication also failed"
-            print(msg, flush=True)
+                    # print(msg, flush=True)  # Removed to avoid MCP protocol issues
             logging.info(msg)
             return None
     
 except ImportError as e:
-    print(f"⚠️  Warning: Google Calendar service account integration not available: {e}")
+    # print(...) # Removed to avoid MCP protocol issues
     get_service_account_calendar_service = None
 
 load_dotenv()
@@ -275,7 +272,82 @@ load_dotenv()
 # ----------------------------
 
 class Base(DeclarativeBase):
-     pass
+    pass
+
+# Define team collaboration models locally to avoid circular imports
+from enum import Enum as PyEnum
+from sqlalchemy import Enum, Boolean, Text
+from datetime import datetime, timezone
+
+class UserRole(PyEnum):
+    ADMIN = "admin"
+    MANAGER = "manager"
+    MEMBER = "member"
+    VIEWER = "viewer"
+
+class TeamRole(PyEnum):
+    OWNER = "owner"
+    ADMIN = "admin"
+    MEMBER = "member"
+    VIEWER = "viewer"
+
+class User(Base):
+    __tablename__ = "users_sambanova"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    username = Column(String(100), unique=True, nullable=False, index=True)
+    password_hash = Column(String(255), nullable=False)
+    first_name = Column(String(100), nullable=False)
+    last_name = Column(String(100), nullable=False)
+    
+    # User status
+    is_active = Column(Boolean, default=True, nullable=False)
+    is_verified = Column(Boolean, default=False, nullable=False)
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+    last_login_at = Column(DateTime(timezone=True), nullable=True)
+    
+    def __repr__(self):
+        return f"<User(id={self.id}, email={self.email}, username={self.username})>"
+    
+    @property
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}"
+
+class Team(Base):
+    __tablename__ = "teams_sambanova"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(String(200), nullable=False)
+    description = Column(Text, nullable=True)
+    
+    # Team settings
+    is_active = Column(Boolean, default=True, nullable=False)
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+    
+    def __repr__(self):
+        return f"<Team(id={self.id}, name={self.name})>"
+
+class TeamMembership(Base):
+    __tablename__ = "team_memberships_sambanova"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    team_id = Column(UUID(as_uuid=True), ForeignKey('teams_sambanova.id'), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users_sambanova.id'), nullable=False)
+    role = Column(Enum(TeamRole), default=TeamRole.MEMBER, nullable=False)
+    
+    # Timestamps
+    joined_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+    
+    def __repr__(self):
+        return f"<TeamMembership(team_id={self.team_id}, user_id={self.user_id}, role={self.role})>"
 
 
 class DBTodo(Base):
@@ -428,11 +500,11 @@ def _init_database():
     _db_initialized = True
     
     if not db_uri:
-        print("⚠️  Warning: DB_URI not set, MCP server database operations will be disabled")
+        # print(...) # Removed to avoid MCP protocol issues
         return
     
     try:
-        print("🔄 Initializing database connection...")
+        # print(...) # Removed to avoid MCP protocol issues
         # Create engine with very aggressive timeout settings
         engine = create_engine(
             url=db_uri,
@@ -444,9 +516,9 @@ def _init_database():
             connect_args={"connect_timeout": 1}  # 1 second connection timeout
         )
         SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-        print("✅ Database connection configured successfully (no test)")
+        # Database connection configured successfully (no test)
     except Exception as e:
-        print(f"❌ Database connection failed: {e}")
+        # print(...) # Removed to avoid MCP protocol issues
         engine = None
         SessionLocal = None
 
@@ -459,7 +531,7 @@ def check_database_available():
     try:
         _init_database()  # Lazy init on first use
     except Exception as e:
-        print(f"❌ Failed to initialize database: {e}")
+        # print(...) # Removed to avoid MCP protocol issues
         raise Exception(f"Database initialization failed: {str(e)}")
     
     if SessionLocal is None:
@@ -474,13 +546,13 @@ mcp = FastMCP("db_todo")
 @mcp.tool()
 async def test_connection() -> str:
     """Test if the MCP server is working."""
-    print("🔧 MCP test_connection: Function called")
+    # print(...) # Removed to avoid MCP protocol issues
     return "MCP server is working!"
 
 @mcp.tool()
 async def test_env_vars() -> str:
     """Test environment variables loading."""
-    print("🔧 MCP test_env_vars: Testing environment variables...", flush=True)
+    # print(...) # Removed to avoid MCP protocol issues
     
     result = "🔧 Environment Variables Test:\n\n"
     result += f"• GOOGLE_OAUTH2_TOKEN_B64: {'✅ SET' if os.getenv('GOOGLE_OAUTH2_TOKEN_B64') else '❌ NOT SET'}\n"
@@ -505,41 +577,41 @@ async def test_env_vars() -> str:
         except Exception as e:
             result += f"❌ Calendar service error: {e}\n"
     
-    print(f"🔧 MCP test_env_vars: Result: {result}")
+    # print(...) # Removed to avoid MCP protocol issues
     return result
 
 @mcp.tool()
 async def simple_test() -> str:
     """Simple test without database."""
-    print("🔧 MCP simple_test: Function called")
+    # print(...) # Removed to avoid MCP protocol issues
     return "Simple test successful!"
 
 @mcp.tool()
 async def test_google_calendar() -> str:
     """Test Google Calendar service availability and credentials."""
     try:
-        print("🔧 Testing Google Calendar service...")
+        # print(...) # Removed to avoid MCP protocol issues
         
         # Check if get_calendar_service is available
         if not get_calendar_service:
             return "❌ Google Calendar service not available - get_calendar_service is None"
         
-        print("✅ get_calendar_service function is available")
+        # print(...) # Removed to avoid MCP protocol issues
         
         # Try to get the calendar service
         try:
             calendar_service = get_calendar_service()
-            print(f"✅ Calendar service obtained: {calendar_service}")
+            # print(...) # Removed to avoid MCP protocol issues
             
             # First, let's check what calendars are available
             try:
                 calendar_list = calendar_service.calendarList().list().execute()
                 calendars = calendar_list.get('items', [])
-                print(f"🔧 Available calendars: {len(calendars)}")
+                # Available calendars
                 for cal in calendars:
-                    print(f"  - {cal.get('summary', 'Unknown')} (ID: {cal.get('id', 'Unknown')}) - Primary: {cal.get('primary', False)}")
+                    # Calendar info
             except Exception as list_error:
-                print(f"⚠️  Could not list calendars: {list_error}")
+                # print(...) # Removed to avoid MCP protocol issues
             
             # Try to create a test event using proper Google Calendar API
             test_event_body = {
@@ -562,10 +634,10 @@ async def test_google_calendar() -> str:
             
             test_event_id = created_event.get('id')
             organizer_email = created_event.get('organizer', {}).get('email', 'Unknown')
-            print(f"🔧 Event created by organizer: {organizer_email}")
+            # print(...) # Removed to avoid MCP protocol issues
             
             if test_event_id:
-                print(f"✅ Test event created successfully with ID: {test_event_id}")
+                # print(...) # Removed to avoid MCP protocol issues
                 
                 # Try to delete the test event
                 try:
@@ -575,7 +647,7 @@ async def test_google_calendar() -> str:
                     ).execute()
                     success = True
                     if success:
-                        print(f"✅ Test event deleted successfully")
+                        # print(...) # Removed to avoid MCP protocol issues
                         return f"✅ Google Calendar service is working correctly!\nTest event created and deleted: {test_event_id}\nEvent created by: {organizer_email}\n\n📋 To see events in your personal calendar, you need to share your calendar with: google-calendar-api2@dark-window-206618.iam.gserviceaccount.com"
                     else:
                         return f"⚠️  Google Calendar service created event but failed to delete it: {test_event_id}"
@@ -585,29 +657,29 @@ async def test_google_calendar() -> str:
                 return "❌ Google Calendar service failed to create test event - returned None"
                 
         except Exception as service_error:
-            print(f"❌ Error getting calendar service: {service_error}")
+            # print(...) # Removed to avoid MCP protocol issues
             return f"❌ Google Calendar service error: {service_error}"
             
     except Exception as e:
         error_msg = f"Error testing Google Calendar: {str(e)}"
-        print(f"❌ {error_msg}")
+        # print(...) # Removed to avoid MCP protocol issues
         return error_msg
 
 @mcp.tool()
 async def test_database() -> str:
     """Test database connection only."""
     try:
-        print("🔧 MCP test_database: Starting")
+        # print(...) # Removed to avoid MCP protocol issues
         check_database_available()
-        print("🔧 MCP test_database: Database available")
+        # print(...) # Removed to avoid MCP protocol issues
         
         with SessionLocal() as session:
-            print("🔧 MCP test_database: Session created")
+            # print(...) # Removed to avoid MCP protocol issues
             result = session.execute(text("SELECT 1 as test")).fetchone()
-            print(f"🔧 MCP test_database: Query result: {result}")
+            # print(...) # Removed to avoid MCP protocol issues
             return f"Database test successful: {result[0]}"
     except Exception as e:
-        print(f"❌ MCP test_database: Error: {e}")
+        # print(...) # Removed to avoid MCP protocol issues
         return f"Database test failed: {str(e)}"
 
 @mcp.tool()
@@ -633,19 +705,19 @@ async def create_todo(
         The created todo item.
     """
     try:
-        print(f"🔧 MCP create_todo: Starting with title='{title}', priority={priority}")
-        print(f"🔧 MCP create_todo: Checking database availability...")
+        # print(...) # Removed to avoid MCP protocol issues
+        # print(...) # Removed to avoid MCP protocol issues
         check_database_available()
-        print(f"🔧 MCP create_todo: Database available, creating session...")
+        # print(...) # Removed to avoid MCP protocol issues
         
         with SessionLocal() as session:
-            print(f"🔧 MCP create_todo: Session created, setting due date...")
+            # print(...) # Removed to avoid MCP protocol issues
             # Set default due date to today if not provided
             if due_date is None:
                 due_date = datetime.now(timezone.utc)
                 
-            print(f"🔧 MCP create_todo: Creating DBTodo object...")
-            print(f"🔧 MCP create_todo: team_id={team_id}, assignee_id={assignee_id}")
+            # print(...) # Removed to avoid MCP protocol issues
+            # print(...) # Removed to avoid MCP protocol issues
             
             new_todo = DBTodo(
                 title=title,
@@ -655,23 +727,23 @@ async def create_todo(
                 team_id=team_id,
                 assignee_id=assignee_id,
                 )
-            print(f"🔧 MCP create_todo: Adding todo to session...")
+            # print(...) # Removed to avoid MCP protocol issues
             session.add(new_todo)
-            print(f"🔧 MCP create_todo: Committing to database...")
+            # print(...) # Removed to avoid MCP protocol issues
             session.commit()
-            print(f"🔧 MCP create_todo: Refreshing object...")
+            # print(...) # Removed to avoid MCP protocol issues
             session.refresh(new_todo)
-            print(f"🔧 MCP create_todo: Todo created successfully with ID: {new_todo.id}")
+            # print(...) # Removed to avoid MCP protocol issues
             
             # Create corresponding Google Calendar event
             google_event_id = None
-            print(f"🔧 MCP create_todo: Checking Google Calendar service availability...")
-            print(f"🔧 MCP create_todo: get_calendar_service = {get_calendar_service}")
-            print(f"🔧 MCP create_todo: get_calendar_service type = {type(get_calendar_service)}")
+            # print(...) # Removed to avoid MCP protocol issues
+            # print(...) # Removed to avoid MCP protocol issues
+            # get_calendar_service type info
             
             # Check environment variables
             msg = "🔧 MCP create_todo: Environment variables check:"
-            print(msg, flush=True)
+                    # print(msg, flush=True)  # Removed to avoid MCP protocol issues
             logging.info(msg)
             
             oauth2_status = 'SET' if os.getenv('GOOGLE_OAUTH2_TOKEN_B64') else 'NOT SET'
@@ -681,35 +753,35 @@ async def create_todo(
             client_secret_status = 'SET' if os.getenv('GOOGLE_CLIENT_SECRET') else 'NOT SET'
             
             msg = f"  • GOOGLE_CREDENTIALS_B64 = {credentials_status}"
-            print(msg, flush=True)
+                    # print(msg, flush=True)  # Removed to avoid MCP protocol issues
             logging.info(msg)
             
             msg = f"  • GOOGLE_TOKEN_B64 = {token_status}"
-            print(msg, flush=True)
+                    # print(msg, flush=True)  # Removed to avoid MCP protocol issues
             logging.info(msg)
             
             msg = f"  • GOOGLE_OAUTH2_TOKEN_B64 = {oauth2_status}"
-            print(msg, flush=True)
+                    # print(msg, flush=True)  # Removed to avoid MCP protocol issues
             logging.info(msg)
             
             msg = f"  • GOOGLE_CLIENT_ID = {client_id_status}"
-            print(msg, flush=True)
+                    # print(msg, flush=True)  # Removed to avoid MCP protocol issues
             logging.info(msg)
             
             msg = f"  • GOOGLE_CLIENT_SECRET = {client_secret_status}"
-            print(msg, flush=True)
+                    # print(msg, flush=True)  # Removed to avoid MCP protocol issues
             logging.info(msg)
             
             if get_calendar_service:
                 try:
-                    print(f"🔧 MCP create_todo: Creating Google Calendar event...")
+                    # print(...) # Removed to avoid MCP protocol issues
                     calendar_service = get_calendar_service()
-                    print(f"🔧 MCP create_todo: Calendar service obtained: {calendar_service}")
+                    # print(...) # Removed to avoid MCP protocol issues
                     
                     # Use due_date as the event start time, with 1 hour duration
                     event_start = due_date
                     event_end = due_date + timedelta(hours=1)
-                    print(f"🔧 MCP create_todo: Event times - start: {event_start}, end: {event_end}")
+                    # print(...) # Removed to avoid MCP protocol issues
                     
                     # Create Google Calendar event using the proper API format
                     event_body = {
@@ -725,29 +797,29 @@ async def create_todo(
                         },
                     }
                     
-                    print(f"🔧 MCP create_todo: Creating event with body: {event_body}")
+                    # print(...) # Removed to avoid MCP protocol issues
                     created_event = calendar_service.events().insert(
                         calendarId='primary', 
                         body=event_body
                     ).execute()
                     
                     google_event_id = created_event.get('id')
-                    print(f"🔧 MCP create_todo: Created event response: {created_event}")
-                    print(f"🔧 MCP create_todo: Calendar service returned: {google_event_id}")
+                    # print(...) # Removed to avoid MCP protocol issues
+                    # print(...) # Removed to avoid MCP protocol issues
                     
                     if google_event_id:
-                        print(f"✅ MCP create_todo: Google Calendar event created with ID: {google_event_id}", flush=True)
+                        # print(...) # Removed to avoid MCP protocol issues
                         # Update the todo with the Google Calendar event ID
                         new_todo.google_calendar_event_id = google_event_id
                         session.commit()
                         session.refresh(new_todo)
                     else:
-                        print(f"⚠️  MCP create_todo: Failed to create Google Calendar event - returned None", flush=True)
+                        # print(...) # Removed to avoid MCP protocol issues
                 except Exception as calendar_error:
-                    print(f"⚠️  MCP create_todo: Google Calendar error (continuing): {calendar_error}", flush=True)
-                    print(f"⚠️  MCP create_todo: Error type: {type(calendar_error)}")
+                    # Google Calendar error (continuing)
+                    # Error type info
             else:
-                print(f"⚠️  MCP create_todo: Google Calendar service not available - get_calendar_service is None", flush=True)
+                # print(...) # Removed to avoid MCP protocol issues
     
         # Convert SQLAlchemy object to dict properly
         todo_dict = {
@@ -762,12 +834,12 @@ async def create_todo(
             "google_calendar_event_id": new_todo.google_calendar_event_id
         }
         result = Todo.model_validate(todo_dict).model_dump_json(indent=2)
-        print(f"✅ MCP create_todo: Successfully created todo '{title}'")
+        # print(...) # Removed to avoid MCP protocol issues
         return result
         
     except Exception as e:
         error_msg = f"Error executing tool create_todo: {str(e)}"
-        print(f"❌ MCP create_todo: {error_msg}")
+        # print(...) # Removed to avoid MCP protocol issues
         return error_msg
 
 @mcp.tool()
@@ -801,7 +873,7 @@ async def complete_todo(id: UUID) -> str:
         session.commit()
         
         # Google Calendar sync disabled
-        print(f"✅ Todo '{todo.title}' marked as completed")
+        # print(...) # Removed to avoid MCP protocol issues
         
         session.refresh(todo)
     
@@ -851,7 +923,7 @@ async def update_todo(
         # Update Google Calendar event if it exists
         if todo.google_calendar_event_id and get_calendar_service:
             try:
-                print(f"🔧 MCP update_todo: Updating Google Calendar event: {todo.google_calendar_event_id}")
+                # print(...) # Removed to avoid MCP protocol issues
                 calendar_service = get_calendar_service()
                 
                 # Prepare update data
@@ -870,13 +942,13 @@ async def update_todo(
                         **update_data
                     )
                     if success:
-                        print(f"✅ MCP update_todo: Google Calendar event updated successfully")
+                        # print(...) # Removed to avoid MCP protocol issues
                     else:
-                        print(f"⚠️  MCP update_todo: Failed to update Google Calendar event")
+                        # print(...) # Removed to avoid MCP protocol issues
                 else:
-                    print(f"ℹ️  MCP update_todo: No calendar-relevant fields updated")
+                    # print(...) # Removed to avoid MCP protocol issues
             except Exception as calendar_error:
-                print(f"⚠️  MCP update_todo: Google Calendar error (continuing): {calendar_error}")
+                # Google Calendar error (continuing)
     
     return Todo.model_validate(todo.__dict__).model_dump_json(indent=2)
 
@@ -895,12 +967,12 @@ async def delete_todo(id: UUID) -> str:
         if not todo:
             return "Todo not found"
         
-        print(f"🗑️ Deleting todo: {todo.title}")
+        # print(...) # Removed to avoid MCP protocol issues
         
         # Delete from Google Calendar if event exists
         if todo.google_calendar_event_id and get_calendar_service:
             try:
-                print(f"🔧 MCP delete_todo: Deleting Google Calendar event: {todo.google_calendar_event_id}")
+                # print(...) # Removed to avoid MCP protocol issues
                 calendar_service = get_calendar_service()
                 calendar_service.events().delete(
                     calendarId='primary', 
@@ -908,11 +980,11 @@ async def delete_todo(id: UUID) -> str:
                 ).execute()
                 success = True
                 if success:
-                    print(f"✅ MCP delete_todo: Google Calendar event deleted successfully")
+                    # print(...) # Removed to avoid MCP protocol issues
                 else:
-                    print(f"⚠️  MCP delete_todo: Failed to delete Google Calendar event")
+                    # print(...) # Removed to avoid MCP protocol issues
             except Exception as calendar_error:
-                print(f"⚠️  MCP delete_todo: Google Calendar error (continuing): {calendar_error}")
+                # Google Calendar error (continuing)
         
         session.delete(todo)
         session.commit()
@@ -936,7 +1008,7 @@ async def create_reminder(
         The created reminder.
     """
     try:
-        print(f"🔧 MCP create_reminder: Starting with text='{reminder_text}', importance={importance}")
+        # print(...) # Removed to avoid MCP protocol issues
         check_database_available()
         
         with SessionLocal() as session:
@@ -951,13 +1023,13 @@ async def create_reminder(
             session.add(new_reminder)
             session.commit()
             session.refresh(new_reminder)
-            print(f"🔧 MCP create_reminder: Reminder created successfully with ID: {new_reminder.id}")
+            # print(...) # Removed to avoid MCP protocol issues
             
             # Create corresponding Google Calendar event
             google_event_id = None
             if get_calendar_service:
                 try:
-                    print(f"🔧 MCP create_reminder: Creating Google Calendar event...")
+                    # print(...) # Removed to avoid MCP protocol issues
                     calendar_service = get_calendar_service()
                     
                     # Use reminder_date as the event start time, with 30 minutes duration
@@ -986,17 +1058,17 @@ async def create_reminder(
                     google_event_id = created_event.get('id')
                     
                     if google_event_id:
-                        print(f"✅ MCP create_reminder: Google Calendar event created with ID: {google_event_id}")
+                        # print(...) # Removed to avoid MCP protocol issues
                         # Update the reminder with the Google Calendar event ID
                         new_reminder.google_calendar_event_id = google_event_id
                         session.commit()
                         session.refresh(new_reminder)
                     else:
-                        print(f"⚠️  MCP create_reminder: Failed to create Google Calendar event")
+                        # print(...) # Removed to avoid MCP protocol issues
                 except Exception as calendar_error:
-                    print(f"⚠️  MCP create_reminder: Google Calendar error (continuing): {calendar_error}")
+                    # Google Calendar error (continuing)
             else:
-                print(f"⚠️  MCP create_reminder: Google Calendar service not available")
+                # print(...) # Removed to avoid MCP protocol issues
     
         # Convert SQLAlchemy object to dict properly
         reminder_dict = {
@@ -1009,12 +1081,12 @@ async def create_reminder(
             "google_calendar_event_id": new_reminder.google_calendar_event_id
         }
         result = Reminder.model_validate(reminder_dict).model_dump_json(indent=2)
-        print(f"✅ MCP create_reminder: Successfully created reminder '{reminder_text}'")
+        # print(...) # Removed to avoid MCP protocol issues
         return result
         
     except Exception as e:
         error_msg = f"Error executing tool create_reminder: {str(e)}"
-        print(f"❌ MCP create_reminder: {error_msg}")
+        # print(...) # Removed to avoid MCP protocol issues
         return error_msg
 
 @mcp.tool()
@@ -1065,7 +1137,7 @@ async def update_reminder(
         # Update Google Calendar event if it exists
         if reminder.google_calendar_event_id and get_calendar_service:
             try:
-                print(f"🔧 MCP update_reminder: Updating Google Calendar event: {reminder.google_calendar_event_id}")
+                # print(...) # Removed to avoid MCP protocol issues
                 calendar_service = get_calendar_service()
                 
                 # Prepare update data
@@ -1084,13 +1156,13 @@ async def update_reminder(
                         **update_data
                     )
                     if success:
-                        print(f"✅ MCP update_reminder: Google Calendar event updated successfully")
+                        # print(...) # Removed to avoid MCP protocol issues
                     else:
-                        print(f"⚠️  MCP update_reminder: Failed to update Google Calendar event")
+                        # print(...) # Removed to avoid MCP protocol issues
                 else:
-                    print(f"ℹ️  MCP update_reminder: No calendar-relevant fields updated")
+                    # print(...) # Removed to avoid MCP protocol issues
             except Exception as calendar_error:
-                print(f"⚠️  MCP update_reminder: Google Calendar error (continuing): {calendar_error}")
+                # Google Calendar error (continuing)
     
     return Reminder.model_validate(reminder.__dict__).model_dump_json(indent=2)
 
@@ -1109,12 +1181,12 @@ async def delete_reminder(id: UUID) -> str:
         if not reminder:
             return "Reminder not found"
         
-        print(f"🗑️ Deleting reminder: {reminder.reminder_text}")
+        # print(...) # Removed to avoid MCP protocol issues
         
         # Delete from Google Calendar if event exists
         if reminder.google_calendar_event_id and get_calendar_service:
             try:
-                print(f"🔧 MCP delete_reminder: Deleting Google Calendar event: {reminder.google_calendar_event_id}")
+                # print(...) # Removed to avoid MCP protocol issues
                 calendar_service = get_calendar_service()
                 calendar_service.events().delete(
                     calendarId='primary', 
@@ -1122,11 +1194,11 @@ async def delete_reminder(id: UUID) -> str:
                 ).execute()
                 success = True
                 if success:
-                    print(f"✅ MCP delete_reminder: Google Calendar event deleted successfully")
+                    # print(...) # Removed to avoid MCP protocol issues
                 else:
-                    print(f"⚠️  MCP delete_reminder: Failed to delete Google Calendar event")
+                    # print(...) # Removed to avoid MCP protocol issues
             except Exception as calendar_error:
-                print(f"⚠️  MCP delete_reminder: Google Calendar error (continuing): {calendar_error}")
+                # Google Calendar error (continuing)
         
         session.delete(reminder)
         session.commit()
@@ -1152,7 +1224,7 @@ async def create_calendar_event(
         The created calendar event.
     """
     try:
-        print(f"🔧 MCP create_calendar_event: Starting with title='{title}'")
+        # print(...) # Removed to avoid MCP protocol issues
         check_database_available()
         
         with SessionLocal() as session:
@@ -1165,13 +1237,13 @@ async def create_calendar_event(
             session.add(new_event)
             session.commit()
             session.refresh(new_event)
-            print(f"🔧 MCP create_calendar_event: Event created successfully with ID: {new_event.id}")
+            # print(...) # Removed to avoid MCP protocol issues
             
             # Create corresponding Google Calendar event
             google_event_id = None
             if get_calendar_service:
                 try:
-                    print(f"🔧 MCP create_calendar_event: Creating Google Calendar event...")
+                    # print(...) # Removed to avoid MCP protocol issues
                     calendar_service = get_calendar_service()
                     
                     # Create Google Calendar event using the proper API format
@@ -1196,25 +1268,25 @@ async def create_calendar_event(
                     google_event_id = created_event.get('id')
                     
                     if google_event_id:
-                        print(f"✅ MCP create_calendar_event: Google Calendar event created with ID: {google_event_id}")
+                        # print(...) # Removed to avoid MCP protocol issues
                         # Update the event with the Google Calendar event ID
                         new_event.google_calendar_event_id = google_event_id
                         session.commit()
                         session.refresh(new_event)
                     else:
-                        print(f"⚠️  MCP create_calendar_event: Failed to create Google Calendar event")
+                        # print(...) # Removed to avoid MCP protocol issues
                 except Exception as calendar_error:
-                    print(f"⚠️  MCP create_calendar_event: Google Calendar error (continuing): {calendar_error}")
+                    # Google Calendar error (continuing)
             else:
-                print(f"⚠️  MCP create_calendar_event: Google Calendar service not available")
+                # print(...) # Removed to avoid MCP protocol issues
     
         result = CalendarEvent.model_validate(new_event.__dict__).model_dump_json(indent=2)
-        print(f"✅ MCP create_calendar_event: Successfully created event '{title}'")
+        # print(...) # Removed to avoid MCP protocol issues
         return result
         
     except Exception as e:
         error_msg = f"Error executing tool create_calendar_event: {str(e)}"
-        print(f"❌ MCP create_calendar_event: {error_msg}")
+        # print(...) # Removed to avoid MCP protocol issues
         return error_msg
 
 @mcp.tool()
@@ -1269,7 +1341,7 @@ async def update_calendar_event(
         # Update Google Calendar event if it exists
         if event.google_calendar_event_id and get_calendar_service:
             try:
-                print(f"🔧 MCP update_calendar_event: Updating Google Calendar event: {event.google_calendar_event_id}")
+                # print(...) # Removed to avoid MCP protocol issues
                 calendar_service = get_calendar_service()
                 
                 # Prepare update data
@@ -1289,13 +1361,13 @@ async def update_calendar_event(
                         **update_data
                     )
                     if success:
-                        print(f"✅ MCP update_calendar_event: Google Calendar event updated successfully")
+                        # print(...) # Removed to avoid MCP protocol issues
                     else:
-                        print(f"⚠️  MCP update_calendar_event: Failed to update Google Calendar event")
+                        # print(...) # Removed to avoid MCP protocol issues
                 else:
-                    print(f"ℹ️  MCP update_calendar_event: No calendar-relevant fields updated")
+                    # print(...) # Removed to avoid MCP protocol issues
             except Exception as calendar_error:
-                print(f"⚠️  MCP update_calendar_event: Google Calendar error (continuing): {calendar_error}")
+                # Google Calendar error (continuing)
     
     return CalendarEvent.model_validate(event.__dict__).model_dump_json(indent=2)
 
@@ -1314,12 +1386,12 @@ async def delete_calendar_event(id: UUID) -> str:
         if not event:
             return "Calendar event not found"
         
-        print(f"🗑️ Deleting calendar event: {event.title}")
+        # print(...) # Removed to avoid MCP protocol issues
         
         # Delete from Google Calendar if event exists
         if event.google_calendar_event_id and get_calendar_service:
             try:
-                print(f"🔧 MCP delete_calendar_event: Deleting Google Calendar event: {event.google_calendar_event_id}")
+                # print(...) # Removed to avoid MCP protocol issues
                 calendar_service = get_calendar_service()
                 calendar_service.events().delete(
                     calendarId='primary', 
@@ -1327,11 +1399,11 @@ async def delete_calendar_event(id: UUID) -> str:
                 ).execute()
                 success = True
                 if success:
-                    print(f"✅ MCP delete_calendar_event: Google Calendar event deleted successfully")
+                    # print(...) # Removed to avoid MCP protocol issues
                 else:
-                    print(f"⚠️  MCP delete_calendar_event: Failed to delete Google Calendar event")
+                    # print(...) # Removed to avoid MCP protocol issues
             except Exception as calendar_error:
-                print(f"⚠️  MCP delete_calendar_event: Google Calendar error (continuing): {calendar_error}")
+                # Google Calendar error (continuing)
         
         session.delete(event)
         session.commit()
@@ -1569,7 +1641,7 @@ async def check_calendar_visibility() -> str:
         Detailed information about calendar visibility and sharing instructions.
     """
     try:
-        print("🔧 Checking calendar visibility...")
+        # print(...) # Removed to avoid MCP protocol issues
         check_database_available()
         
         if not get_calendar_service:
@@ -1662,7 +1734,7 @@ async def check_calendar_visibility() -> str:
             
     except Exception as e:
         error_msg = f"Error checking calendar visibility: {str(e)}"
-        print(f"❌ {error_msg}")
+        # print(...) # Removed to avoid MCP protocol issues
         return error_msg
 
 @mcp.tool()
@@ -1676,7 +1748,7 @@ async def sync_google_calendar_events() -> str:
         Summary of sync operations performed.
     """
     try:
-        print("🔄 Starting Google Calendar sync for existing items...")
+        # print(...) # Removed to avoid MCP protocol issues
         check_database_available()
         
         if not get_calendar_service:
@@ -1695,7 +1767,7 @@ async def sync_google_calendar_events() -> str:
         
         with SessionLocal() as session:
             # Sync todos
-            print("🔧 Syncing todos...")
+            # print(...) # Removed to avoid MCP protocol issues
             todos = session.query(DBTodo).filter(DBTodo.google_calendar_event_id.is_(None)).all()
             for todo in todos:
                 sync_summary["todos_processed"] += 1
@@ -1728,17 +1800,17 @@ async def sync_google_calendar_events() -> str:
                     if google_event_id:
                         todo.google_calendar_event_id = google_event_id
                         sync_summary["todos_created"] += 1
-                        print(f"✅ Created Google Calendar event for todo: {todo.title}")
+                        # print(...) # Removed to avoid MCP protocol issues
                     else:
                         sync_summary["errors"].append(f"Failed to create calendar event for todo: {todo.title}")
-                        print(f"⚠️  Failed to create calendar event for todo: {todo.title}")
+                        # print(...) # Removed to avoid MCP protocol issues
                 except Exception as e:
                     error_msg = f"Error syncing todo '{todo.title}': {str(e)}"
                     sync_summary["errors"].append(error_msg)
-                    print(f"❌ {error_msg}")
+                    # print(...) # Removed to avoid MCP protocol issues
             
             # Sync reminders
-            print("🔧 Syncing reminders...")
+            # print(...) # Removed to avoid MCP protocol issues
             reminders = session.query(DBReminder).filter(DBReminder.google_calendar_event_id.is_(None)).all()
             for reminder in reminders:
                 sync_summary["reminders_processed"] += 1
@@ -1771,17 +1843,17 @@ async def sync_google_calendar_events() -> str:
                     if google_event_id:
                         reminder.google_calendar_event_id = google_event_id
                         sync_summary["reminders_created"] += 1
-                        print(f"✅ Created Google Calendar event for reminder: {reminder.reminder_text}")
+                        # print(...) # Removed to avoid MCP protocol issues
                     else:
                         sync_summary["errors"].append(f"Failed to create calendar event for reminder: {reminder.reminder_text}")
-                        print(f"⚠️  Failed to create calendar event for reminder: {reminder.reminder_text}")
+                        # print(...) # Removed to avoid MCP protocol issues
                 except Exception as e:
                     error_msg = f"Error syncing reminder '{reminder.reminder_text}': {str(e)}"
                     sync_summary["errors"].append(error_msg)
-                    print(f"❌ {error_msg}")
+                    # print(...) # Removed to avoid MCP protocol issues
             
             # Sync calendar events
-            print("🔧 Syncing calendar events...")
+            # print(...) # Removed to avoid MCP protocol issues
             events = session.query(DBCalendarEvent).filter(DBCalendarEvent.google_calendar_event_id.is_(None)).all()
             for event in events:
                 sync_summary["events_processed"] += 1
@@ -1810,18 +1882,18 @@ async def sync_google_calendar_events() -> str:
                     if google_event_id:
                         event.google_calendar_event_id = google_event_id
                         sync_summary["events_created"] += 1
-                        print(f"✅ Created Google Calendar event for calendar event: {event.title}")
+                        # print(...) # Removed to avoid MCP protocol issues
                     else:
                         sync_summary["errors"].append(f"Failed to create calendar event for: {event.title}")
-                        print(f"⚠️  Failed to create calendar event for: {event.title}")
+                        # print(...) # Removed to avoid MCP protocol issues
                 except Exception as e:
                     error_msg = f"Error syncing calendar event '{event.title}': {str(e)}"
                     sync_summary["errors"].append(error_msg)
-                    print(f"❌ {error_msg}")
+                    # print(...) # Removed to avoid MCP protocol issues
             
             # Commit all changes
             session.commit()
-            print("✅ All changes committed to database")
+            # print(...) # Removed to avoid MCP protocol issues
         
         # Generate summary
         summary = f"""Google Calendar Sync Complete!
@@ -1837,12 +1909,12 @@ async def sync_google_calendar_events() -> str:
         if sync_summary['errors']:
             summary += f"\n\n❌ Errors encountered:\n" + "\n".join(sync_summary['errors'])
         
-        print(summary)
+        # print(...) # Removed to avoid MCP protocol issues
         return summary
         
     except Exception as e:
         error_msg = f"Error during Google Calendar sync: {str(e)}"
-        print(f"❌ {error_msg}")
+        # print(...) # Removed to avoid MCP protocol issues
         return error_msg
 
 
@@ -1935,7 +2007,7 @@ async def create_team_todo(
         The created todo item details.
     """
     try:
-        print(f"🔧 MCP create_team_todo: Starting with title='{title}', team_id={team_id}")
+        # print(...) # Removed to avoid MCP protocol issues
         check_database_available()
         
         with SessionLocal() as session:
@@ -1957,7 +2029,7 @@ async def create_team_todo(
                 if not membership:
                     return f"User {assignee_id} is not a member of team '{team.name}'."
             
-            print(f"🔧 MCP create_team_todo: Creating DBTodo object...")
+            # print(...) # Removed to avoid MCP protocol issues
             new_todo = DBTodo(
                 title=title,
                 description=description,
@@ -2001,9 +2073,9 @@ async def create_team_todo(
                         if google_event_id:
                             new_todo.google_calendar_event_id = google_event_id
                             session.commit()
-                            print(f"✅ Created Google Calendar event for team todo: {title}")
+                            # print(...) # Removed to avoid MCP protocol issues
                 except Exception as e:
-                    print(f"⚠️  Failed to create Google Calendar event: {e}")
+                    # print(...) # Removed to avoid MCP protocol issues
             
             # Build response
             result = f"✅ Team todo created successfully!\n\n"
