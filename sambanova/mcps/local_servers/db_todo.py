@@ -302,7 +302,7 @@ class TeamRole(PyEnum):
 class User(Base):
     __tablename__ = "users_sambanova"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(PostgresUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String(255), unique=True, nullable=False, index=True)
     username = Column(String(100), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
@@ -328,7 +328,7 @@ class User(Base):
 class Team(Base):
     __tablename__ = "teams_sambanova"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(PostgresUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(200), nullable=False)
     description = Column(Text, nullable=True)
     
@@ -345,9 +345,9 @@ class Team(Base):
 class TeamMembership(Base):
     __tablename__ = "team_memberships_sambanova"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    team_id = Column(UUID(as_uuid=True), ForeignKey('teams_sambanova.id'), nullable=False)
-    user_id = Column(UUID(as_uuid=True), ForeignKey('users_sambanova.id'), nullable=False)
+    id = Column(PostgresUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    team_id = Column(PostgresUUID(as_uuid=True), ForeignKey('teams_sambanova.id'), nullable=False)
+    user_id = Column(PostgresUUID(as_uuid=True), ForeignKey('users_sambanova.id'), nullable=False)
     role = Column(Enum(TeamRole), default=TeamRole.MEMBER, nullable=False)
     
     # Timestamps
