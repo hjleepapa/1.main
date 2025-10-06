@@ -1,7 +1,7 @@
 from mcp.server.fastmcp import FastMCP
 from dotenv import load_dotenv
 from typing import List, Optional
-from sqlalchemy import ForeignKey, String, text
+from sqlalchemy import ForeignKey, String, text, Column, Boolean, Text, DateTime
 from sqlalchemy.dialects.postgresql import UUID as PostgresUUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, Session
 from uuid import UUID, uuid4
@@ -283,8 +283,8 @@ class Base(DeclarativeBase):
 
 # Define team collaboration models locally to avoid circular imports
 from enum import Enum as PyEnum
-from sqlalchemy import Enum, Boolean, Text
-from datetime import datetime, timezone
+from sqlalchemy import Enum
+import uuid
 
 class UserRole(PyEnum):
     ADMIN = "admin"
