@@ -43,8 +43,8 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
     last_login_at = Column(DateTime(timezone=True), nullable=True)
     
-    # Relationships (will be set up after migration)
-    # team_memberships = relationship("TeamMembership", back_populates="user")
+    # Relationships
+    team_memberships = relationship("TeamMembership", back_populates="user")
     # created_todos = relationship("DBTodo", back_populates="creator")
     # assigned_todos = relationship("DBTodo", back_populates="assignee")
     
@@ -73,8 +73,8 @@ class Team(Base):
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
     
-    # Relationships (will be set up after migration)
-    # members = relationship("TeamMembership", back_populates="team")
+    # Relationships
+    members = relationship("TeamMembership", back_populates="team")
     # todos = relationship("DBTodo", back_populates="team")
     
     def __repr__(self):
@@ -101,9 +101,9 @@ class TeamMembership(Base):
     joined_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
     
-    # Relationships (will be set up after migration)
-    # team = relationship("Team", back_populates="members")
-    # user = relationship("User", back_populates="team_memberships")
+    # Relationships
+    team = relationship("Team", back_populates="members")
+    user = relationship("User", back_populates="team_memberships")
     
     def __repr__(self):
         return f"<TeamMembership(team_id={self.team_id}, user_id={self.user_id}, role={self.role})>"

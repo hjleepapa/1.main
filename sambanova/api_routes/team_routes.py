@@ -73,13 +73,15 @@ def get_user_teams():
         user_id = request.current_user['user_id']
         
         with SessionLocal() as session:
-            memberships = session.query(TeamMembership).filter(
+            # Use join query instead of relationship to avoid issues
+            results = session.query(TeamMembership, Team).join(
+                Team, TeamMembership.team_id == Team.id
+            ).filter(
                 TeamMembership.user_id == user_id
             ).all()
             
             teams = []
-            for membership in memberships:
-                team = membership.team
+            for membership, team in results:
                 teams.append({
                     'id': str(team.id),
                     'name': team.name,
@@ -107,14 +109,15 @@ def get_team(team_id):
             if not team:
                 return jsonify({'error': 'Team not found'}), 404
             
-            # Get team members
-            memberships = session.query(TeamMembership).filter(
+            # Get team members using join query
+            member_results = session.query(TeamMembership, User).join(
+                User, TeamMembership.user_id == User.id
+            ).filter(
                 TeamMembership.team_id == team_id
             ).all()
             
             members = []
-            for membership in memberships:
-                user = membership.user
+            for membership, user in member_results:
                 members.append({
                     'id': str(user.id),
                     'username': user.username,
