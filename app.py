@@ -73,13 +73,13 @@ def create_app():
     from lgch_todo import lgch_todo_bp
     app.register_blueprint(lgch_todo_bp)
 
-    from sambanova import routes
-    app.register_blueprint(routes.sambanova_todo_bp)
+    from sambanova.routes import sambanova_todo_bp
+    app.register_blueprint(sambanova_todo_bp)
     
     # Register new authentication and team collaboration blueprints
-    from sambanova.routes.auth_routes import auth_bp
-    from sambanova.routes.team_routes import team_bp
-    from sambanova.routes.team_todo_routes import team_todo_bp
+    from sambanova.api_routes.auth_routes import auth_bp
+    from sambanova.api_routes.team_routes import team_bp
+    from sambanova.api_routes.team_todo_routes import team_todo_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(team_bp)
