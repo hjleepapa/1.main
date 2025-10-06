@@ -168,6 +168,11 @@ def create_app():
     def team_dashboard():
         """Renders the team collaboration dashboard."""
         return render_template('team_dashboard.html')
+    
+    @app.route('/register')
+    def register():
+        """Renders the user registration page."""
+        return render_template('register.html')
 
     # --- Context Processors ---
     @app.context_processor
