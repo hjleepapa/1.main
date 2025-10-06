@@ -14,6 +14,7 @@ from enum import StrEnum
 import pandas as pd
 
 # Configure logging
+# Force rebuild: 2025-10-06
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 # Google Calendar integration
 try:
