@@ -13,9 +13,9 @@ from .assistant_graph_todo import TodoAgent
 from langchain_mcp_adapters.client import MultiServerMCPClient
 
 # Import new authentication and team routes
-from .routes.auth_routes import auth_bp
-from .routes.team_routes import team_bp
-from .routes.team_todo_routes import team_todo_bp
+from .api_routes.auth_routes import auth_bp
+from .api_routes.team_routes import team_bp
+from .api_routes.team_todo_routes import team_todo_bp
 
 # Set up logging
 logger = logging.getLogger(__name__)
