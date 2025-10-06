@@ -370,36 +370,48 @@
 
         async function loadUserTeams() {
             try {
+                console.log('🔍 Loading user teams...');
+                console.log('🔑 Access token:', accessToken ? 'Present' : 'Missing');
+                
                 const response = await fetch('/api/teams/', {
                     headers: {
                         'Authorization': `Bearer ${accessToken}`
                     }
                 });
                 
+                console.log('📡 Response status:', response.status);
                 const data = await response.json();
+                console.log('📋 Teams data:', data);
                 
                 if (response.ok) {
                     const teamSelect = document.getElementById('team-select');
                     teamSelect.innerHTML = '<option value="">Select a team...</option>';
                     
-                    data.teams.forEach(team => {
-                        const option = document.createElement('option');
-                        option.value = team.id;
-                        option.textContent = `${team.name} (${team.role})`;
-                        teamSelect.appendChild(option);
-                    });
-                    
-                    // Auto-select first team
-                    if (data.teams.length > 0) {
+                    if (data.teams && data.teams.length > 0) {
+                        data.teams.forEach(team => {
+                            console.log('👥 Adding team:', team.name, 'Role:', team.role);
+                            const option = document.createElement('option');
+                            option.value = team.id;
+                            option.textContent = `${team.name} (${team.role})`;
+                            teamSelect.appendChild(option);
+                        });
+                        
+                        // Auto-select first team
                         teamSelect.value = data.teams[0].id;
                         currentTeam = data.teams[0];
+                        console.log('✅ Auto-selected team:', currentTeam.name);
                         loadTeamTodos();
+                    } else {
+                        console.log('⚠️ No teams found for user');
+                        teamSelect.innerHTML = '<option value="">No teams available</option>';
                     }
                 } else {
-                    console.error('Failed to load teams:', data.error);
+                    console.error('❌ Failed to load teams:', data.error);
+                    alert('Failed to load teams: ' + data.error);
                 }
             } catch (error) {
-                console.error('Error loading teams:', error);
+                console.error('💥 Error loading teams:', error);
+                alert('Error loading teams: ' + error.message);
             }
         }
 
