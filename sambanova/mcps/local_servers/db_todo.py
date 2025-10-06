@@ -19,14 +19,14 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 try:
     from google_calendar import get_calendar_service
 except ImportError:
-    # Fallback for when running as MCP server
+    pass  #     
     import sys
     import os
     sys.path.append(os.path.dirname(__file__))
     try:
         from google_calendar import get_calendar_service
     except ImportError:
-        # Google Calendar not available - continue without it
+        pass  #         
         get_calendar_service = None
 
 # Team collaboration imports - avoid circular import by defining models locally
@@ -45,9 +45,10 @@ try:
     def get_service_account_calendar_service():
         """Get Google Calendar service using service account credentials"""
         try:
+            pass
             # Check for base64 encoded credentials in environment
             if os.getenv('GOOGLE_CREDENTIALS_B64'):
-                # Using GOOGLE_CREDENTIALS_B64 environment variable
+                pass  #                 
                 creds_data = base64.b64decode(os.getenv('GOOGLE_CREDENTIALS_B64'))
                 creds = service_account.Credentials.from_service_account_info(
                     json.loads(creds_data.decode('utf-8')),
@@ -55,7 +56,7 @@ try:
                 )
             # Check for base64 encoded token in environment
             elif os.getenv('GOOGLE_TOKEN_B64'):
-                # Using GOOGLE_TOKEN_B64 environment variable
+                pass  #                 
                 token_data = base64.b64decode(os.getenv('GOOGLE_TOKEN_B64'))
                 creds = pickle.loads(token_data)
                 if hasattr(creds, 'refresh_token') and creds.expired:
@@ -63,12 +64,13 @@ try:
                     creds.refresh(Request())
             # Check for local credentials.json file
             elif os.path.exists('credentials.json'):
-                # Using local credentials.json file
+                pass  #                 
                 creds = service_account.Credentials.from_service_account_file(
                     'credentials.json',
                     scopes=['https://www.googleapis.com/auth/calendar']
                 )
             else:
+                pass
                 # No Google Calendar credentials found
                 return None
                 
@@ -77,7 +79,8 @@ try:
             return service
             
         except Exception as e:
-            # Error creating Google Calendar service
+            
+            pass  #             
             return None
             
     def get_oauth2_calendar_service():
@@ -134,26 +137,27 @@ try:
                     
             # Check for local token.pickle file
             elif os.path.exists('token.pickle'):
-                # Using local token.pickle file
+                pass  #                 
                 try:
                     with open('token.pickle', 'rb') as token:
                         creds = pickle.load(token)
                     if creds.expired and creds.refresh_token:
                         creds.refresh(Request())
                 except Exception as file_error:
-                    # Error loading local token.pickle
+                    pass  #                     
                     return None
             
             # If no valid credentials, try to create OAuth2 credentials from environment
             if not creds or not creds.valid:
-                # No valid OAuth2 credentials found, checking client credentials...
+                pass  #                 
                 
                 # Check for OAuth2 client credentials in environment
                 client_id = os.getenv('GOOGLE_CLIENT_ID')
                 client_secret = os.getenv('GOOGLE_CLIENT_SECRET')
                 
                 if client_id and client_secret:
-                    # Using GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET
+                
+                    pass  #                     
                     
                     # Create OAuth2 flow
                     client_config = {
@@ -176,6 +180,7 @@ try:
                     # OAuth2 flow requires user interaction - this won't work in server environment
                     return None
                 else:
+                    pass
                     # No OAuth2 credentials found
                     return None
             
@@ -185,7 +190,8 @@ try:
             return service
             
         except Exception as e:
-            # Error creating Google Calendar OAuth2 service
+            
+            pass  #             
             # Error type logged
             import traceback
             # Traceback logged
@@ -262,7 +268,8 @@ try:
             return None
     
 except ImportError as e:
-    # print(...) # Removed to avoid MCP protocol issues
+    
+    pass  #     
     get_service_account_calendar_service = None
 
 load_dotenv()
@@ -500,10 +507,12 @@ def _init_database():
     _db_initialized = True
     
     if not db_uri:
-        # print(...) # Removed to avoid MCP protocol issues
+    
+        pass  #         
         return
     
     try:
+        pass
         # print(...) # Removed to avoid MCP protocol issues
         # Create engine with very aggressive timeout settings
         engine = create_engine(
@@ -518,7 +527,7 @@ def _init_database():
         SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
         # Database connection configured successfully (no test)
     except Exception as e:
-        # print(...) # Removed to avoid MCP protocol issues
+        pass  #         
         engine = None
         SessionLocal = None
 
@@ -531,7 +540,7 @@ def check_database_available():
     try:
         _init_database()  # Lazy init on first use
     except Exception as e:
-        # print(...) # Removed to avoid MCP protocol issues
+        pass  #         
         raise Exception(f"Database initialization failed: {str(e)}")
     
     if SessionLocal is None:
@@ -590,6 +599,7 @@ async def simple_test() -> str:
 async def test_google_calendar() -> str:
     """Test Google Calendar service availability and credentials."""
     try:
+        pass
         # print(...) # Removed to avoid MCP protocol issues
         
         # Check if get_calendar_service is available
@@ -609,9 +619,9 @@ async def test_google_calendar() -> str:
                 calendars = calendar_list.get('items', [])
                 # Available calendars
                 for cal in calendars:
-                    # Calendar info
+                    pass  # Calendar info logged elsewhere
             except Exception as list_error:
-                # print(...) # Removed to avoid MCP protocol issues
+                pass  # Calendar list error handled elsewhere
             
             # Try to create a test event using proper Google Calendar API
             test_event_body = {
@@ -637,7 +647,8 @@ async def test_google_calendar() -> str:
             # print(...) # Removed to avoid MCP protocol issues
             
             if test_event_id:
-                # print(...) # Removed to avoid MCP protocol issues
+            
+                pass  #                 
                 
                 # Try to delete the test event
                 try:
@@ -647,7 +658,7 @@ async def test_google_calendar() -> str:
                     ).execute()
                     success = True
                     if success:
-                        # print(...) # Removed to avoid MCP protocol issues
+                        pass  #                         
                         return f"✅ Google Calendar service is working correctly!\nTest event created and deleted: {test_event_id}\nEvent created by: {organizer_email}\n\n📋 To see events in your personal calendar, you need to share your calendar with: google-calendar-api2@dark-window-206618.iam.gserviceaccount.com"
                     else:
                         return f"⚠️  Google Calendar service created event but failed to delete it: {test_event_id}"
@@ -657,7 +668,8 @@ async def test_google_calendar() -> str:
                 return "❌ Google Calendar service failed to create test event - returned None"
                 
         except Exception as service_error:
-            # print(...) # Removed to avoid MCP protocol issues
+                
+            pass  #             
             return f"❌ Google Calendar service error: {service_error}"
             
     except Exception as e:
@@ -669,6 +681,7 @@ async def test_google_calendar() -> str:
 async def test_database() -> str:
     """Test database connection only."""
     try:
+        pass
         # print(...) # Removed to avoid MCP protocol issues
         check_database_available()
         # print(...) # Removed to avoid MCP protocol issues
@@ -679,7 +692,7 @@ async def test_database() -> str:
             # print(...) # Removed to avoid MCP protocol issues
             return f"Database test successful: {result[0]}"
     except Exception as e:
-        # print(...) # Removed to avoid MCP protocol issues
+        pass  #         
         return f"Database test failed: {str(e)}"
 
 @mcp.tool()
@@ -705,6 +718,7 @@ async def create_todo(
         The created todo item.
     """
     try:
+        pass
         # print(...) # Removed to avoid MCP protocol issues
         # print(...) # Removed to avoid MCP protocol issues
         check_database_available()
@@ -774,6 +788,7 @@ async def create_todo(
             
             if get_calendar_service:
                 try:
+                    pass
                     # print(...) # Removed to avoid MCP protocol issues
                     calendar_service = get_calendar_service()
                     # print(...) # Removed to avoid MCP protocol issues
@@ -808,18 +823,18 @@ async def create_todo(
                     # print(...) # Removed to avoid MCP protocol issues
                     
                     if google_event_id:
-                        # print(...) # Removed to avoid MCP protocol issues
+                    
+                        pass  #                         
                         # Update the todo with the Google Calendar event ID
                         new_todo.google_calendar_event_id = google_event_id
                         session.commit()
                         session.refresh(new_todo)
                     else:
-                        # print(...) # Removed to avoid MCP protocol issues
+                        pass  # Google Calendar event creation failed
                 except Exception as calendar_error:
-                    # Google Calendar error (continuing)
-                    # Error type info
+                    pass  # Google Calendar error handled elsewhere
             else:
-                # print(...) # Removed to avoid MCP protocol issues
+                pass  # Google Calendar service not available
     
         # Convert SQLAlchemy object to dict properly
         todo_dict = {
@@ -923,6 +938,7 @@ async def update_todo(
         # Update Google Calendar event if it exists
         if todo.google_calendar_event_id and get_calendar_service:
             try:
+                pass
                 # print(...) # Removed to avoid MCP protocol issues
                 calendar_service = get_calendar_service()
                 
@@ -942,13 +958,15 @@ async def update_todo(
                         **update_data
                     )
                     if success:
-                        # print(...) # Removed to avoid MCP protocol issues
+                        pass  #                         
                     else:
+                        pass
                         # print(...) # Removed to avoid MCP protocol issues
                 else:
+                    pass
                     # print(...) # Removed to avoid MCP protocol issues
             except Exception as calendar_error:
-                # Google Calendar error (continuing)
+                pass  #                 
     
     return Todo.model_validate(todo.__dict__).model_dump_json(indent=2)
 
@@ -972,6 +990,7 @@ async def delete_todo(id: UUID) -> str:
         # Delete from Google Calendar if event exists
         if todo.google_calendar_event_id and get_calendar_service:
             try:
+                pass
                 # print(...) # Removed to avoid MCP protocol issues
                 calendar_service = get_calendar_service()
                 calendar_service.events().delete(
@@ -980,11 +999,12 @@ async def delete_todo(id: UUID) -> str:
                 ).execute()
                 success = True
                 if success:
-                    # print(...) # Removed to avoid MCP protocol issues
+                    pass  #                     
                 else:
+                    pass
                     # print(...) # Removed to avoid MCP protocol issues
             except Exception as calendar_error:
-                # Google Calendar error (continuing)
+                pass  #                 
         
         session.delete(todo)
         session.commit()
@@ -1008,6 +1028,7 @@ async def create_reminder(
         The created reminder.
     """
     try:
+        pass
         # print(...) # Removed to avoid MCP protocol issues
         check_database_available()
         
@@ -1029,6 +1050,7 @@ async def create_reminder(
             google_event_id = None
             if get_calendar_service:
                 try:
+                    pass
                     # print(...) # Removed to avoid MCP protocol issues
                     calendar_service = get_calendar_service()
                     
@@ -1058,16 +1080,19 @@ async def create_reminder(
                     google_event_id = created_event.get('id')
                     
                     if google_event_id:
-                        # print(...) # Removed to avoid MCP protocol issues
+                    
+                        pass  #                         
                         # Update the reminder with the Google Calendar event ID
                         new_reminder.google_calendar_event_id = google_event_id
                         session.commit()
                         session.refresh(new_reminder)
                     else:
+                        pass
                         # print(...) # Removed to avoid MCP protocol issues
                 except Exception as calendar_error:
-                    # Google Calendar error (continuing)
+                    pass  #                     
             else:
+                pass
                 # print(...) # Removed to avoid MCP protocol issues
     
         # Convert SQLAlchemy object to dict properly
@@ -1137,6 +1162,7 @@ async def update_reminder(
         # Update Google Calendar event if it exists
         if reminder.google_calendar_event_id and get_calendar_service:
             try:
+                pass
                 # print(...) # Removed to avoid MCP protocol issues
                 calendar_service = get_calendar_service()
                 
@@ -1156,13 +1182,15 @@ async def update_reminder(
                         **update_data
                     )
                     if success:
-                        # print(...) # Removed to avoid MCP protocol issues
+                        pass  #                         
                     else:
+                        pass
                         # print(...) # Removed to avoid MCP protocol issues
                 else:
+                    pass
                     # print(...) # Removed to avoid MCP protocol issues
             except Exception as calendar_error:
-                # Google Calendar error (continuing)
+                pass  #                 
     
     return Reminder.model_validate(reminder.__dict__).model_dump_json(indent=2)
 
@@ -1186,6 +1214,7 @@ async def delete_reminder(id: UUID) -> str:
         # Delete from Google Calendar if event exists
         if reminder.google_calendar_event_id and get_calendar_service:
             try:
+                pass
                 # print(...) # Removed to avoid MCP protocol issues
                 calendar_service = get_calendar_service()
                 calendar_service.events().delete(
@@ -1194,11 +1223,12 @@ async def delete_reminder(id: UUID) -> str:
                 ).execute()
                 success = True
                 if success:
-                    # print(...) # Removed to avoid MCP protocol issues
+                    pass  #                     
                 else:
+                    pass
                     # print(...) # Removed to avoid MCP protocol issues
             except Exception as calendar_error:
-                # Google Calendar error (continuing)
+                pass  #                 
         
         session.delete(reminder)
         session.commit()
@@ -1224,6 +1254,7 @@ async def create_calendar_event(
         The created calendar event.
     """
     try:
+        pass
         # print(...) # Removed to avoid MCP protocol issues
         check_database_available()
         
@@ -1243,6 +1274,7 @@ async def create_calendar_event(
             google_event_id = None
             if get_calendar_service:
                 try:
+                    pass
                     # print(...) # Removed to avoid MCP protocol issues
                     calendar_service = get_calendar_service()
                     
@@ -1268,16 +1300,19 @@ async def create_calendar_event(
                     google_event_id = created_event.get('id')
                     
                     if google_event_id:
-                        # print(...) # Removed to avoid MCP protocol issues
+                    
+                        pass  #                         
                         # Update the event with the Google Calendar event ID
                         new_event.google_calendar_event_id = google_event_id
                         session.commit()
                         session.refresh(new_event)
                     else:
+                        pass
                         # print(...) # Removed to avoid MCP protocol issues
                 except Exception as calendar_error:
-                    # Google Calendar error (continuing)
+                    pass  #                     
             else:
+                pass
                 # print(...) # Removed to avoid MCP protocol issues
     
         result = CalendarEvent.model_validate(new_event.__dict__).model_dump_json(indent=2)
@@ -1341,6 +1376,7 @@ async def update_calendar_event(
         # Update Google Calendar event if it exists
         if event.google_calendar_event_id and get_calendar_service:
             try:
+                pass
                 # print(...) # Removed to avoid MCP protocol issues
                 calendar_service = get_calendar_service()
                 
@@ -1361,13 +1397,15 @@ async def update_calendar_event(
                         **update_data
                     )
                     if success:
-                        # print(...) # Removed to avoid MCP protocol issues
+                        pass  #                         
                     else:
+                        pass
                         # print(...) # Removed to avoid MCP protocol issues
                 else:
+                    pass
                     # print(...) # Removed to avoid MCP protocol issues
             except Exception as calendar_error:
-                # Google Calendar error (continuing)
+                pass  #                 
     
     return CalendarEvent.model_validate(event.__dict__).model_dump_json(indent=2)
 
@@ -1391,6 +1429,7 @@ async def delete_calendar_event(id: UUID) -> str:
         # Delete from Google Calendar if event exists
         if event.google_calendar_event_id and get_calendar_service:
             try:
+                pass
                 # print(...) # Removed to avoid MCP protocol issues
                 calendar_service = get_calendar_service()
                 calendar_service.events().delete(
@@ -1399,11 +1438,12 @@ async def delete_calendar_event(id: UUID) -> str:
                 ).execute()
                 success = True
                 if success:
-                    # print(...) # Removed to avoid MCP protocol issues
+                    pass  #                     
                 else:
+                    pass
                     # print(...) # Removed to avoid MCP protocol issues
             except Exception as calendar_error:
-                # Google Calendar error (continuing)
+                pass  #                 
         
         session.delete(event)
         session.commit()
@@ -1641,6 +1681,7 @@ async def check_calendar_visibility() -> str:
         Detailed information about calendar visibility and sharing instructions.
     """
     try:
+        pass
         # print(...) # Removed to avoid MCP protocol issues
         check_database_available()
         
@@ -1748,6 +1789,7 @@ async def sync_google_calendar_events() -> str:
         Summary of sync operations performed.
     """
     try:
+        pass
         # print(...) # Removed to avoid MCP protocol issues
         check_database_available()
         
@@ -1772,6 +1814,7 @@ async def sync_google_calendar_events() -> str:
             for todo in todos:
                 sync_summary["todos_processed"] += 1
                 try:
+                    pass
                     # Use due_date as the event start time, with 1 hour duration
                     event_start = todo.due_date or datetime.now(timezone.utc)
                     event_end = event_start + timedelta(hours=1)
@@ -1815,6 +1858,7 @@ async def sync_google_calendar_events() -> str:
             for reminder in reminders:
                 sync_summary["reminders_processed"] += 1
                 try:
+                    pass
                     # Use reminder_date as the event start time, with 30 minutes duration
                     event_start = reminder.reminder_date or datetime.now(timezone.utc)
                     event_end = event_start + timedelta(minutes=30)
@@ -1858,6 +1902,7 @@ async def sync_google_calendar_events() -> str:
             for event in events:
                 sync_summary["events_processed"] += 1
                 try:
+                    pass
                     # Create Google Calendar event using the proper API format
                     event_body = {
                         'summary': event.title,
@@ -2007,6 +2052,7 @@ async def create_team_todo(
         The created todo item details.
     """
     try:
+        pass
         # print(...) # Removed to avoid MCP protocol issues
         check_database_available()
         
@@ -2049,7 +2095,7 @@ async def create_team_todo(
                 try:
                     calendar_service = get_calendar_service()
                     if calendar_service:
-                        # Create a 1-hour event for team todos
+                        pass  #                         
                         event = {
                             'summary': f"[Team] {title}",
                             'description': f"Team: {team.name}\n{description or ''}",
@@ -2075,7 +2121,7 @@ async def create_team_todo(
                             session.commit()
                             # print(...) # Removed to avoid MCP protocol issues
                 except Exception as e:
-                    # print(...) # Removed to avoid MCP protocol issues
+                    pass  #                     
             
             # Build response
             result = f"✅ Team todo created successfully!\n\n"
