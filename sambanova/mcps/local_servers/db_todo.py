@@ -29,6 +29,13 @@ except ImportError:
         print("⚠️  Warning: Google Calendar integration not available - google_calendar module not found")
         get_calendar_service = None
 
+# Team collaboration imports
+try:
+    from sambanova.models.user_models import User, Team, TeamMembership, TeamRole
+except ImportError:
+    print("⚠️  Warning: Team collaboration models not available")
+    User = Team = TeamMembership = TeamRole = None
+
 # Service Account Google Calendar integration
 try:
     from google.oauth2 import service_account
@@ -609,6 +616,8 @@ async def create_todo(
     description: Optional[str] = None,
     priority: TodoPriority = TodoPriority.MEDIUM,
     due_date: Optional[datetime] = None,
+    team_id: Optional[str] = None,
+    assignee_id: Optional[str] = None,
     ) -> str:
     """Create a new todo item.
     
@@ -617,6 +626,8 @@ async def create_todo(
         description: An optional description of the todo item.
         priority: The priority level of the todo. Options are: low, medium, high, urgent
         due_date: The due date for the todo item. If not specified, will automatically default to today's date.
+        team_id: Optional team ID to assign the todo to a team.
+        assignee_id: Optional user ID to assign the todo to a specific team member.
 
     Returns:
         The created todo item.
@@ -634,11 +645,15 @@ async def create_todo(
                 due_date = datetime.now(timezone.utc)
                 
             print(f"🔧 MCP create_todo: Creating DBTodo object...")
+            print(f"🔧 MCP create_todo: team_id={team_id}, assignee_id={assignee_id}")
+            
             new_todo = DBTodo(
                 title=title,
                 description=description,
                 priority=priority.value,
                 due_date=due_date,
+                team_id=team_id,
+                assignee_id=assignee_id,
                 )
             print(f"🔧 MCP create_todo: Adding todo to session...")
             session.add(new_todo)
@@ -1830,6 +1845,183 @@ async def sync_google_calendar_events() -> str:
         print(f"❌ {error_msg}")
         return error_msg
 
+
+@mcp.tool()
+async def get_teams() -> str:
+    """Get all available teams for the current user.
+    
+    Returns:
+        List of teams with their details.
+    """
+    try:
+        check_database_available()
+        
+        with SessionLocal() as session:
+            # Get all teams
+            teams = session.query(Team).filter(Team.is_active == True).all()
+            
+            if not teams:
+                return "No teams found. Create a team first using the team dashboard."
+            
+            result = "Available teams:\n"
+            for team in teams:
+                result += f"• {team.name} (ID: {team.id})\n"
+                result += f"  Description: {team.description or 'No description'}\n"
+                result += f"  Created: {team.created_at.strftime('%Y-%m-%d %H:%M')}\n\n"
+            
+            return result
+            
+    except Exception as e:
+        return f"Error getting teams: {str(e)}"
+
+@mcp.tool()
+async def get_team_members(team_id: str) -> str:
+    """Get all members of a specific team.
+    
+    Args:
+        team_id: The ID of the team to get members for.
+        
+    Returns:
+        List of team members with their roles.
+    """
+    try:
+        check_database_available()
+        
+        with SessionLocal() as session:
+            # Get team
+            team = session.query(Team).filter(Team.id == team_id).first()
+            if not team:
+                return f"Team with ID {team_id} not found."
+            
+            # Get team members using join
+            member_results = session.query(TeamMembership, User).join(
+                User, TeamMembership.user_id == User.id
+            ).filter(TeamMembership.team_id == team_id).all()
+            
+            if not member_results:
+                return f"No members found for team '{team.name}'."
+            
+            result = f"Members of '{team.name}':\n"
+            for membership, user in member_results:
+                result += f"• {user.full_name} ({user.email})\n"
+                result += f"  Role: {membership.role.value}\n"
+                result += f"  Joined: {membership.joined_at.strftime('%Y-%m-%d')}\n\n"
+            
+            return result
+            
+    except Exception as e:
+        return f"Error getting team members: {str(e)}"
+
+@mcp.tool()
+async def create_team_todo(
+    title: str,
+    team_id: str,
+    description: Optional[str] = None,
+    priority: TodoPriority = TodoPriority.MEDIUM,
+    assignee_id: Optional[str] = None,
+    due_date: Optional[datetime] = None,
+    ) -> str:
+    """Create a todo item for a specific team.
+    
+    Args:
+        title: The title of the todo item.
+        team_id: The ID of the team to assign the todo to.
+        description: An optional description of the todo item.
+        priority: The priority level of the todo. Options are: low, medium, high, urgent
+        assignee_id: Optional user ID to assign the todo to a specific team member.
+        due_date: The due date for the todo item.
+
+    Returns:
+        The created todo item details.
+    """
+    try:
+        print(f"🔧 MCP create_team_todo: Starting with title='{title}', team_id={team_id}")
+        check_database_available()
+        
+        with SessionLocal() as session:
+            # Verify team exists
+            team = session.query(Team).filter(Team.id == team_id).first()
+            if not team:
+                return f"Team with ID {team_id} not found."
+            
+            # Set default due date if not provided
+            if due_date is None:
+                due_date = datetime.now(timezone.utc)
+            
+            # Verify assignee is a team member if specified
+            if assignee_id:
+                membership = session.query(TeamMembership).filter(
+                    TeamMembership.team_id == team_id,
+                    TeamMembership.user_id == assignee_id
+                ).first()
+                if not membership:
+                    return f"User {assignee_id} is not a member of team '{team.name}'."
+            
+            print(f"🔧 MCP create_team_todo: Creating DBTodo object...")
+            new_todo = DBTodo(
+                title=title,
+                description=description,
+                priority=priority.value,
+                due_date=due_date,
+                team_id=team_id,
+                assignee_id=assignee_id,
+            )
+            
+            session.add(new_todo)
+            session.commit()
+            session.refresh(new_todo)
+            
+            # Create Google Calendar event
+            google_event_id = None
+            if get_calendar_service:
+                try:
+                    calendar_service = get_calendar_service()
+                    if calendar_service:
+                        # Create a 1-hour event for team todos
+                        event = {
+                            'summary': f"[Team] {title}",
+                            'description': f"Team: {team.name}\n{description or ''}",
+                            'start': {
+                                'dateTime': due_date.isoformat(),
+                                'timeZone': 'UTC',
+                            },
+                            'end': {
+                                'dateTime': (due_date + timedelta(hours=1)).isoformat(),
+                                'timeZone': 'UTC',
+                            },
+                        }
+                        
+                        created_event = calendar_service.events().insert(
+                            calendarId='primary',
+                            body=event
+                        ).execute()
+                        
+                        google_event_id = created_event.get('id')
+                        
+                        if google_event_id:
+                            new_todo.google_calendar_event_id = google_event_id
+                            session.commit()
+                            print(f"✅ Created Google Calendar event for team todo: {title}")
+                except Exception as e:
+                    print(f"⚠️  Failed to create Google Calendar event: {e}")
+            
+            # Build response
+            result = f"✅ Team todo created successfully!\n\n"
+            result += f"📋 **{title}**\n"
+            result += f"🏢 Team: {team.name}\n"
+            if assignee_id:
+                assignee = session.query(User).filter(User.id == assignee_id).first()
+                result += f"👤 Assigned to: {assignee.full_name} ({assignee.email})\n"
+            result += f"⚡ Priority: {priority.value}\n"
+            result += f"📅 Due: {due_date.strftime('%Y-%m-%d %H:%M UTC')}\n"
+            result += f"🆔 Todo ID: {new_todo.id}\n"
+            if google_event_id:
+                result += f"📅 Google Calendar Event ID: {google_event_id}\n"
+            
+            return result
+            
+    except Exception as e:
+        return f"Error creating team todo: {str(e)}"
 
 if __name__ == "__main__":
     mcp.run(transport="stdio")
