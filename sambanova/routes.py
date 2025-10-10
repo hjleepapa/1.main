@@ -113,10 +113,34 @@ def verify_pin_webhook():
             response.redirect('/sambanova_todo/twilio/call')
             return Response(str(response), mimetype='text/xml')
         
-        # Clean PIN (remove spaces, non-digits)
-        clean_pin = ''.join(filter(str.isdigit, pin))
+        # Convert spoken numbers to digits
+        number_words = {
+            'zero': '0', 'oh': '0', 'o': '0',
+            'one': '1', 'two': '2', 'three': '3', 'four': '4', 'five': '5',
+            'six': '6', 'seven': '7', 'eight': '8', 'nine': '9',
+            'ten': '10', 'eleven': '11', 'twelve': '12'
+        }
         
-        if len(clean_pin) < 4 or len(clean_pin) > 6:
+        # Try to extract digits from speech
+        clean_pin = pin
+        
+        # If it's already digits, keep it
+        if pin.isdigit():
+            clean_pin = pin
+        else:
+            # Convert spoken words to digits
+            words = pin.lower().replace('-', ' ').replace(',', ' ').split()
+            converted_digits = []
+            for word in words:
+                if word in number_words:
+                    converted_digits.append(number_words[word])
+                elif word.isdigit():
+                    converted_digits.append(word)
+            clean_pin = ''.join(converted_digits)
+        
+        print(f"🔧 Original PIN: '{pin}' → Cleaned PIN: '{clean_pin}'")
+        
+        if not clean_pin or len(clean_pin) < 4 or len(clean_pin) > 6:
             response = VoiceResponse()
             response.say("Invalid PIN format. Please enter a 4 to 6 digit PIN.", voice='Polly.Amy')
             response.redirect('/sambanova_todo/twilio/call')
