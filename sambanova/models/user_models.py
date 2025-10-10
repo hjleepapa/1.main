@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from enum import Enum as PyEnum
 import uuid
 
-from sambanova.mcps.local_servers.db_todo import Base
+from sambanova.models.base import Base
 
 class UserRole(PyEnum):
     ADMIN = "admin"

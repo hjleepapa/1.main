@@ -30,9 +30,13 @@ except ImportError:
         pass  #         
         get_calendar_service = None
 
-# Team collaboration imports - avoid circular import by defining models locally
-# We'll define these models locally to avoid importing from sambanova package
-User = Team = TeamMembership = TeamRole = None
+# Team collaboration imports
+# Import team models with try-except to avoid circular imports during initial import
+try:
+    from sambanova.models.user_models import User, Team, TeamMembership, TeamRole
+except (ImportError, RuntimeError):
+    # If import fails, set to None and continue without team features
+    User = Team = TeamMembership = TeamRole = None
 
 # Service Account Google Calendar integration
 try:
@@ -279,83 +283,11 @@ load_dotenv()
 # SQLAlchemy Models
 # ----------------------------
 
-class Base(DeclarativeBase):
-    pass
+# Import shared Base class
+from sambanova.models.base import Base
 
-# Define team collaboration models locally to avoid circular imports
-from enum import Enum as PyEnum
-from sqlalchemy import Enum
-import uuid
-
-class UserRole(PyEnum):
-    ADMIN = "admin"
-    MANAGER = "manager"
-    MEMBER = "member"
-    VIEWER = "viewer"
-
-class TeamRole(PyEnum):
-    OWNER = "owner"
-    ADMIN = "admin"
-    MEMBER = "member"
-    VIEWER = "viewer"
-
-class User(Base):
-    __tablename__ = "users_sambanova"
-    
-    id = Column(PostgresUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    email = Column(String(255), unique=True, nullable=False, index=True)
-    username = Column(String(100), unique=True, nullable=False, index=True)
-    password_hash = Column(String(255), nullable=False)
-    first_name = Column(String(100), nullable=False)
-    last_name = Column(String(100), nullable=False)
-    
-    # User status
-    is_active = Column(Boolean, default=True, nullable=False)
-    is_verified = Column(Boolean, default=False, nullable=False)
-    
-    # Timestamps
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
-    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
-    last_login_at = Column(DateTime(timezone=True), nullable=True)
-    
-    def __repr__(self):
-        return f"<User(id={self.id}, email={self.email}, username={self.username})>"
-    
-    @property
-    def full_name(self):
-        return f"{self.first_name} {self.last_name}"
-
-class Team(Base):
-    __tablename__ = "teams_sambanova"
-    
-    id = Column(PostgresUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    name = Column(String(200), nullable=False)
-    description = Column(Text, nullable=True)
-    
-    # Team settings
-    is_active = Column(Boolean, default=True, nullable=False)
-    
-    # Timestamps
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
-    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
-    
-    def __repr__(self):
-        return f"<Team(id={self.id}, name={self.name})>"
-
-class TeamMembership(Base):
-    __tablename__ = "team_memberships_sambanova"
-    
-    id = Column(PostgresUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    team_id = Column(PostgresUUID(as_uuid=True), ForeignKey('teams_sambanova.id'), nullable=False)
-    user_id = Column(PostgresUUID(as_uuid=True), ForeignKey('users_sambanova.id'), nullable=False)
-    role = Column(Enum(TeamRole), default=TeamRole.MEMBER, nullable=False)
-    
-    # Timestamps
-    joined_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
-    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
-    
-    def __repr__(self):
-        return f"<TeamMembership(team_id={self.team_id}, user_id={self.user_id}, role={self.role})>"
+# Team models are imported above from sambanova.models.user_models
+# No need to redefine them here
 
 
 class DBTodo(Base):
