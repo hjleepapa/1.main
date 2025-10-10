@@ -425,7 +425,7 @@ async def _run_agent_for_pin_verification(pin: str) -> str:
                 return getattr(last_message, 'content', "")
             return "AUTHENTICATION_FAILED: No response from agent"
         
-        return await asyncio.wait_for(process_stream(), timeout=10.0)
+        return await asyncio.wait_for(process_stream(), timeout=20.0)
     except asyncio.TimeoutError:
         print(f"PIN verification timeout for PIN: {pin}")
         return "AUTHENTICATION_FAILED: Verification timeout"
