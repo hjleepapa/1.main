@@ -228,11 +228,11 @@ async def _get_agent_graph() -> StateGraph:
                         print(f"⚠️  MCP config: Environment variable {env_var_name} not found")
     
     try:
-        # Initialize MCP client with proper async context management
-        async with MultiServerMCPClient(connections=mcp_config["mcpServers"]) as client:
-            tools = await asyncio.wait_for(client.get_tools(), timeout=10.0)
-            print(f"✅ MCP client initialized successfully with {len(tools)} tools")
-            return TodoAgent(tools=tools).build_graph()
+        # Initialize MCP client (langchain-mcp-adapters 0.1.0+ does not support context manager)
+        client = MultiServerMCPClient(connections=mcp_config["mcpServers"])
+        tools = await asyncio.wait_for(client.get_tools(), timeout=10.0)
+        print(f"✅ MCP client initialized successfully with {len(tools)} tools")
+        return TodoAgent(tools=tools).build_graph()
     except asyncio.TimeoutError:
         print("❌ MCP client initialization timed out after 10 seconds")
         raise Exception("Database connection timed out. Please try again.")
