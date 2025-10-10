@@ -383,6 +383,14 @@
                 const data = await response.json();
                 console.log('📋 Teams data:', data);
                 
+                if (response.status === 401) {
+                    // Token is invalid or expired, logout and show login
+                    console.log('⚠️  Token invalid or expired, logging out...');
+                    logout();
+                    alert('Your session has expired. Please log in again.');
+                    return;
+                }
+                
                 if (response.ok) {
                     const teamSelect = document.getElementById('team-select');
                     teamSelect.innerHTML = '<option value="">Select a team...</option>';
