@@ -34,6 +34,9 @@ class User(Base):
     first_name = Column(String(100), nullable=False)
     last_name = Column(String(100), nullable=False)
     
+    # Voice authentication for Twilio
+    voice_pin = Column(String(10), unique=True, nullable=True, index=True)  # 4-6 digit PIN for voice authentication
+    
     # User status
     is_active = Column(Boolean, default=True, nullable=False)
     is_verified = Column(Boolean, default=False, nullable=False)

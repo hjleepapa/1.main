@@ -89,6 +89,20 @@
                                        placeholder="Confirm your password">
                             </div>
                             
+                            <div class="mb-4">
+                                <label for="voice-pin" class="form-label">
+                                    <i class="fas fa-phone"></i> Voice PIN (4-6 digits)
+                                </label>
+                                <input type="text" class="form-control" id="voice-pin" 
+                                       pattern="[0-9]{4,6}" 
+                                       maxlength="6"
+                                       placeholder="Enter 4-6 digit PIN for voice authentication"
+                                       title="Enter a 4-6 digit PIN for voice authentication">
+                                <small class="form-text text-muted">
+                                    <i class="fas fa-info-circle"></i> This PIN will be used to authenticate when calling via phone.
+                                </small>
+                            </div>
+                            
                             <div class="d-grid">
                                 <button type="submit" class="btn btn-primary btn-lg">
                                     <i class="fas fa-user-plus"></i> Create Account
@@ -130,6 +144,7 @@
             const lastName = document.getElementById('last-name').value;
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirm-password').value;
+            const voicePin = document.getElementById('voice-pin').value;
             
             // Validation
             if (!email || !username || !firstName || !lastName || !password) {
@@ -144,6 +159,12 @@
             
             if (password.length < 6) {
                 showAlert('Password must be at least 6 characters long', 'warning');
+                return;
+            }
+            
+            // Validate PIN if provided
+            if (voicePin && (voicePin.length < 4 || voicePin.length > 6 || !/^\d+$/.test(voicePin))) {
+                showAlert('Voice PIN must be 4-6 digits', 'warning');
                 return;
             }
             
@@ -164,7 +185,8 @@
                         username,
                         first_name: firstName,
                         last_name: lastName,
-                        password
+                        password,
+                        voice_pin: voicePin || null
                     })
                 });
                 

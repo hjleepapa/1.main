@@ -2199,6 +2199,50 @@ async def add_team_member(team_name: str, email: str, role: str = "member") -> s
         return f"Error adding team member: {str(e)}"
 
 @mcp.tool()
+async def verify_user_pin(pin: str) -> str:
+    """Verify user identity by PIN for voice authentication.
+    
+    Args:
+        pin: 4-6 digit PIN code.
+        
+    Returns:
+        User information if PIN is valid, error message otherwise.
+    """
+    try:
+        _lazy_import_team_models()
+        check_database_available()
+        
+        with SessionLocal() as session:
+            # Find user by PIN
+            user = session.query(User).filter(
+                User.voice_pin == pin,
+                User.is_active == True
+            ).first()
+            
+            if not user:
+                return "AUTHENTICATION_FAILED: Invalid PIN. Please try again."
+            
+            # Get user's teams
+            team_memberships = session.query(TeamMembership, Team).join(
+                Team, TeamMembership.team_id == Team.id
+            ).filter(TeamMembership.user_id == user.id).all()
+            
+            result = f"AUTHENTICATED:{user.id}|{user.full_name}|{user.email}\n\n"
+            result += f"Welcome back, {user.first_name}! 👋\n\n"
+            
+            if team_memberships:
+                result += f"Your teams:\n"
+                for membership, team in team_memberships:
+                    result += f"• {team.name} ({membership.role.value})\n"
+            else:
+                result += "You're not currently a member of any teams.\n"
+            
+            return result
+            
+    except Exception as e:
+        return f"AUTHENTICATION_ERROR: {str(e)}"
+
+@mcp.tool()
 async def search_users(search_term: str) -> str:
     """Search for users by name or email.
     

@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify, render_template, Response
 from flask_socketio import emit, join_room, leave_room
 from langchain_core.messages import HumanMessage
 from langgraph.graph import StateGraph
+from typing import Optional
 import asyncio
 import json
 import os
@@ -44,36 +45,136 @@ def get_websocket_url():
 def twilio_call_webhook():
     """
     Handles incoming calls from Twilio.
-    Uses Gather to collect speech input and redirect to processing endpoint.
+    Asks for PIN authentication before allowing access to the assistant.
     """
     # Get the current webhook base URL
     webhook_base_url = get_webhook_base_url()
     
     # Check if this is a continuation of the conversation
     is_continuation = request.args.get('is_continuation', 'false').lower() == 'true'
+    # Check if user is already authenticated in this session
+    is_authenticated = request.args.get('authenticated', 'false').lower() == 'true'
     
     response = VoiceResponse()
     
-    # Use Gather to collect speech input with barge-in capability
+    # If not authenticated, ask for PIN
+    if not is_authenticated and not is_continuation:
+        gather = response.gather(
+            input='dtmf speech',  # Accept both DTMF (keypad) and speech
+            action='/sambanova_todo/twilio/verify_pin',
+            method='POST',
+            timeout=10,
+            num_digits=6  # Expect 4-6 digit PIN
+        )
+        gather.say("Welcome to Sambanova productivity assistant. Please enter or say your PIN to continue.", voice='Polly.Amy')
+        
+        response.say("I didn't receive a PIN. Please try again.", voice='Polly.Amy')
+        response.redirect('/sambanova_todo/twilio/call')
+        
+        print(f"Generated TwiML for PIN request: {str(response)}")
+        return Response(str(response), mimetype='text/xml')
+    
+    # User is authenticated, proceed with normal conversation
     gather = response.gather(
         input='speech',
         action='/sambanova_todo/twilio/process_audio',
         method='POST',
         speech_timeout='auto',
         timeout=10,
-        barge_in=True  # Enable barge-in to interrupt while speaking
+        barge_in=True
     )
     
-    # Only say the welcome message if this is the initial call
+    # Only say the welcome message if this is the first authenticated interaction
     if not is_continuation:
-        gather.say("Hello! I'm your Sambanova productivity assistant. How can I help you today?", voice='Polly.Amy')
+        gather.say("How can I help you today?", voice='Polly.Amy')
     
     # Fallback if no speech is detected
     response.say("I didn't hear anything. Please try again.", voice='Polly.Amy')
-    response.redirect('/sambanova_todo/twilio/call?is_continuation=true')
+    response.redirect('/sambanova_todo/twilio/call?is_continuation=true&authenticated=true')
     
     print(f"Generated TwiML for incoming call: {str(response)}")
     return Response(str(response), mimetype='text/xml')
+
+@sambanova_todo_bp.route('/twilio/verify_pin', methods=['POST'])
+def verify_pin_webhook():
+    """
+    Verifies the user's PIN and authenticates the session.
+    """
+    try:
+        # Get PIN from either DTMF digits or speech
+        pin = request.form.get('Digits', '') or request.form.get('SpeechResult', '')
+        call_sid = request.form.get('CallSid', '')
+        
+        print(f"Verifying PIN for call {call_sid}: {pin}")
+        
+        if not pin:
+            response = VoiceResponse()
+            response.say("I didn't receive a PIN. Please try again.", voice='Polly.Amy')
+            response.redirect('/sambanova_todo/twilio/call')
+            return Response(str(response), mimetype='text/xml')
+        
+        # Clean PIN (remove spaces, non-digits)
+        clean_pin = ''.join(filter(str.isdigit, pin))
+        
+        if len(clean_pin) < 4 or len(clean_pin) > 6:
+            response = VoiceResponse()
+            response.say("Invalid PIN format. Please enter a 4 to 6 digit PIN.", voice='Polly.Amy')
+            response.redirect('/sambanova_todo/twilio/call')
+            return Response(str(response), mimetype='text/xml')
+        
+        # Verify PIN using MCP tool
+        try:
+            verification_result = asyncio.run(_run_agent_for_pin_verification(clean_pin))
+            
+            # Check if authentication succeeded
+            if "AUTHENTICATED:" in verification_result:
+                # Extract user ID from result
+                parts = verification_result.split('\n\n')[0].split('|')
+                user_id = parts[0].replace('AUTHENTICATED:', '')
+                user_name = parts[1] if len(parts) > 1 else "User"
+                
+                # Store user ID in session (use call_sid as session key)
+                # In production, use Redis or database for session storage
+                
+                response = VoiceResponse()
+                gather = response.gather(
+                    input='speech',
+                    action=f'/sambanova_todo/twilio/process_audio?user_id={user_id}',
+                    method='POST',
+                    speech_timeout='auto',
+                    timeout=10,
+                    barge_in=True
+                )
+                
+                # Extract welcome message from verification result
+                welcome_msg = verification_result.split('\n\n', 1)[1] if '\n\n' in verification_result else f"Welcome, {user_name}!"
+                gather.say(f"{welcome_msg} How can I help you today?", voice='Polly.Amy')
+                
+                response.say("I didn't hear anything. Please try again.", voice='Polly.Amy')
+                response.redirect(f'/sambanova_todo/twilio/call?is_continuation=true&authenticated=true&user_id={user_id}')
+                
+                print(f"✅ PIN verified for user {user_id}")
+                return Response(str(response), mimetype='text/xml')
+            else:
+                # Authentication failed
+                response = VoiceResponse()
+                response.say("Invalid PIN. Please try again.", voice='Polly.Amy')
+                response.redirect('/sambanova_todo/twilio/call')
+                print(f"❌ PIN verification failed")
+                return Response(str(response), mimetype='text/xml')
+                
+        except asyncio.TimeoutError:
+            response = VoiceResponse()
+            response.say("Authentication timed out. Please try again.", voice='Polly.Amy')
+            response.redirect('/sambanova_todo/twilio/call')
+            return Response(str(response), mimetype='text/xml')
+            
+    except Exception as e:
+        print(f"Error in PIN verification: {e}")
+        response = VoiceResponse()
+        response.say("There was an error verifying your PIN. Please try again.", voice='Polly.Amy')
+        response.redirect('/sambanova_todo/twilio/call')
+        return Response(str(response), mimetype='text/xml')
 
 @sambanova_todo_bp.route('/twilio/process_audio', methods=['POST'])
 def process_audio_webhook():
@@ -96,10 +197,14 @@ def process_audio_webhook():
         if not transcribed_text or len(transcribed_text.strip()) < 2:
             response = VoiceResponse()
             
+            # Get authenticated user_id for redirect
+            user_id = request.args.get('user_id', '')
+            user_param = f'&user_id={user_id}' if user_id else ''
+            
             # Use Gather with barge-in for "didn't catch that" response
             gather = Gather(
                 input='speech',
-                action='/sambanova_todo/twilio/process_audio',
+                action=f'/sambanova_todo/twilio/process_audio?user_id={user_id}' if user_id else '/sambanova_todo/twilio/process_audio',
                 method='POST',
                 speech_timeout='auto',
                 timeout=10,
@@ -110,7 +215,7 @@ def process_audio_webhook():
             
             # Fallback
             response.say("I didn't hear anything. Please try again.", voice='Polly.Amy')
-            response.redirect('/sambanova_todo/twilio/call?is_continuation=true')
+            response.redirect(f'/sambanova_todo/twilio/call?is_continuation=true&authenticated=true{user_param}')
             return Response(str(response), mimetype='text/xml')
         
         # Check if user wants to end the call
@@ -122,9 +227,15 @@ def process_audio_webhook():
             response.hangup()
             return Response(str(response), mimetype='text/xml')
         
+        # Get authenticated user_id from query params
+        user_id = request.args.get('user_id')
+        
         # Process with the agent (with timeout to prevent hanging)
         try:
-            agent_response = asyncio.run(asyncio.wait_for(_run_agent_async(transcribed_text), timeout=30.0))
+            agent_response = asyncio.run(asyncio.wait_for(
+                _run_agent_async(transcribed_text, user_id=user_id),
+                timeout=30.0
+            ))
         except asyncio.TimeoutError:
             agent_response = "I'm sorry, I'm taking too long to process that request. Please try again with a simpler request."
         except Exception as e:
@@ -134,10 +245,14 @@ def process_audio_webhook():
         # Return TwiML with the agent's response and barge-in capability
         response = VoiceResponse()
         
+        # Preserve user_id in redirects
+        user_param = f'?user_id={user_id}' if user_id else ''
+        auth_param = f'&authenticated=true' if user_id else ''
+        
         # Use Gather with speech input to enable barge-in functionality
         gather = Gather(
             input='speech',
-            action='/sambanova_todo/twilio/process_audio',
+            action=f'/sambanova_todo/twilio/process_audio{user_param}',
             method='POST',
             speech_timeout='auto',
             timeout=10,
@@ -150,7 +265,7 @@ def process_audio_webhook():
         
         # Fallback if no speech is detected after the response
         response.say("I didn't hear anything. Please try again.", voice='Polly.Amy')
-        response.redirect('/sambanova_todo/twilio/call?is_continuation=true')
+        response.redirect(f'/sambanova_todo/twilio/call?is_continuation=true{auth_param}{user_param}')
         
         print(f"Generated TwiML response: {str(response)}")
         return Response(str(response), mimetype='text/xml')
@@ -159,10 +274,15 @@ def process_audio_webhook():
         print(f"Error processing audio: {e}")
         response = VoiceResponse()
         
+        # Preserve user_id in error redirects
+        user_id = request.args.get('user_id', '')
+        user_param = f'?user_id={user_id}' if user_id else ''
+        auth_param = f'&authenticated=true' if user_id else ''
+        
         # Use Gather with barge-in for error messages too
         gather = Gather(
             input='speech',
-            action='/sambanova_todo/twilio/process_audio',
+            action=f'/sambanova_todo/twilio/process_audio{user_param}',
             method='POST',
             speech_timeout='auto',
             timeout=10,
@@ -173,7 +293,7 @@ def process_audio_webhook():
         
         # Fallback
         response.say("I didn't hear anything. Please try again.", voice='Polly.Amy')
-        response.redirect('/sambanova_todo/twilio/call?is_continuation=true')
+        response.redirect(f'/sambanova_todo/twilio/call?is_continuation=true{auth_param}{user_param}')
         return Response(str(response), mimetype='text/xml')
 
 # WebSocket server is now handled by a separate process
@@ -249,7 +369,35 @@ async def _get_agent_graph() -> StateGraph:
         os.chdir(original_cwd)
 
 
-async def _run_agent_async(prompt: str) -> str:
+async def _run_agent_for_pin_verification(pin: str) -> str:
+    """Run agent specifically for PIN verification."""
+    try:
+        agent_graph = await _get_agent_graph()
+        
+        # Create a state that will trigger verify_user_pin tool
+        input_state = AgentState(
+            messages=[HumanMessage(content=f"User is authenticating with PIN: {pin}. Please verify their PIN using the verify_user_pin tool.")],
+            customer_id="",
+            is_authenticated=False
+        )
+        config = {"configurable": {"thread_id": f"pin-verify-{pin}"}}
+        
+        # Stream through the graph
+        stream = agent_graph.astream(input=input_state, stream_mode="values", config=config)
+        
+        async def process_stream():
+            async for _ in stream:
+                pass
+            final_state = agent_graph.get_state(config=config)
+            last_message = final_state.values.get("messages")[-1]
+            return getattr(last_message, 'content', "")
+        
+        return await asyncio.wait_for(process_stream(), timeout=10.0)
+    except Exception as e:
+        print(f"Error in PIN verification: {e}")
+        return f"AUTHENTICATION_ERROR: {str(e)}"
+
+async def _run_agent_async(prompt: str, user_id: Optional[str] = None, user_name: Optional[str] = None) -> str:
     """Runs the agent for a given prompt and returns the final response."""
     try:
         agent_graph = await _get_agent_graph()
@@ -259,9 +407,12 @@ async def _run_agent_async(prompt: str) -> str:
 
     input_state = AgentState(
         messages=[HumanMessage(content=prompt)],
-        customer_id=""
+        customer_id="",
+        authenticated_user_id=user_id,
+        authenticated_user_name=user_name,
+        is_authenticated=bool(user_id)
     )
-    config = {"configurable": {"thread_id": "flask-thread-1"}}
+    config = {"configurable": {"thread_id": f"user-{user_id}" if user_id else "flask-thread-1"}}
 
     # Stream through the graph to execute the agent logic with timeout
     try:

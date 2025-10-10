@@ -50,6 +50,7 @@ def register():
                 password_hash=password_hash,
                 first_name=data['first_name'],
                 last_name=data['last_name'],
+                voice_pin=data.get('voice_pin'),  # Optional PIN for voice authentication
                 is_active=True,
                 is_verified=False  # In production, implement email verification
             )
