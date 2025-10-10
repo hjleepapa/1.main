@@ -199,13 +199,22 @@ class TodoAgent:
                             # Execute the async tool with timeout
                             try:
                                 if hasattr(tool, 'ainvoke'):
-                                    result = await asyncio.wait_for(tool.ainvoke(tool_args), timeout=5.0)
+                                    result = await asyncio.wait_for(tool.ainvoke(tool_args), timeout=20.0)
                                 else:
-                                    result = await asyncio.wait_for(asyncio.to_thread(tool.invoke, tool_args), timeout=5.0)
+                                    result = await asyncio.wait_for(asyncio.to_thread(tool.invoke, tool_args), timeout=20.0)
                                 print(f"✅ Tool {tool_name} completed successfully")
                             except asyncio.TimeoutError:
                                 result = "I'm sorry, the database operation timed out. Please try again."
-                                print(f"⏰ Tool {tool_name} timed out after 5 seconds")
+                                print(f"⏰ Tool {tool_name} timed out after 20 seconds")
+                            except ExceptionGroup as eg:
+                                # Unwrap ExceptionGroup and get the first exception
+                                print(f"❌ Tool {tool_name} ExceptionGroup with {len(eg.exceptions)} exception(s)")
+                                for i, exc in enumerate(eg.exceptions):
+                                    print(f"❌   Exception {i+1}: {type(exc).__name__}: {exc}")
+                                first_error = eg.exceptions[0] if eg.exceptions else eg
+                                error_str = str(first_error)
+                                result = f"I encountered an error: {error_str[:200]}"
+                                print(f"❌ Tool {tool_name} error (unwrapped): {error_str}")
                             except Exception as tool_error:
                                 error_str = str(tool_error)
                                 print(f"❌ Tool {tool_name} error: {error_str}")
