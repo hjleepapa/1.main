@@ -299,6 +299,7 @@ from sambanova.models.base import Base
 
 class DBTodo(Base):
     __tablename__ = "todos_sambanova"
+    __table_args__ = {'extend_existing': True}
 
     id: Mapped[UUID] = mapped_column(primary_key=True, index=True, server_default=text("gen_random_uuid()"))
     created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=text("now()"))
@@ -324,6 +325,7 @@ class DBTodo(Base):
 
 class DBReminder(Base):
     __tablename__ = "reminders_sambanova"
+    __table_args__ = {'extend_existing': True}
 
     id: Mapped[UUID] = mapped_column(primary_key=True, index=True, server_default=text("gen_random_uuid()"))
     created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=text("now()"))
@@ -336,6 +338,7 @@ class DBReminder(Base):
 
 class DBCalendarEvent(Base):
     __tablename__ = "calendar_events_sambanova"
+    __table_args__ = {'extend_existing': True}
 
     id: Mapped[UUID] = mapped_column(primary_key=True, index=True, server_default=text("gen_random_uuid()"))
     created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=text("now()"))
@@ -349,6 +352,7 @@ class DBCalendarEvent(Base):
 
 class DBCallRecording(Base):
     __tablename__ = "call_recordings_sambanova"
+    __table_args__ = {'extend_existing': True}
 
     id: Mapped[UUID] = mapped_column(primary_key=True, index=True, server_default=text("gen_random_uuid()"))
     created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=text("now()"))
