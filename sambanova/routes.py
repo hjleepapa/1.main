@@ -64,9 +64,9 @@ def twilio_call_webhook():
             action='/sambanova_todo/twilio/verify_pin',
             method='POST',
             timeout=10,
-            num_digits=6  # Expect 4-6 digit PIN
+            finish_on_key='#'  # Press # to finish (for DTMF), no num_digits requirement
         )
-        gather.say("Welcome to Sambanova productivity assistant. Please enter or say your PIN to continue.", voice='Polly.Amy')
+        gather.say("Welcome to Sambanova productivity assistant. Please enter or say your 4 to 6 digit PIN, then press pound.", voice='Polly.Amy')
         
         response.say("I didn't receive a PIN. Please try again.", voice='Polly.Amy')
         response.redirect('/sambanova_todo/twilio/call')
