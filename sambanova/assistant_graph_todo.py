@@ -175,15 +175,15 @@ class TodoAgent:
             TEAM TODO CREATION (MULTI-STEP):
             User: "Create a high priority todo for the dev team"
                STEP 1: use get_teams() → find team_id for "dev team"
-               STEP 2: use create_team_todo(title="Todo", team_id="{found_id}", priority="high")
+               STEP 2: use create_team_todo(title="Todo", team_id="{{found_id}}", priority="high")
             
             User: "Assign a code review task to John in the development team"
                STEP 1: use get_teams() → find team_id for "development team"
                STEP 2: use get_team_members(team_id) → find user_id for "John"
                STEP 3: use create_team_todo(
                    title="Code review task",
-                   team_id="{team_id}",
-                   assignee_id="{john_id}",
+                   team_id="{{team_id}}",
+                   assignee_id="{{john_id}}",
                    priority="medium"
                )
             
