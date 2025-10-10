@@ -414,15 +414,25 @@ async def _run_agent_for_pin_verification(pin: str) -> str:
         stream = agent_graph.astream(input=input_state, stream_mode="values", config=config)
         
         async def process_stream():
-            async for _ in stream:
-                pass
-            final_state = agent_graph.get_state(config=config)
-            last_message = final_state.values.get("messages")[-1]
-            return getattr(last_message, 'content', "")
+            final_messages = []
+            async for state in stream:
+                if "messages" in state:
+                    final_messages = state["messages"]
+            
+            # Get the last message content
+            if final_messages:
+                last_message = final_messages[-1]
+                return getattr(last_message, 'content', "")
+            return "AUTHENTICATION_FAILED: No response from agent"
         
         return await asyncio.wait_for(process_stream(), timeout=10.0)
+    except asyncio.TimeoutError:
+        print(f"PIN verification timeout for PIN: {pin}")
+        return "AUTHENTICATION_FAILED: Verification timeout"
     except Exception as e:
         print(f"Error in PIN verification: {e}")
+        import traceback
+        traceback.print_exc()
         return f"AUTHENTICATION_ERROR: {str(e)}"
 
 async def _run_agent_async(prompt: str, user_id: Optional[str] = None, user_name: Optional[str] = None) -> str:
