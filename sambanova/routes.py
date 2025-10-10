@@ -229,15 +229,21 @@ async def _get_agent_graph() -> StateGraph:
     
     try:
         # Initialize MCP client (langchain-mcp-adapters 0.1.0+ does not support context manager)
+        print("🔧 Creating MCP client...")
         client = MultiServerMCPClient(connections=mcp_config["mcpServers"])
+        print("🔧 Getting tools from MCP client...")
         tools = await asyncio.wait_for(client.get_tools(), timeout=10.0)
         print(f"✅ MCP client initialized successfully with {len(tools)} tools")
+        print("🔧 Building agent graph...")
         return TodoAgent(tools=tools).build_graph()
     except asyncio.TimeoutError:
         print("❌ MCP client initialization timed out after 10 seconds")
         raise Exception("Database connection timed out. Please try again.")
     except Exception as e:
         print(f"❌ Error initializing MCP client: {e}")
+        print(f"❌ Error type: {type(e)}")
+        import traceback
+        print(f"❌ Traceback: {traceback.format_exc()}")
         raise Exception(f"Database initialization failed: {str(e)}")
     finally:
         os.chdir(original_cwd)
