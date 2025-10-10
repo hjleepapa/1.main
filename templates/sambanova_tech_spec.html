@@ -1,96 +1,1456 @@
 {% extends "base.html" %}
 
-{% block title %}Sambanova Todo Technical Specification{% endblock %}
-
 {% block content %}
-<div class="container">
-    <h1>Sambanova Todo Technical Specification</h1>
+<div class="min-h-screen bg-gray-50">
+    <!-- Header Section -->
+    <section class="py-16 bg-white">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h1 class="text-4xl font-bold text-gray-800 mb-4">Sambanova Team Collaboration System</h1>
+                <p class="text-xl text-gray-600 mb-8">LangGraph + Twilio + MCP + Team Management + JWT Authentication</p>
+                <div class="flex justify-center flex-wrap gap-2">
+                    <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">Flask</span>
+                    <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">LangGraph</span>
+                    <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">MCP</span>
+                    <span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-medium">LangChain</span>
+                    <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium">OpenAI</span>
+                    <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">Google Calendar</span>
+                    <span class="bg-pink-100 text-pink-800 px-3 py-1 rounded-full text-sm font-medium">Twilio</span>
+                    <span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm font-medium">JWT Auth</span>
+                    <span class="bg-cyan-100 text-cyan-800 px-3 py-1 rounded-full text-sm font-medium">Team Collaboration</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technical Architecture Section -->
+    <section class="py-16 bg-white">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-center mb-12">Technical Architecture</h2>
+            
+            <!-- System Architecture Overview -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">System Architecture Overview</h3>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <div class="mb-8">
+                        <h4 class="text-lg font-semibold mb-4 text-gray-800">Sambanova Team Collaboration Architecture</h4>
+                        <div class="bg-white p-6 rounded-lg border-2 border-gray-200">
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <!-- Frontend Layer -->
+                                <div class="space-y-4">
+                                    <h5 class="text-sm font-bold text-gray-800 text-center">Frontend Layer</h5>
+                                    <div class="space-y-2">
+                                        <div class="bg-blue-100 border border-blue-300 rounded p-3 text-center">
+                                            <div class="text-xs font-medium text-blue-800">Team Dashboard</div>
+                                            <div class="text-xs text-blue-600">User Management</div>
+                                        </div>
+                                        <div class="bg-green-100 border border-green-300 rounded p-3 text-center">
+                                            <div class="text-xs font-medium text-green-800">Voice Interface</div>
+                                            <div class="text-xs text-green-600">Twilio Phone</div>
+                                        </div>
+                                        <div class="bg-purple-100 border border-purple-300 rounded p-3 text-center">
+                                            <div class="text-xs font-medium text-purple-800">Registration</div>
+                                            <div class="text-xs text-purple-600">JWT Authentication</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Core Processing Layer -->
+                                <div class="space-y-4">
+                                    <h5 class="text-sm font-bold text-gray-800 text-center">Core Processing Layer</h5>
+                                    <div class="space-y-2">
+                                        <div class="bg-orange-100 border border-orange-300 rounded p-3 text-center">
+                                            <div class="text-xs font-medium text-orange-800">LangGraph Agent</div>
+                                            <div class="text-xs text-orange-600">AI Assistant</div>
+                                        </div>
+                                        <div class="bg-yellow-100 border border-yellow-300 rounded p-3 text-center">
+                                            <div class="text-xs font-medium text-yellow-800">MCP Tools</div>
+                                            <div class="text-xs text-yellow-600">30+ Tools</div>
+                                        </div>
+                                        <div class="bg-pink-100 border border-pink-300 rounded p-3 text-center">
+                                            <div class="text-xs font-medium text-pink-800">Team API</div>
+                                            <div class="text-xs text-pink-600">RESTful Endpoints</div>
+                                        </div>
+                                        <div class="bg-indigo-100 border border-indigo-300 rounded p-3 text-center">
+                                            <div class="text-xs font-medium text-indigo-800">Auth System</div>
+                                            <div class="text-xs text-indigo-600">JWT + Bcrypt</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- External Services Layer -->
+                                <div class="space-y-4">
+                                    <h5 class="text-sm font-bold text-gray-800 text-center">External Services Layer</h5>
+                                    <div class="space-y-2">
+                                        <div class="bg-red-100 border border-red-300 rounded p-3 text-center">
+                                            <div class="text-xs font-medium text-red-800">OpenAI APIs</div>
+                                            <div class="text-xs text-red-600">GPT-4, Whisper</div>
+                                        </div>
+                                        <div class="bg-gray-100 border border-gray-300 rounded p-3 text-center">
+                                            <div class="text-xs font-medium text-gray-800">PostgreSQL</div>
+                                            <div class="text-xs text-gray-600">Multi-tenant DB</div>
+                                        </div>
+                                        <div class="bg-blue-100 border border-blue-300 rounded p-3 text-center">
+                                            <div class="text-xs font-medium text-blue-800">Google Calendar</div>
+                                            <div class="text-xs text-blue-600">OAuth2 Sync</div>
+                                        </div>
+                                        <div class="bg-cyan-100 border border-cyan-300 rounded p-3 text-center">
+                                            <div class="text-xs font-medium text-cyan-800">Render.com</div>
+                                            <div class="text-xs text-cyan-600">Cloud Hosting</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Data Flow -->
+                            <div class="mt-6 space-y-2">
+                                <div class="flex justify-center">
+                                    <div class="text-xs text-gray-600 bg-gray-100 px-3 py-1 rounded">
+                                        ← User (Voice/Web) → Auth → LangGraph → MCP Tools → Database/Calendar → Response
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6 text-center">
+                                <p class="text-sm text-gray-600">
+                                    <strong>Architecture Flow:</strong> Multi-tenant team collaboration system with voice AI, JWT authentication, and real-time synchronization.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Overview -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">Overview</h3>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <p class="text-gray-700 mb-4">
+                        The Sambanova Team Collaboration System is an enterprise-grade productivity platform that combines 
+                        LangGraph AI agents, team management, and voice interaction. Built for hackathon demonstrations, 
+                        it showcases advanced features including JWT authentication, role-based access control, and 
+                        multi-tenant team collaboration.
+                        <br><br>
+                        The system enables teams to manage todos, assign tasks to members, and collaborate in real-time 
+                        through both web dashboards and voice commands. All data is synchronized with Google Calendar 
+                        using OAuth2 authentication, providing seamless integration with existing productivity workflows.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                        <div class="bg-white p-4 rounded border">
+                            <h4 class="font-semibold text-gray-800 mb-2">Core Technologies</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• LangGraph for agent orchestration</li>
+                                <li>• Model Context Protocol (MCP) for tool management</li>
+                                <li>• LangChain for LLM integration</li>
+                                <li>• Flask for web API endpoints</li>
+                                <li>• SQLAlchemy ORM with PostgreSQL</li>
+                                <li>• JWT authentication with bcrypt</li>
+                                <li>• OpenAI APIs (GPT-4, Whisper)</li>
+                                <li>• Twilio for phone integration</li>
+                                <li>• Google Calendar OAuth2 integration</li>
+                                <li>• Render.com for cloud deployment</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-4 rounded border">
+                            <h4 class="font-semibold text-gray-800 mb-2">Key Features</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Multi-tenant team collaboration</li>
+                                <li>• Role-based access control (RBAC)</li>
+                                <li>• JWT authentication & authorization</li>
+                                <li>• Voice-enabled AI assistant</li>
+                                <li>• Team member management</li>
+                                <li>• Task assignment & tracking</li>
+                                <li>• Google Calendar sync (OAuth2)</li>
+                                <li>• Real-time Twilio voice interaction</li>
+                                <li>• RESTful API endpoints</li>
+                                <li>• Secure password hashing (bcrypt)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Module Structure -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">Module Structure</h3>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <div class="flex justify-center">
+                        <div class="bg-white p-4 rounded border max-w-3xl w-full">
+                            <h4 class="font-semibold text-gray-800 mb-3">Sambanova Project Structure</h4>
+                            <div class="font-mono text-sm overflow-x-auto">
+                                <pre>Project Root/
+├── app.py                          # Main Flask application
+├── start_simple.py                 # Production server startup
+├── build.sh                        # Render.com build script
+├── deploy_setup.py                 # Deployment migrations
+├── requirements.txt                # Python dependencies
+├── recordings/                     # Call recordings (git-ignored)
+├── templates/                      # Flask templates
+│   ├── team_dashboard.html        # Team management UI
+│   ├── register.html              # User registration
+│   └── sambanova_tech_spec.html   # Technical documentation
+└── sambanova/                      # Sambanova module
+    ├── __init__.py                # Package initialization
+    ├── routes.py                  # Flask routes & Twilio webhooks
+    ├── assistant_graph_todo.py    # LangGraph agent definition
+    ├── state.py                   # Agent state management
+    ├── models/                    # Database models
+    │   ├── base.py               # Shared SQLAlchemy Base
+    │   └── user_models.py        # User, Team, TeamMembership models
+    ├── security/                  # Authentication & authorization
+    │   └── auth.py               # JWT authentication system
+    ├── api_routes/                # RESTful API endpoints
+    │   ├── auth_routes.py        # User registration & login
+    │   ├── team_routes.py        # Team management API
+    │   └── team_todo_routes.py   # Team todo management API
+    ├── migrations/                # Database migrations
+    │   └── add_team_collaboration.py
+    └── mcps/                      # Model Context Protocol servers
+        ├── mcp_config.json       # MCP server configuration
+        └── local_servers/
+            ├── db_todo.py        # Database operations (30+ tools)
+            └── google_calendar.py # Calendar operations</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Database Schema -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">Database Schema</h3>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- Users Table -->
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h4 class="text-lg font-semibold mb-3 text-gray-800">users_sambanova</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• id: UUID (PK)</li>
+                                <li>• email: String (unique)</li>
+                                <li>• username: String (unique)</li>
+                                <li>• password_hash: String</li>
+                                <li>• first_name: String</li>
+                                <li>• last_name: String</li>
+                                <li>• is_active: Boolean</li>
+                                <li>• is_verified: Boolean</li>
+                                <li>• created_at: DateTime</li>
+                                <li>• last_login_at: DateTime</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Teams Table -->
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h4 class="text-lg font-semibold mb-3 text-gray-800">teams_sambanova</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• id: UUID (PK)</li>
+                                <li>• name: String</li>
+                                <li>• description: Text</li>
+                                <li>• is_active: Boolean</li>
+                                <li>• created_at: DateTime</li>
+                                <li>• updated_at: DateTime</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Team Memberships Table -->
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h4 class="text-lg font-semibold mb-3 text-gray-800">team_memberships_sambanova</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• id: UUID (PK)</li>
+                                <li>• team_id: UUID (FK)</li>
+                                <li>• user_id: UUID (FK)</li>
+                                <li>• role: Enum (owner/admin/member/viewer)</li>
+                                <li>• joined_at: DateTime</li>
+                                <li>• updated_at: DateTime</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Todos Table -->
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h4 class="text-lg font-semibold mb-3 text-gray-800">todos_sambanova</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• id: UUID (PK)</li>
+                                <li>• title: String</li>
+                                <li>• description: String</li>
+                                <li>• completed: Boolean</li>
+                                <li>• priority: Enum</li>
+                                <li>• due_date: DateTime</li>
+                                <li>• creator_id: UUID (FK)</li>
+                                <li>• assignee_id: UUID (FK)</li>
+                                <li>• team_id: UUID (FK)</li>
+                                <li>• is_private: Boolean</li>
+                                <li>• google_calendar_event_id</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                        <!-- Reminders Table -->
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h4 class="text-lg font-semibold mb-3 text-gray-800">reminders_sambanova</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• id: UUID (PK)</li>
+                                <li>• reminder_text: String</li>
+                                <li>• importance: Enum</li>
+                                <li>• reminder_date: DateTime</li>
+                                <li>• google_calendar_event_id</li>
+                                <li>• created_at: DateTime</li>
+                                <li>• updated_at: DateTime</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Calendar Events Table -->
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h4 class="text-lg font-semibold mb-3 text-gray-800">calendar_events_sambanova</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• id: UUID (PK)</li>
+                                <li>• title: String</li>
+                                <li>• description: String</li>
+                                <li>• event_from: DateTime</li>
+                                <li>• event_to: DateTime</li>
+                                <li>• google_calendar_event_id</li>
+                                <li>• created_at: DateTime</li>
+                                <li>• updated_at: DateTime</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Call Recordings Table -->
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h4 class="text-lg font-semibold mb-3 text-gray-800">call_recordings_sambanova</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• id: UUID (PK)</li>
+                                <li>• call_sid: String (unique)</li>
+                                <li>• from_number: String</li>
+                                <li>• to_number: String</li>
+                                <li>• recording_path: String</li>
+                                <li>• transcription: Text</li>
+                                <li>• status: String</li>
+                                <li>• created_at: DateTime</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team Collaboration Architecture -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">Team Collaboration Architecture</h3>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <div class="mb-8">
+                        <h4 class="text-lg font-semibold mb-4 text-gray-800">Team Relationship Diagram</h4>
+                        <div class="bg-white p-6 rounded-lg border-2 border-gray-200">
+                            <div class="font-mono text-sm overflow-x-auto">
+                                <pre>
+┌─────────────────┐
+│  User           │
+├─────────────────┤
+│ id (UUID) PK    │◄─────┐
+│ email (unique)  │      │
+│ username        │      │
+│ password_hash   │      │
+│ first_name      │      │
+│ last_name       │      │
+│ is_active       │      │
+└─────────────────┘      │
+         │               │
+         │ user_id (FK)  │
+         ▼               │
+┌─────────────────┐      │
+│ TeamMembership  │      │
+├─────────────────┤      │
+│ id (UUID) PK    │      │
+│ team_id (FK)────┼──┐   │
+│ user_id (FK)────┼──┘   │
+│ role (ENUM)     │      │
+│ joined_at       │      │
+└─────────────────┘      │
+         │               │
+         │ team_id (FK)  │
+         ▼               │
+┌─────────────────┐      │
+│  Team           │      │
+├─────────────────┤      │
+│ id (UUID) PK    │◄─────┤
+│ name            │      │
+│ description     │      │
+│ is_active       │      │
+└─────────────────┘      │
+         │               │
+         │ team_id (FK)  │
+         ▼               │
+┌─────────────────┐      │
+│  Todo           │      │
+├─────────────────┤      │
+│ id (UUID) PK    │      │
+│ title           │      │
+│ priority        │      │
+│ creator_id (FK)─┼──────┘
+│ assignee_id(FK)─┼──────┐
+│ team_id (FK)────┼──┐   │
+│ is_private      │  │   │
+│ google_cal_id   │  │   │
+└─────────────────┘  │   │
+                     │   │
+                     ▼   ▼
+              Team & User References
+</pre>
+                            </div>
+                            <div class="mt-4 text-center">
+                                <p class="text-sm text-gray-600">
+                                    <strong>Relationships:</strong> Users belong to Teams via TeamMembership. Todos can be assigned to Teams and Users with role-based permissions.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white p-4 rounded border">
+                            <h4 class="font-semibold text-gray-800 mb-2">Team Roles</h4>
+                            <ul class="text-sm text-gray-600 space-y-2">
+                                <li>• <strong>OWNER:</strong> Full control, can delete team</li>
+                                <li>• <strong>ADMIN:</strong> Manage members and todos</li>
+                                <li>• <strong>MEMBER:</strong> Create and edit own todos</li>
+                                <li>• <strong>VIEWER:</strong> Read-only access</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-4 rounded border">
+                            <h4 class="font-semibold text-gray-800 mb-2">Access Control</h4>
+                            <ul class="text-sm text-gray-600 space-y-2">
+                                <li>• JWT token-based authentication</li>
+                                <li>• 30-minute access token expiry</li>
+                                <li>• 7-day refresh token validity</li>
+                                <li>• Role-based authorization checks</li>
+                                <li>• Team membership validation</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LangGraph Architecture -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">LangGraph Agent Architecture</h3>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white p-4 rounded border">
+                            <h4 class="font-semibold text-gray-800 mb-3">Agent Components</h4>
+                            <ul class="text-sm text-gray-600 space-y-2">
+                                <li>• <strong>TodoAgent Class:</strong> Main agent orchestrator with lazy initialization</li>
+                                <li>• <strong>StateGraph:</strong> Manages conversation flow and state</li>
+                                <li>• <strong>Assistant Node:</strong> GPT-4 reasoning and response generation</li>
+                                <li>• <strong>Tool Node:</strong> Executes 30+ MCP tools</li>
+                                <li>• <strong>Conditional Edges:</strong> Routes between nodes based on tool calls</li>
+                                <li>• <strong>InMemorySaver:</strong> Checkpointer for state persistence</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-4 rounded border">
+                            <h4 class="font-semibold text-gray-800 mb-3">State Management</h4>
+                            <ul class="text-sm text-gray-600 space-y-2">
+                                <li>• <strong>AgentState:</strong> Conversation state with message history</li>
+                                <li>• <strong>Message History:</strong> Maintains context across turns</li>
+                                <li>• <strong>Customer ID:</strong> User identification for multi-tenant</li>
+                                <li>• <strong>Thread ID:</strong> Conversation thread tracking</li>
+                                <li>• <strong>Lazy Loading:</strong> Prevents circular imports</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MCP Integration -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">Model Context Protocol (MCP) Integration</h3>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <p class="text-gray-700 mb-4">
+                        MCP provides a standardized way for AI agents to interact with external tools and services. 
+                        The Sambanova system uses MCP to expose 30+ tools for database operations, team management, 
+                        and Google Calendar integration.
+                    </p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-white p-4 rounded border">
+                            <h4 class="font-semibold text-gray-800 mb-2">MCP Server Configuration</h4>
+                            <div class="font-mono text-sm bg-gray-100 p-3 rounded">
+                                <pre>{
+  "mcpServers": {
+    "db": {
+      "command": "python",
+      "args": ["./sambanova/mcps/local_servers/db_todo.py"],
+      "transport": "stdio",
+      "env": {
+        "DB_URI": "${DB_URI}",
+        "GOOGLE_OAUTH2_TOKEN_B64": "${GOOGLE_OAUTH2_TOKEN_B64}",
+        "GOOGLE_CLIENT_ID": "${GOOGLE_CLIENT_ID}",
+        "GOOGLE_CLIENT_SECRET": "${GOOGLE_CLIENT_SECRET}"
+      }
+    }
+  }
+}</pre>
+                            </div>
+                        </div>
+                        <div class="bg-white p-4 rounded border">
+                            <h4 class="font-semibold text-gray-800 mb-2">Available MCP Tools (30+)</h4>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <h5 class="font-semibold text-xs text-gray-700 mb-1">Todo Management</h5>
+                                    <ul class="text-xs text-gray-600 space-y-1">
+                                        <li>• create_todo</li>
+                                        <li>• get_todos</li>
+                                        <li>• complete_todo</li>
+                                        <li>• update_todo</li>
+                                        <li>• delete_todo</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h5 class="font-semibold text-xs text-gray-700 mb-1">Team Tools</h5>
+                                    <ul class="text-xs text-gray-600 space-y-1">
+                                        <li>• get_teams</li>
+                                        <li>• get_team_members</li>
+                                        <li>• create_team_todo</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h5 class="font-semibold text-xs text-gray-700 mb-1">Reminders</h5>
+                                    <ul class="text-xs text-gray-600 space-y-1">
+                                        <li>• create_reminder</li>
+                                        <li>• get_reminders</li>
+                                        <li>• update_reminder</li>
+                                        <li>• delete_reminder</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h5 class="font-semibold text-xs text-gray-700 mb-1">Calendar</h5>
+                                    <ul class="text-xs text-gray-600 space-y-1">
+                                        <li>• create_calendar_event</li>
+                                        <li>• get_calendar_events</li>
+                                        <li>• update_calendar_event</li>
+                                        <li>• delete_calendar_event</li>
+                                        <li>• sync_google_calendar_events</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Authentication System -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">JWT Authentication System</h3>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white p-4 rounded border">
+                            <h4 class="font-semibold text-gray-800 mb-3">Authentication Flow</h4>
+                            <div class="space-y-3">
+                                <div class="bg-blue-50 p-3 rounded">
+                                    <div class="font-semibold text-sm text-blue-800">1. User Registration</div>
+                                    <div class="text-xs text-blue-600">POST /api/auth/register → Bcrypt hash → JWT tokens</div>
+                                </div>
+                                <div class="bg-green-50 p-3 rounded">
+                                    <div class="font-semibold text-sm text-green-800">2. User Login</div>
+                                    <div class="text-xs text-green-600">POST /api/auth/login → Verify password → Generate tokens</div>
+                                </div>
+                                <div class="bg-purple-50 p-3 rounded">
+                                    <div class="font-semibold text-sm text-purple-800">3. API Request</div>
+                                    <div class="text-xs text-purple-600">Bearer token → JWT validation → @require_auth</div>
+                                </div>
+                                <div class="bg-orange-50 p-3 rounded">
+                                    <div class="font-semibold text-sm text-orange-800">4. Token Refresh</div>
+                                    <div class="text-xs text-orange-600">POST /api/auth/refresh → New access token</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-4 rounded border">
+                            <h4 class="font-semibold text-gray-800 mb-3">Security Features</h4>
+                            <ul class="text-sm text-gray-600 space-y-2">
+                                <li>• <strong>Password Hashing:</strong> Bcrypt with automatic salt</li>
+                                <li>• <strong>JWT Tokens:</strong> HS256 algorithm with secret key</li>
+                                <li>• <strong>Token Expiry:</strong> 30 min access, 7 day refresh</li>
+                                <li>• <strong>Authorization:</strong> @require_auth decorator</li>
+                                <li>• <strong>Role Validation:</strong> @require_role decorator</li>
+                                <li>• <strong>Team Membership:</strong> @require_team_member decorator</li>
+                                <li>• <strong>Auto Logout:</strong> Frontend handles expired tokens</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 bg-white p-4 rounded border">
+                        <h4 class="font-semibold text-gray-800 mb-2">JWT Token Structure</h4>
+                        <div class="font-mono text-sm bg-gray-100 p-3 rounded">
+                            <pre>{
+  "user_id": "uuid",
+  "email": "user@example.com",
+  "roles": ["user"],
+  "team_id": "uuid",
+  "type": "access",
+  "exp": 1728589200,  // 30 minutes from issue
+  "iat": 1728587400   // issued at timestamp
+}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Endpoints -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">API Endpoints</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Authentication Endpoints -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h4 class="text-lg font-semibold mb-3 text-gray-800">Authentication</h4>
+                        <ul class="text-sm text-gray-600 space-y-2">
+                            <li><code class="bg-gray-100 px-2 py-1 rounded text-xs">POST /api/auth/register</code></li>
+                            <li><code class="bg-gray-100 px-2 py-1 rounded text-xs">POST /api/auth/login</code></li>
+                            <li><code class="bg-gray-100 px-2 py-1 rounded text-xs">POST /api/auth/refresh</code></li>
+                            <li><code class="bg-gray-100 px-2 py-1 rounded text-xs">GET /api/auth/profile</code></li>
+                            <li><code class="bg-gray-100 px-2 py-1 rounded text-xs">PUT /api/auth/profile</code></li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Team Endpoints -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h4 class="text-lg font-semibold mb-3 text-gray-800">Team Management</h4>
+                        <ul class="text-sm text-gray-600 space-y-2">
+                            <li><code class="bg-gray-100 px-2 py-1 rounded text-xs">POST /api/teams/</code></li>
+                            <li><code class="bg-gray-100 px-2 py-1 rounded text-xs">GET /api/teams/</code></li>
+                            <li><code class="bg-gray-100 px-2 py-1 rounded text-xs">GET /api/teams/{id}</code></li>
+                            <li><code class="bg-gray-100 px-2 py-1 rounded text-xs">POST /api/teams/{id}/members</code></li>
+                            <li><code class="bg-gray-100 px-2 py-1 rounded text-xs">DELETE /api/teams/{id}/members/{user_id}</code></li>
+                            <li><code class="bg-gray-100 px-2 py-1 rounded text-xs">PUT /api/teams/{id}/members/{user_id}/role</code></li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Twilio Endpoints -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h4 class="text-lg font-semibold mb-3 text-gray-800">Twilio Voice</h4>
+                        <ul class="text-sm text-gray-600 space-y-2">
+                            <li><code class="bg-gray-100 px-2 py-1 rounded text-xs">POST /sambanova_todo/twilio/call</code></li>
+                            <li><code class="bg-gray-100 px-2 py-1 rounded text-xs">POST /sambanova_todo/twilio/process_audio</code></li>
+                        </ul>
+                        <div class="mt-3 p-3 bg-gray-50 rounded">
+                            <p class="text-xs text-gray-600 mb-2">Webhook URL:</p>
+                            <pre class="text-xs"><code>https://hjlees.com/sambanova_todo/twilio/call</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Voice Interface -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">Voice Interface</h3>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <p class="text-gray-700 mb-4">
+                        The Sambanova assistant provides voice interaction through Twilio phone integration, 
+                        supporting natural language commands for team collaboration and task management.
+                    </p>
+                    
+                    <div class="mb-8">
+                        <h4 class="text-lg font-semibold mb-4 text-gray-800">Voice Command Examples</h4>
+                        <div class="bg-white p-6 rounded-lg border-2 border-gray-200">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <h5 class="font-semibold text-gray-800 mb-3">Personal Todos</h5>
+                                    <ul class="text-sm text-gray-600 space-y-2">
+                                        <li>🗣️ "Create a high priority todo to review the quarterly report"</li>
+                                        <li>🗣️ "Add a reminder to call the dentist tomorrow at 2 PM"</li>
+                                        <li>🗣️ "Schedule a meeting for next Friday from 2 to 3 PM"</li>
+                                        <li>🗣️ "Show me all my pending todos"</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h5 class="font-semibold text-gray-800 mb-3">Team Collaboration</h5>
+                                    <ul class="text-sm text-gray-600 space-y-2">
+                                        <li>🗣️ "Create a high priority todo for the development team"</li>
+                                        <li>🗣️ "What teams are available?"</li>
+                                        <li>🗣️ "Who are the members of the development team?"</li>
+                                        <li>🗣️ "Assign a code review task to John in the dev team"</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white p-4 rounded border">
+                            <h4 class="font-semibold text-gray-800 mb-2">Voice Components</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• <strong>Speech-to-Text:</strong> Twilio speech recognition</li>
+                                <li>• <strong>Text-to-Speech:</strong> Polly.Amy voice</li>
+                                <li>• <strong>Barge-in:</strong> Interrupt while speaking</li>
+                                <li>• <strong>Timeout Handling:</strong> 30s agent processing</li>
+                                <li>• <strong>Continuation:</strong> Multi-turn conversations</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-4 rounded border">
+                            <h4 class="font-semibold text-gray-800 mb-2">Processing Flow</h4>
+                            <ol class="text-sm text-gray-600 space-y-1">
+                                <li>1. User calls Twilio number</li>
+                                <li>2. Twilio webhook triggers Flask endpoint</li>
+                                <li>3. Speech recognized by Twilio</li>
+                                <li>4. Text sent to LangGraph agent</li>
+                                <li>5. Agent processes with MCP tools</li>
+                                <li>6. Response converted to TwiML</li>
+                                <li>7. Polly.Amy speaks response</li>
+                                <li>8. Conversation continues or ends</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Code Examples -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">Code Examples</h3>
+                <div class="space-y-6">
+                    
+                    <!-- LangGraph Agent Example -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h4 class="text-lg font-semibold mb-3 text-gray-800">LangGraph Agent (assistant_graph_todo.py)</h4>
+                        <pre class="bg-gray-100 p-4 rounded text-sm overflow-x-auto"><code>from langchain_core.tools import BaseTool
+from langchain_openai import ChatOpenAI
+from langgraph.graph import StateGraph
+from langgraph.prebuilt import ToolNode, tools_condition
+
+class TodoAgent:
+    def __init__(self, tools: List[BaseTool] = []):
+        self.tools = tools
+        self.llm = ChatOpenAI(
+            model="gpt-4.1-mini-2025-04-14"
+        ).bind_tools(tools=self.tools)
+        self.graph = self.build_graph()
+
+    def build_graph(self) -> CompiledStateGraph:
+        builder = StateGraph(AgentState)
+        
+        def assistant(state: AgentState):
+            response = self.llm.invoke(state.messages)
+            state.messages.append(response)
+            return state
+
+        builder.add_node("assistant", assistant)
+        builder.add_node("tools", ToolNode(self.tools))
+        
+        builder.set_entry_point("assistant")
+        builder.add_conditional_edges("assistant", tools_condition)
+        builder.add_edge("tools", "assistant")
+        
+        return builder.compile(checkpointer=InMemorySaver())
+
+# Lazy initialization to avoid circular imports
+_agent_instance = None
+
+def get_agent():
+    global _agent_instance
+    if _agent_instance is None:
+        _agent_instance = TodoAgent()
+    return _agent_instance</code></pre>
+                    </div>
+
+                    <!-- Team Management API Example -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h4 class="text-lg font-semibold mb-3 text-gray-800">Team Management API (team_routes.py)</h4>
+                        <pre class="bg-gray-100 p-4 rounded text-sm overflow-x-auto"><code>from flask import Blueprint, request, jsonify
+from sambanova.security.auth import require_auth
+from sambanova.models.user_models import User, Team, TeamMembership
+
+team_bp = Blueprint('teams', __name__, url_prefix='/api/teams')
+
+@team_bp.route('/', methods=['POST'])
+@require_auth
+def create_team():
+    """Create a new team"""
+    data = request.get_json()
+    user_id = request.current_user['user_id']
     
-    <div class="tech-spec-section">
-        <h2>Overview</h2>
-        <p>The Sambanova Todo system is a productivity management application that integrates with Sambanova's AI capabilities to provide intelligent task management through voice and web interfaces.</p>
-    </div>
+    with SessionLocal() as session:
+        # Create team
+        team = Team(
+            name=data['name'],
+            description=data.get('description', ''),
+            is_active=True
+        )
+        session.add(team)
+        session.commit()
+        
+        # Add creator as team owner
+        membership = TeamMembership(
+            team_id=team.id,
+            user_id=user_id,
+            role=TeamRole.OWNER
+        )
+        session.add(membership)
+        session.commit()
+        
+        return jsonify({
+            'message': 'Team created successfully',
+            'team': {
+                'id': str(team.id),
+                'name': team.name
+            }
+        }), 201
 
-    <div class="tech-spec-section">
-        <h2>Architecture</h2>
-        <ul>
-            <li><strong>Backend:</strong> Flask web framework with SQLAlchemy ORM</li>
-            <li><strong>Database:</strong> PostgreSQL with dedicated sambanova tables</li>
-            <li><strong>AI Integration:</strong> Sambanova AI models for natural language processing</li>
-            <li><strong>Voice Interface:</strong> Twilio integration for phone-based interactions</li>
-            <li><strong>Calendar Sync:</strong> Google Calendar integration for automatic event creation</li>
-            <li><strong>MCP Protocol:</strong> Model Context Protocol for tool integration</li>
-        </ul>
-    </div>
+@team_bp.route('/', methods=['GET'])
+@require_auth
+def get_user_teams():
+    """Get all teams for the current user"""
+    user_id = request.current_user['user_id']
+    
+    with SessionLocal() as session:
+        results = session.query(TeamMembership, Team).join(
+            Team, TeamMembership.team_id == Team.id
+        ).filter(TeamMembership.user_id == user_id).all()
+        
+        teams = [{
+            'id': str(team.id),
+            'name': team.name,
+            'role': membership.role.value
+        } for membership, team in results]
+        
+        return jsonify({'teams': teams}), 200</code></pre>
+                    </div>
 
-    <div class="tech-spec-section">
-        <h2>Database Schema</h2>
-        <h3>Tables</h3>
-        <ul>
-            <li><code>todos_sambanova</code> - Main todo items with priority and due dates</li>
-            <li><code>reminders_sambanova</code> - Reminder items with importance levels</li>
-            <li><code>calendar_events_sambanova</code> - Calendar events synced with Google Calendar</li>
-            <li><code>call_recordings_sambanova</code> - Voice call recordings and transcriptions</li>
-        </ul>
-    </div>
+                    <!-- MCP Team Tools Example -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h4 class="text-lg font-semibold mb-3 text-gray-800">MCP Team Tools (db_todo.py)</h4>
+                        <pre class="bg-gray-100 p-4 rounded text-sm overflow-x-auto"><code>from mcp.server.fastmcp import FastMCP
 
-    <div class="tech-spec-section">
-        <h2>API Endpoints</h2>
-        <ul>
-            <li><code>GET /sambanova_todo/</code> - Main interface</li>
-            <li><code>POST /sambanova_todo/run_agent</code> - Process natural language commands</li>
-            <li><code>POST /sambanova_todo/twilio/call</code> - Handle incoming voice calls</li>
-            <li><code>POST /sambanova_todo/twilio/process_audio</code> - Process voice input</li>
-        </ul>
-    </div>
+mcp = FastMCP("db_todo")
 
-    <div class="tech-spec-section">
-        <h2>Features</h2>
-        <ul>
-            <li>Natural language todo creation and management</li>
-            <li>Voice-based interaction through Twilio</li>
-            <li>Automatic Google Calendar synchronization</li>
-            <li>Priority-based task organization</li>
-            <li>Reminder system with importance levels</li>
-            <li>Call recording and transcription capabilities</li>
-            <li>Real-time web interface</li>
-        </ul>
-    </div>
+# Lazy import to avoid circular dependencies
+def _lazy_import_team_models():
+    global User, Team, TeamMembership, TeamRole
+    if User is None:
+        from sambanova.models.user_models import User, Team, TeamMembership, TeamRole
 
-    <div class="tech-spec-section">
-        <h2>AI Capabilities</h2>
-        <ul>
-            <li>Sambanova-powered natural language understanding</li>
-            <li>Intelligent task prioritization</li>
-            <li>Context-aware conversation handling</li>
-            <li>Automatic date and time parsing</li>
-            <li>Smart task categorization</li>
-        </ul>
-    </div>
+@mcp.tool()
+async def create_team_todo(
+    title: str,
+    team_id: str,
+    description: Optional[str] = None,
+    priority: TodoPriority = TodoPriority.MEDIUM,
+    assignee_id: Optional[str] = None,
+    due_date: Optional[datetime] = None,
+) -> str:
+    """Create a todo item for a specific team."""
+    _lazy_import_team_models()
+    check_database_available()
+    
+    with SessionLocal() as session:
+        # Verify team exists
+        team = session.query(Team).filter(Team.id == team_id).first()
+        if not team:
+            return f"Team with ID {team_id} not found."
+        
+        # Verify assignee is a team member
+        if assignee_id:
+            membership = session.query(TeamMembership).filter(
+                TeamMembership.team_id == team_id,
+                TeamMembership.user_id == assignee_id
+            ).first()
+            if not membership:
+                return f"User is not a member of team '{team.name}'."
+        
+        # Create team todo
+        new_todo = DBTodo(
+            title=title,
+            description=description,
+            priority=priority.value,
+            due_date=due_date or datetime.now(timezone.utc),
+            team_id=team_id,
+            assignee_id=assignee_id,
+        )
+        
+        session.add(new_todo)
+        session.commit()
+        
+        # Create Google Calendar event
+        if get_calendar_service:
+            calendar_service = get_calendar_service()
+            event = calendar_service.events().insert(
+                calendarId='primary',
+                body={
+                    'summary': f"[Team] {title}",
+                    'description': f"Team: {team.name}\n{description or ''}",
+                    'start': {'dateTime': due_date.isoformat(), 'timeZone': 'UTC'},
+                    'end': {'dateTime': (due_date + timedelta(hours=1)).isoformat(), 'timeZone': 'UTC'}
+                }
+            ).execute()
+            
+            new_todo.google_calendar_event_id = event.get('id')
+            session.commit()
+        
+        return f"✅ Team todo created for {team.name}"
 
-    <div class="tech-spec-section">
-        <h2>Integration Points</h2>
-        <ul>
-            <li><strong>Google Calendar:</strong> Automatic event creation and synchronization</li>
-            <li><strong>Twilio:</strong> Voice call handling and media streaming</li>
-            <li><strong>Sambanova AI:</strong> Core natural language processing</li>
-            <li><strong>MCP Protocol:</strong> Tool integration and database operations</li>
-        </ul>
-    </div>
+@mcp.tool()
+async def get_teams() -> str:
+    """Get all available teams."""
+    _lazy_import_team_models()
+    
+    with SessionLocal() as session:
+        teams = session.query(Team).filter(Team.is_active == True).all()
+        result = "Available teams:\n"
+        for team in teams:
+            result += f"• {team.name} (ID: {team.id})\n"
+        return result
 
-    <div class="tech-spec-section">
-        <h2>Deployment</h2>
-        <p>The system is designed to run in both development and production environments with automatic ngrok tunnel detection for local development and environment-based configuration for production deployment.</p>
-    </div>
+@mcp.tool()
+async def get_team_members(team_id: str) -> str:
+    """Get all members of a specific team."""
+    _lazy_import_team_models()
+    
+    with SessionLocal() as session:
+        team = session.query(Team).filter(Team.id == team_id).first()
+        if not team:
+            return f"Team not found."
+        
+        members = session.query(TeamMembership, User).join(
+            User, TeamMembership.user_id == User.id
+        ).filter(TeamMembership.team_id == team_id).all()
+        
+        result = f"Members of '{team.name}':\n"
+        for membership, user in members:
+            result += f"• {user.full_name} - {membership.role.value}\n"
+        return result</code></pre>
+                    </div>
 
-    <div class="tech-spec-section">
-        <h2>Usage</h2>
-        <p>Users can interact with the system through:</p>
-        <ul>
-            <li>Web interface at <code>/sambanova_todo/</code></li>
-            <li>Voice calls through Twilio integration</li>
-            <li>API endpoints for programmatic access</li>
-        </ul>
-    </div>
+                    <!-- JWT Authentication Example -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h4 class="text-lg font-semibold mb-3 text-gray-800">JWT Authentication (auth.py)</h4>
+                        <pre class="bg-gray-100 p-4 rounded text-sm overflow-x-auto"><code>import jwt
+import bcrypt
+from datetime import datetime, timedelta, timezone
+from functools import wraps
+from flask import request, jsonify
+
+class JWTAuth:
+    def __init__(self):
+        self.secret_key = os.getenv('JWT_SECRET_KEY')
+        self.algorithm = 'HS256'
+        self.access_token_expire_minutes = 30
+    
+    def hash_password(self, password: str) -> str:
+        """Hash password using bcrypt"""
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+        return hashed.decode('utf-8')
+    
+    def verify_password(self, password: str, hashed: str) -> bool:
+        """Verify password against hash"""
+        return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+    
+    def create_access_token(self, user_id: str, email: str, roles: list = None) -> str:
+        """Create JWT access token"""
+        payload = {
+            'user_id': user_id,
+            'email': email,
+            'roles': roles or ['user'],
+            'type': 'access',
+            'exp': datetime.now(timezone.utc) + timedelta(minutes=30),
+            'iat': datetime.now(timezone.utc)
+        }
+        return jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
+    
+    def verify_token(self, token: str) -> Optional[Dict]:
+        """Verify and decode JWT token"""
+        try:
+            return jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
+        except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+            return None
+    
+    def require_auth(self, f):
+        """Decorator to require authentication"""
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            token = self.get_token_from_header()
+            if not token:
+                return jsonify({'error': 'No token provided'}), 401
+            
+            payload = self.verify_token(token)
+            if not payload:
+                return jsonify({'error': 'Invalid or expired token'}), 401
+            
+            request.current_user = {
+                'user_id': payload['user_id'],
+                'email': payload['email'],
+                'roles': payload.get('roles', [])
+            }
+            
+            return f(*args, **kwargs)
+        return decorated_function
+
+jwt_auth = JWTAuth()
+require_auth = jwt_auth.require_auth</code></pre>
+                    </div>
+
+                    <!-- Twilio Integration Example -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h4 class="text-lg font-semibold mb-3 text-gray-800">Twilio Webhook Handler (routes.py)</h4>
+                        <pre class="bg-gray-100 p-4 rounded text-sm overflow-x-auto"><code>from flask import Blueprint, request, Response
+from twilio.twiml.voice_response import VoiceResponse, Gather
+import asyncio
+
+sambanova_todo_bp = Blueprint('sambanova_todo', __name__, url_prefix='/sambanova_todo')
+
+@sambanova_todo_bp.route('/twilio/call', methods=['POST'])
+def twilio_call_webhook():
+    """Handle incoming calls with barge-in capability"""
+    is_continuation = request.args.get('is_continuation', 'false').lower() == 'true'
+    response = VoiceResponse()
+    
+    gather = response.gather(
+        input='speech',
+        action='/sambanova_todo/twilio/process_audio',
+        method='POST',
+        speech_timeout='auto',
+        timeout=10,
+        barge_in=True
+    )
+    
+    if not is_continuation:
+        gather.say(
+            "Hello! I'm your Sambanova productivity assistant. How can I help you today?",
+            voice='Polly.Amy'
+        )
+    
+    response.say("I didn't hear anything. Please try again.", voice='Polly.Amy')
+    response.redirect('/sambanova_todo/twilio/call?is_continuation=true')
+    
+    return Response(str(response), mimetype='text/xml')
+
+@sambanova_todo_bp.route('/twilio/process_audio', methods=['POST'])
+def process_audio_webhook():
+    """Process speech input from Twilio"""
+    transcribed_text = request.form.get('SpeechResult', '')
+    
+    if not transcribed_text:
+        response = VoiceResponse()
+        gather = Gather(input='speech', action='/sambanova_todo/twilio/process_audio')
+        gather.say("I didn't catch that. Could you please repeat?", voice='Polly.Amy')
+        response.append(gather)
+        return Response(str(response), mimetype='text/xml')
+    
+    # Check for exit phrases
+    exit_phrases = ['exit', 'goodbye', 'bye', 'done']
+    if any(phrase in transcribed_text.lower() for phrase in exit_phrases):
+        response = VoiceResponse()
+        response.say("Thank you! Have a great day!", voice='Polly.Amy')
+        response.hangup()
+        return Response(str(response), mimetype='text/xml')
+    
+    # Process with agent (30s timeout)
+    try:
+        agent_response = asyncio.run(
+            asyncio.wait_for(_run_agent_async(transcribed_text), timeout=30.0)
+        )
+    except asyncio.TimeoutError:
+        agent_response = "I'm taking too long. Please try a simpler request."
+    
+    # Return TwiML response
+    response = VoiceResponse()
+    gather = Gather(input='speech', action='/sambanova_todo/twilio/process_audio', barge_in=True)
+    gather.say(agent_response, voice='Polly.Amy')
+    response.append(gather)
+    response.redirect('/sambanova_todo/twilio/call?is_continuation=true')
+    
+    return Response(str(response), mimetype='text/xml')</code></pre>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Usage Guide -->
+    <section class="py-16 bg-gray-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-center mb-12">Usage Guide</h2>
+            
+            <!-- Setup and Deployment -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">Setup and Deployment</h3>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="space-y-6">
+                        <div>
+                            <h4 class="text-lg font-semibold mb-3 text-gray-800">1. Environment Setup</h4>
+                            <div class="bg-gray-50 p-4 rounded">
+                                <pre class="text-sm"><code># Install dependencies
+pip install -r requirements.txt
+
+# Set up environment variables
+export OPENAI_API_KEY="your_openai_key"
+export DB_URI="postgresql://user:pass@host/db"
+export JWT_SECRET_KEY="your-super-secret-jwt-key"
+export TWILIO_ACCOUNT_SID="your_twilio_sid"
+export TWILIO_AUTH_TOKEN="your_twilio_token"
+export TWILIO_PHONE_NUMBER="+1234567890"
+export GOOGLE_OAUTH2_TOKEN_B64="base64_encoded_token"
+export GOOGLE_CLIENT_ID="your_client_id"
+export GOOGLE_CLIENT_SECRET="your_client_secret"</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="text-lg font-semibold mb-3 text-gray-800">2. Database Migration</h4>
+                            <div class="bg-gray-50 p-4 rounded">
+                                <pre class="text-sm"><code># Run team collaboration migration
+python run_migration.py
+
+# This creates:
+# - users_sambanova table
+# - teams_sambanova table
+# - team_memberships_sambanova table
+# - Adds team columns to todos_sambanova
+# - Creates demo admin user (admin@sambanova.com / admin123)</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="text-lg font-semibold mb-3 text-gray-800">3. Twilio Configuration</h4>
+                            <div class="bg-gray-50 p-4 rounded">
+                                <pre class="text-sm"><code># Configure Twilio phone number webhook:
+Webhook URL: https://hjlees.com/sambanova_todo/twilio/call
+HTTP Method: POST
+
+# Test webhook:
+curl -X POST https://hjlees.com/sambanova_todo/twilio/call \
+  -d "CallSid=test123&From=+1234567890"</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="text-lg font-semibold mb-3 text-gray-800">4. Start Production Service</h4>
+                            <div class="bg-gray-50 p-4 rounded">
+                                <pre class="text-sm"><code># Local development:
+python app.py
+
+# Production (Render.com):
+gunicorn --worker-class gthread -w 1 --threads 4 --bind 0.0.0.0:$PORT start_simple:app
+
+# Verify deployment:
+curl https://hjlees.com/sambanova_todo/
+curl https://hjlees.com/team-dashboard</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Production Usage -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">Production Usage</h3>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="mb-6">
+                        <h4 class="text-lg font-semibold mb-3 text-gray-800">Team Dashboard</h4>
+                        <p class="text-gray-700 mb-4">
+                            Access the team dashboard at <code class="bg-gray-100 px-2 py-1 rounded">/team-dashboard</code> 
+                            to manage teams, members, and todos through a web interface.
+                        </p>
+                        <div class="bg-blue-50 p-4 rounded border-l-4 border-blue-400">
+                            <p class="text-sm text-blue-800">
+                                <strong>Demo Credentials:</strong> admin@sambanova.com / admin123
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-gray-50 p-4 rounded">
+                            <h5 class="font-semibold text-gray-800 mb-2">Voice Commands (Personal)</h5>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• "Create a high priority todo to review the quarterly report"</li>
+                                <li>• "Add a reminder to call mom tomorrow at 2 PM"</li>
+                                <li>• "Schedule a meeting for Friday from 2 to 3 PM"</li>
+                                <li>• "Show me all my pending todos"</li>
+                                <li>• "Mark the grocery shopping todo as completed"</li>
+                            </ul>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded">
+                            <h5 class="font-semibold text-gray-800 mb-2">Voice Commands (Team)</h5>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• "Create a high priority todo for the development team"</li>
+                                <li>• "What teams are available?"</li>
+                                <li>• "Who are the members of the development team?"</li>
+                                <li>• "Assign a code review task to John in the dev team"</li>
+                                <li>• "Create a demo team meeting on October 10th at 5 PM"</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technical Highlights -->
+    <section class="py-12 bg-white">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-center mb-12">Technical Highlights</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Circular Import Resolution -->
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg shadow">
+                    <h4 class="text-lg font-semibold mb-3 text-blue-800">Circular Import Resolution</h4>
+                    <p class="text-sm text-gray-700 mb-3">
+                        Sophisticated lazy loading pattern to break circular dependencies between MCP servers and Flask routes.
+                    </p>
+                    <ul class="text-xs text-gray-600 space-y-1">
+                        <li>✅ Lazy import of team models</li>
+                        <li>✅ Lazy agent initialization</li>
+                        <li>✅ Shared Base class pattern</li>
+                        <li>✅ extend_existing table args</li>
+                    </ul>
+                </div>
+                
+                <!-- Async Context Management -->
+                <div class="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-lg shadow">
+                    <h4 class="text-lg font-semibold mb-3 text-green-800">Async Context Management</h4>
+                    <p class="text-sm text-gray-700 mb-3">
+                        Proper async/await patterns with context managers for MCP client and database connections.
+                    </p>
+                    <ul class="text-xs text-gray-600 space-y-1">
+                        <li>✅ async with MultiServerMCPClient</li>
+                        <li>✅ asyncio.wait_for with timeouts</li>
+                        <li>✅ ExceptionGroup handling</li>
+                        <li>✅ 30s timeout for tool execution</li>
+                    </ul>
+                </div>
+                
+                <!-- Security Implementation -->
+                <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-lg shadow">
+                    <h4 class="text-lg font-semibold mb-3 text-purple-800">Enterprise Security</h4>
+                    <p class="text-sm text-gray-700 mb-3">
+                        Production-grade security with JWT authentication, bcrypt hashing, and role-based access control.
+                    </p>
+                    <ul class="text-xs text-gray-600 space-y-1">
+                        <li>✅ JWT HS256 tokens</li>
+                        <li>✅ Bcrypt password hashing</li>
+                        <li>✅ Role-based authorization</li>
+                        <li>✅ Auto token expiry handling</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="mt-8 bg-green-50 p-6 rounded-lg border-l-4 border-green-400">
+                <h4 class="font-semibold text-green-800 mb-3">✅ Production-Ready Features</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                        <h5 class="font-medium text-green-700 mb-2">Infrastructure</h5>
+                        <ul class="text-sm text-green-600 space-y-1">
+                            <li>✅ Render.com cloud deployment</li>
+                            <li>✅ PostgreSQL database</li>
+                            <li>✅ Environment variable management</li>
+                            <li>✅ Build scripts & migrations</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h5 class="font-medium text-green-700 mb-2">Team Collaboration</h5>
+                        <ul class="text-sm text-green-600 space-y-1">
+                            <li>✅ Multi-tenant architecture</li>
+                            <li>✅ Team member management</li>
+                            <li>✅ Task assignment</li>
+                            <li>✅ Role-based permissions</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h5 class="font-medium text-green-700 mb-2">AI Integration</h5>
+                        <ul class="text-sm text-green-600 space-y-1">
+                            <li>✅ Voice-enabled AI agent</li>
+                            <li>✅ 30+ MCP tools</li>
+                            <li>✅ Google Calendar sync</li>
+                            <li>✅ Natural language processing</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- API Reference -->
+    <section class="py-16 bg-gray-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-center mb-12">API Reference</h2>
+            
+            <div class="space-y-6">
+                <!-- Authentication API -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h4 class="text-xl font-semibold mb-4 text-gray-800">Authentication API</h4>
+                    <div class="space-y-4">
+                        <div class="border-l-4 border-blue-400 pl-4">
+                            <div class="font-mono text-sm font-bold text-gray-800">POST /api/auth/register</div>
+                            <p class="text-sm text-gray-600 mt-1">Register a new user account</p>
+                            <div class="mt-2 bg-gray-50 p-3 rounded">
+                                <pre class="text-xs"><code>Request: {
+  "email": "user@example.com",
+  "username": "johndoe",
+  "password": "secure123",
+  "first_name": "John",
+  "last_name": "Doe"
+}
+
+Response: {
+  "message": "User registered successfully",
+  "user": {...},
+  "tokens": {
+    "access_token": "eyJ...",
+    "refresh_token": "eyJ..."
+  }
+}</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="border-l-4 border-green-400 pl-4">
+                            <div class="font-mono text-sm font-bold text-gray-800">POST /api/auth/login</div>
+                            <p class="text-sm text-gray-600 mt-1">Login and receive JWT tokens</p>
+                            <div class="mt-2 bg-gray-50 p-3 rounded">
+                                <pre class="text-xs"><code>Request: {
+  "email": "user@example.com",
+  "password": "secure123"
+}
+
+Response: {
+  "message": "Login successful",
+  "user": {
+    "id": "uuid",
+    "email": "user@example.com",
+    "teams": [...]
+  },
+  "tokens": {
+    "access_token": "eyJ...",
+    "refresh_token": "eyJ..."
+  }
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Team API -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h4 class="text-xl font-semibold mb-4 text-gray-800">Team Management API</h4>
+                    <div class="space-y-4">
+                        <div class="border-l-4 border-purple-400 pl-4">
+                            <div class="font-mono text-sm font-bold text-gray-800">POST /api/teams/</div>
+                            <p class="text-sm text-gray-600 mt-1">Create a new team (requires auth)</p>
+                            <div class="mt-2 bg-gray-50 p-3 rounded">
+                                <pre class="text-xs"><code>Headers: {
+  "Authorization": "Bearer eyJ..."
+}
+
+Request: {
+  "name": "Development Team",
+  "description": "Core development team"
+}
+
+Response: {
+  "message": "Team created successfully",
+  "team": {
+    "id": "uuid",
+    "name": "Development Team",
+    "members_count": 1
+  }
+}</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="border-l-4 border-orange-400 pl-4">
+                            <div class="font-mono text-sm font-bold text-gray-800">GET /api/teams/</div>
+                            <p class="text-sm text-gray-600 mt-1">Get all teams for current user (requires auth)</p>
+                            <div class="mt-2 bg-gray-50 p-3 rounded">
+                                <pre class="text-xs"><code>Headers: {
+  "Authorization": "Bearer eyJ..."
+}
+
+Response: {
+  "teams": [
+    {
+      "id": "uuid",
+      "name": "Development Team",
+      "role": "owner",
+      "members_count": 5
+    }
+  ]
+}</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="border-l-4 border-pink-400 pl-4">
+                            <div class="font-mono text-sm font-bold text-gray-800">POST /api/teams/{team_id}/members</div>
+                            <p class="text-sm text-gray-600 mt-1">Add member to team (requires auth)</p>
+                            <div class="mt-2 bg-gray-50 p-3 rounded">
+                                <pre class="text-xs"><code>Request: {
+  "user_id": "uuid",
+  "role": "member"
+}
+
+Response: {
+  "message": "Member added successfully"
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Performance & Deployment -->
+    <section class="py-12 bg-white">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-center mb-12">Performance & Deployment</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-blue-50 p-6 rounded-lg text-center">
+                    <div class="text-3xl font-bold text-blue-600 mb-2">30+</div>
+                    <div class="text-sm text-blue-800 font-medium">MCP Tools</div>
+                    <div class="text-xs text-gray-600 mt-1">Database, Calendar, Team Management</div>
+                </div>
+                <div class="bg-green-50 p-6 rounded-lg text-center">
+                    <div class="text-3xl font-bold text-green-600 mb-2">30s</div>
+                    <div class="text-sm text-green-800 font-medium">Agent Timeout</div>
+                    <div class="text-xs text-gray-600 mt-1">Handles complex operations</div>
+                </div>
+                <div class="bg-purple-50 p-6 rounded-lg text-center">
+                    <div class="text-3xl font-bold text-purple-600 mb-2">Multi-Tenant</div>
+                    <div class="text-sm text-purple-800 font-medium">Architecture</div>
+                    <div class="text-xs text-gray-600 mt-1">Teams, Users, Roles, Permissions</div>
+                </div>
+            </div>
+            
+            <div class="mt-8 bg-gray-50 p-6 rounded-lg">
+                <h4 class="font-semibold text-gray-800 mb-4">Deployment Stack</h4>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="text-center">
+                        <div class="text-2xl mb-2">🚀</div>
+                        <div class="text-sm font-medium text-gray-800">Render.com</div>
+                        <div class="text-xs text-gray-600">Cloud Hosting</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl mb-2">🐘</div>
+                        <div class="text-sm font-medium text-gray-800">PostgreSQL</div>
+                        <div class="text-xs text-gray-600">Database</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl mb-2">📞</div>
+                        <div class="text-sm font-medium text-gray-800">Twilio</div>
+                        <div class="text-xs text-gray-600">Voice API</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl mb-2">📅</div>
+                        <div class="text-sm font-medium text-gray-800">Google Calendar</div>
+                        <div class="text-xs text-gray-600">OAuth2 Sync</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Back to Home -->
+    <section class="py-8 bg-gray-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <a href="{{ url_for('home') }}" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                Back to Home
+            </a>
+        </div>
+    </section>
 </div>
 {% endblock %}
