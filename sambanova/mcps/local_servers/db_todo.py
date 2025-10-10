@@ -2088,5 +2088,280 @@ async def create_team_todo(
     except Exception as e:
         return f"Error creating team todo: {str(e)}"
 
+@mcp.tool()
+async def create_team(name: str, description: str = "") -> str:
+    """Create a new team via voice command.
+    
+    Args:
+        name: The name of the team to create.
+        description: Optional description of the team.
+        
+    Returns:
+        Confirmation message with team details.
+    """
+    try:
+        _lazy_import_team_models()
+        check_database_available()
+        
+        with SessionLocal() as session:
+            # Create new team
+            team = Team(
+                name=name,
+                description=description,
+                is_active=True
+            )
+            session.add(team)
+            session.commit()
+            session.refresh(team)
+            
+            result = f"✅ Team created successfully!\n\n"
+            result += f"🏢 **{team.name}**\n"
+            result += f"📝 Description: {team.description or 'No description'}\n"
+            result += f"🆔 Team ID: {team.id}\n"
+            result += f"📅 Created: {team.created_at.strftime('%Y-%m-%d %H:%M UTC')}\n\n"
+            result += f"💡 Note: You can now add members to this team using the team dashboard or by saying 'Add [email] to {name} team as [role]'"
+            
+            return result
+            
+    except Exception as e:
+        return f"Error creating team: {str(e)}"
+
+@mcp.tool()
+async def add_team_member(team_name: str, email: str, role: str = "member") -> str:
+    """Add a member to a team by email address.
+    
+    Args:
+        team_name: The name of the team to add the member to.
+        email: The email address of the user to add.
+        role: The role to assign (owner, admin, member, viewer). Defaults to 'member'.
+        
+    Returns:
+        Confirmation message with member details.
+    """
+    try:
+        _lazy_import_team_models()
+        check_database_available()
+        
+        with SessionLocal() as session:
+            # Find team by name (case-insensitive)
+            team = session.query(Team).filter(
+                Team.name.ilike(f"%{team_name}%"),
+                Team.is_active == True
+            ).first()
+            
+            if not team:
+                return f"❌ Team '{team_name}' not found. Available teams: " + ", ".join([
+                    t.name for t in session.query(Team).filter(Team.is_active == True).all()
+                ])
+            
+            # Find user by email
+            user = session.query(User).filter(User.email == email).first()
+            
+            if not user:
+                return f"❌ User with email '{email}' not found. The user needs to register first at /register"
+            
+            # Check if user is already a member
+            existing_membership = session.query(TeamMembership).filter(
+                TeamMembership.team_id == team.id,
+                TeamMembership.user_id == user.id
+            ).first()
+            
+            if existing_membership:
+                return f"⚠️  {user.full_name} is already a member of '{team.name}' with role: {existing_membership.role.value}"
+            
+            # Validate role
+            valid_roles = ["owner", "admin", "member", "viewer"]
+            role_lower = role.lower()
+            if role_lower not in valid_roles:
+                return f"❌ Invalid role '{role}'. Valid roles are: {', '.join(valid_roles)}"
+            
+            # Map string to TeamRole enum
+            role_enum = TeamRole[role_lower.upper()]
+            
+            # Create membership
+            membership = TeamMembership(
+                team_id=team.id,
+                user_id=user.id,
+                role=role_enum
+            )
+            session.add(membership)
+            session.commit()
+            
+            result = f"✅ Team member added successfully!\n\n"
+            result += f"👤 **{user.full_name}** ({user.email})\n"
+            result += f"🏢 Team: {team.name}\n"
+            result += f"🎭 Role: {role_enum.value}\n"
+            result += f"📅 Joined: {membership.joined_at.strftime('%Y-%m-%d %H:%M UTC')}\n"
+            
+            return result
+            
+    except Exception as e:
+        return f"Error adding team member: {str(e)}"
+
+@mcp.tool()
+async def search_users(search_term: str) -> str:
+    """Search for users by name or email.
+    
+    Args:
+        search_term: Name or email to search for.
+        
+    Returns:
+        List of matching users.
+    """
+    try:
+        _lazy_import_team_models()
+        check_database_available()
+        
+        with SessionLocal() as session:
+            # Search by email, username, first_name, or last_name
+            users = session.query(User).filter(
+                (User.email.ilike(f"%{search_term}%")) |
+                (User.username.ilike(f"%{search_term}%")) |
+                (User.first_name.ilike(f"%{search_term}%")) |
+                (User.last_name.ilike(f"%{search_term}%"))
+            ).filter(User.is_active == True).limit(10).all()
+            
+            if not users:
+                return f"No users found matching '{search_term}'"
+            
+            result = f"Found {len(users)} user(s) matching '{search_term}':\n\n"
+            for user in users:
+                result += f"• {user.full_name} ({user.email})\n"
+                result += f"  Username: {user.username}\n"
+                result += f"  User ID: {user.id}\n\n"
+            
+            return result
+            
+    except Exception as e:
+        return f"Error searching users: {str(e)}"
+
+@mcp.tool()
+async def remove_team_member(team_name: str, email: str) -> str:
+    """Remove a member from a team.
+    
+    Args:
+        team_name: The name of the team.
+        email: The email address of the user to remove.
+        
+    Returns:
+        Confirmation message.
+    """
+    try:
+        _lazy_import_team_models()
+        check_database_available()
+        
+        with SessionLocal() as session:
+            # Find team
+            team = session.query(Team).filter(
+                Team.name.ilike(f"%{team_name}%"),
+                Team.is_active == True
+            ).first()
+            
+            if not team:
+                return f"❌ Team '{team_name}' not found."
+            
+            # Find user
+            user = session.query(User).filter(User.email == email).first()
+            
+            if not user:
+                return f"❌ User with email '{email}' not found."
+            
+            # Find membership
+            membership = session.query(TeamMembership).filter(
+                TeamMembership.team_id == team.id,
+                TeamMembership.user_id == user.id
+            ).first()
+            
+            if not membership:
+                return f"❌ {user.full_name} is not a member of '{team.name}'"
+            
+            # Don't allow removing the last owner
+            if membership.role == TeamRole.OWNER:
+                owner_count = session.query(TeamMembership).filter(
+                    TeamMembership.team_id == team.id,
+                    TeamMembership.role == TeamRole.OWNER
+                ).count()
+                
+                if owner_count <= 1:
+                    return f"❌ Cannot remove the last owner from the team. Assign another owner first."
+            
+            # Remove membership
+            session.delete(membership)
+            session.commit()
+            
+            result = f"✅ Team member removed successfully!\n\n"
+            result += f"👤 {user.full_name} ({user.email})\n"
+            result += f"🏢 Removed from: {team.name}\n"
+            
+            return result
+            
+    except Exception as e:
+        return f"Error removing team member: {str(e)}"
+
+@mcp.tool()
+async def change_member_role(team_name: str, email: str, new_role: str) -> str:
+    """Change a team member's role.
+    
+    Args:
+        team_name: The name of the team.
+        email: The email address of the user.
+        new_role: The new role to assign (owner, admin, member, viewer).
+        
+    Returns:
+        Confirmation message.
+    """
+    try:
+        _lazy_import_team_models()
+        check_database_available()
+        
+        with SessionLocal() as session:
+            # Find team
+            team = session.query(Team).filter(
+                Team.name.ilike(f"%{team_name}%"),
+                Team.is_active == True
+            ).first()
+            
+            if not team:
+                return f"❌ Team '{team_name}' not found."
+            
+            # Find user
+            user = session.query(User).filter(User.email == email).first()
+            
+            if not user:
+                return f"❌ User with email '{email}' not found."
+            
+            # Find membership
+            membership = session.query(TeamMembership).filter(
+                TeamMembership.team_id == team.id,
+                TeamMembership.user_id == user.id
+            ).first()
+            
+            if not membership:
+                return f"❌ {user.full_name} is not a member of '{team.name}'"
+            
+            # Validate new role
+            valid_roles = ["owner", "admin", "member", "viewer"]
+            new_role_lower = new_role.lower()
+            if new_role_lower not in valid_roles:
+                return f"❌ Invalid role '{new_role}'. Valid roles are: {', '.join(valid_roles)}"
+            
+            # Map string to TeamRole enum
+            new_role_enum = TeamRole[new_role_lower.upper()]
+            old_role = membership.role
+            
+            # Update role
+            membership.role = new_role_enum
+            session.commit()
+            
+            result = f"✅ Member role updated successfully!\n\n"
+            result += f"👤 {user.full_name} ({user.email})\n"
+            result += f"🏢 Team: {team.name}\n"
+            result += f"🎭 Role changed: {old_role.value} → {new_role_enum.value}\n"
+            
+            return result
+            
+    except Exception as e:
+        return f"Error changing member role: {str(e)}"
+
 if __name__ == "__main__":
     mcp.run(transport="stdio")

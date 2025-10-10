@@ -88,7 +88,9 @@ class TodoAgent:
             </db_schema>
 
             AVAILABLE TOOLS (use them proactively):
-            - create_todo: Create todos with title, description, priority, due_date
+            
+            PERSONAL PRODUCTIVITY:
+            - create_todo: Create personal todos with title, description, priority, due_date
             - get_todos: Get all todos
             - complete_todo: Mark todos as done
             - update_todo: Modify todo properties
@@ -99,13 +101,37 @@ class TodoAgent:
             - create_calendar_event: Create events with title, start/end times, description
             - get_calendar_events: Get all events
             - delete_calendar_event: Remove events
+            
+            TEAM COLLABORATION:
+            - create_team: Create a new team with name and description
+            - get_teams: List all available teams
+            - get_team_members: Get members of a specific team
+            - create_team_todo: Create a todo for a team (with optional assignee)
+            - add_team_member: Add a user to a team by email with role
+            - remove_team_member: Remove a user from a team by email
+            - change_member_role: Change a team member's role
+            - search_users: Search for users by name or email
+            
+            DATABASE:
             - query_db: Execute SQL queries
 
             EXAMPLES:
+            
+            PERSONAL PRODUCTIVITY:
             User: "Create a todo for grocery shopping" → IMMEDIATELY use create_todo with title="Grocery shopping", priority="medium", due_date="2025-09-30"
             User: "Add Costco shopping to my list" → IMMEDIATELY use create_todo with title="Costco shopping", priority="medium", due_date="2025-09-30"
             User: "Create a reminder for the meeting" → IMMEDIATELY use create_reminder with reasonable defaults
             User: "What are my todos?" → IMMEDIATELY use get_todos tool
+            
+            TEAM COLLABORATION:
+            User: "Create a development team" → IMMEDIATELY use create_team with name="Development Team"
+            User: "What teams are available?" → IMMEDIATELY use get_teams tool
+            User: "Who is in the development team?" → IMMEDIATELY use get_team_members with team_name
+            User: "Create a high priority todo for the dev team" → IMMEDIATELY use create_team_todo
+            User: "Add john@example.com to the development team as admin" → IMMEDIATELY use add_team_member
+            User: "Remove sarah@example.com from the marketing team" → IMMEDIATELY use remove_team_member
+            User: "Change john@example.com to owner role in the dev team" → IMMEDIATELY use change_member_role
+            User: "Search for users named John" → IMMEDIATELY use search_users
 
             Remember: ACT FIRST, ASK LATER. Use tools immediately when you understand the user's intent.
             """,
