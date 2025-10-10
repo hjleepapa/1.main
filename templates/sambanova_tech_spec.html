@@ -430,6 +430,25 @@
             <div class="mb-12">
                 <h3 class="text-2xl font-semibold mb-6 text-gray-800">LangGraph Agent Architecture</h3>
                 <div class="bg-gray-50 p-6 rounded-lg">
+                    <!-- LangGraph Workflow Diagram -->
+                    <div class="mb-8">
+                        <h4 class="text-lg font-semibold mb-4 text-gray-800">LangGraph Workflow Diagram</h4>
+                        <div class="bg-white p-6 rounded-lg border-2 border-gray-200">
+                            <div class="flex justify-center">
+                                <img src="/sambanova/static/assets/img/lgwfdg.png" 
+                                     alt="LangGraph Workflow Diagram" 
+                                     class="max-w-full h-auto rounded-lg shadow-lg"
+                                     style="max-width: 800px; height: auto;">
+                            </div>
+                            
+                            <div class="mt-6 text-center">
+                                <p class="text-sm text-gray-600">
+                                    <strong>LangGraph Workflow:</strong> The agent can either continue to use tools or end the conversation based on user input and context.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="bg-white p-4 rounded border">
                             <h4 class="font-semibold text-gray-800 mb-3">Agent Components</h4>
@@ -437,7 +456,7 @@
                                 <li>• <strong>TodoAgent Class:</strong> Main agent orchestrator with lazy initialization</li>
                                 <li>• <strong>StateGraph:</strong> Manages conversation flow and state</li>
                                 <li>• <strong>Assistant Node:</strong> GPT-4 reasoning and response generation</li>
-                                <li>• <strong>Tool Node:</strong> Executes 30+ MCP tools</li>
+                                <li>• <strong>Tool Node:</strong> Executes 35+ MCP tools</li>
                                 <li>• <strong>Conditional Edges:</strong> Routes between nodes based on tool calls</li>
                                 <li>• <strong>InMemorySaver:</strong> Checkpointer for state persistence</li>
                             </ul>
@@ -450,6 +469,7 @@
                                 <li>• <strong>Customer ID:</strong> User identification for multi-tenant</li>
                                 <li>• <strong>Thread ID:</strong> Conversation thread tracking</li>
                                 <li>• <strong>Lazy Loading:</strong> Prevents circular imports</li>
+                                <li>• <strong>ExceptionGroup Handling:</strong> Robust error recovery</li>
                             </ul>
                         </div>
                     </div>
@@ -488,10 +508,10 @@
                             </div>
                         </div>
                         <div class="bg-white p-4 rounded border">
-                            <h4 class="font-semibold text-gray-800 mb-2">Available MCP Tools (30+)</h4>
+                            <h4 class="font-semibold text-gray-800 mb-2">Available MCP Tools (35+)</h4>
                             <div class="grid grid-cols-2 gap-2">
                                 <div>
-                                    <h5 class="font-semibold text-xs text-gray-700 mb-1">Todo Management</h5>
+                                    <h5 class="font-semibold text-xs text-gray-700 mb-1">Todo Management (5)</h5>
                                     <ul class="text-xs text-gray-600 space-y-1">
                                         <li>• create_todo</li>
                                         <li>• get_todos</li>
@@ -501,15 +521,20 @@
                                     </ul>
                                 </div>
                                 <div>
-                                    <h5 class="font-semibold text-xs text-gray-700 mb-1">Team Tools</h5>
+                                    <h5 class="font-semibold text-xs text-gray-700 mb-1">Team Tools (8)</h5>
                                     <ul class="text-xs text-gray-600 space-y-1">
+                                        <li>• create_team</li>
                                         <li>• get_teams</li>
                                         <li>• get_team_members</li>
                                         <li>• create_team_todo</li>
+                                        <li>• add_team_member</li>
+                                        <li>• remove_team_member</li>
+                                        <li>• change_member_role</li>
+                                        <li>• search_users</li>
                                     </ul>
                                 </div>
                                 <div>
-                                    <h5 class="font-semibold text-xs text-gray-700 mb-1">Reminders</h5>
+                                    <h5 class="font-semibold text-xs text-gray-700 mb-1">Reminders (4)</h5>
                                     <ul class="text-xs text-gray-600 space-y-1">
                                         <li>• create_reminder</li>
                                         <li>• get_reminders</li>
@@ -518,17 +543,98 @@
                                     </ul>
                                 </div>
                                 <div>
-                                    <h5 class="font-semibold text-xs text-gray-700 mb-1">Calendar</h5>
+                                    <h5 class="font-semibold text-xs text-gray-700 mb-1">Calendar (6)</h5>
                                     <ul class="text-xs text-gray-600 space-y-1">
                                         <li>• create_calendar_event</li>
                                         <li>• get_calendar_events</li>
                                         <li>• update_calendar_event</li>
                                         <li>• delete_calendar_event</li>
                                         <li>• sync_google_calendar_events</li>
+                                        <li>• test_google_calendar</li>
                                     </ul>
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enhanced LangGraph Tool Calls -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">Enhanced LangGraph Tool Calls</h3>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <p class="text-gray-700 mb-4">
+                        The LangGraph implementation provides intelligent tool calling capabilities with dynamic tool selection 
+                        and error handling. The agent automatically chooses appropriate tools based on user intent and maintains 
+                        conversation context for seamless interactions.
+                    </p>
+                    
+                    <!-- Tool Calls Flow Diagram -->
+                    <div class="mb-8">
+                        <h4 class="text-lg font-semibold mb-4 text-gray-800">Tool Calls Flow Diagram</h4>
+                        <div class="bg-white p-6 rounded-lg border-2 border-gray-200">
+                            <div class="flex justify-center">
+                                <img src="/sambanova/static/assets/img/tool_calls_flow_diagram.png" 
+                                     alt="Tool Calls Flow Diagram" 
+                                     class="max-w-full h-auto rounded-lg shadow-lg"
+                                     style="max-width: 900px; height: auto;">
+                            </div>
+                            
+                            <div class="mt-6 text-center">
+                                <p class="text-sm text-gray-600">
+                                    <strong>Tool Calls Flow:</strong> LangGraph implementation showing dynamic tool selection and intelligent orchestration of MCP tools.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tool Calls Features -->
+                    <div class="mb-8">
+                        <h4 class="text-lg font-semibold mb-4 text-gray-800">Tool Calls Features</h4>
+                        <div class="bg-white p-6 rounded-lg border-2 border-gray-200">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="bg-gray-50 p-4 rounded border">
+                                    <h5 class="font-semibold text-gray-800 mb-2">MCP Integration</h5>
+                                    <ul class="text-sm text-gray-600 space-y-1">
+                                        <li>• Database operations via MCP servers</li>
+                                        <li>• Google Calendar synchronization</li>
+                                        <li>• Team collaboration tools</li>
+                                        <li>• Real-time tool discovery (35+ tools)</li>
+                                        <li>• Secure tool communication via stdio</li>
+                                        <li>• Lazy loading for performance</li>
+                                    </ul>
+                                </div>
+                                <div class="bg-gray-50 p-4 rounded border">
+                                    <h5 class="font-semibold text-gray-800 mb-2">Error Handling</h5>
+                                    <ul class="text-sm text-gray-600 space-y-1">
+                                        <li>• Graceful tool failure recovery</li>
+                                        <li>• ExceptionGroup unwrapping</li>
+                                        <li>• 20s timeout per tool</li>
+                                        <li>• 30s overall agent timeout</li>
+                                        <li>• Fallback strategies</li>
+                                        <li>• User-friendly error messages</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6 text-center">
+                                <p class="text-sm text-gray-600">
+                                    <strong>Tool Features:</strong> Intelligent tool calling system with error recovery, timeout management, and seamless MCP integration.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-4 rounded border">
+                        <h4 class="font-semibold text-gray-800 mb-2">Core Tool Calling Capabilities</h4>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            <li>• <strong>Dynamic Tool Selection:</strong> LLM intelligently chooses appropriate tools based on user intent</li>
+                            <li>• <strong>Error Recovery:</strong> Graceful handling of tool failures with fallback strategies</li>
+                            <li>• <strong>Context Awareness:</strong> Tools access conversation history and maintain state</li>
+                            <li>• <strong>Streaming Responses:</strong> Real-time tool execution updates for better user experience</li>
+                            <li>• <strong>Async Execution:</strong> Non-blocking tool calls with proper timeout management</li>
+                            <li>• <strong>ExceptionGroup Handling:</strong> Unwraps and logs complex async exceptions</li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -639,30 +745,107 @@
                 <h3 class="text-2xl font-semibold mb-6 text-gray-800">Voice Interface</h3>
                 <div class="bg-gray-50 p-6 rounded-lg">
                     <p class="text-gray-700 mb-4">
-                        The Sambanova assistant provides voice interaction through Twilio phone integration, 
-                        supporting natural language commands for team collaboration and task management.
+                        The Sambanova assistant provides complete voice interaction through Twilio integration, 
+                        supporting natural language commands for team collaboration and task management with 
+                        Amazon Polly.Amy voice and barge-in capabilities for interruption.
                     </p>
+                    
+                    <!-- Voice Processing Pipeline -->
+                    <div class="mb-8">
+                        <h4 class="text-lg font-semibold mb-4 text-gray-800">Voice Processing Pipeline</h4>
+                        <div class="bg-white p-6 rounded-lg border-2 border-gray-200">
+                            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                                <!-- Speech Input -->
+                                <div class="text-center">
+                                    <div class="w-16 h-16 bg-blue-100 border-2 border-blue-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <span class="text-blue-800 font-bold text-sm">🎤</span>
+                                    </div>
+                                    <div class="text-sm font-medium text-gray-800">Speech Input</div>
+                                    <div class="text-xs text-gray-600">Twilio Voice</div>
+                                </div>
+                                
+                                <!-- Speech Recognition -->
+                                <div class="text-center">
+                                    <div class="w-16 h-16 bg-green-100 border-2 border-green-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <span class="text-green-800 font-bold text-sm">👂</span>
+                                    </div>
+                                    <div class="text-sm font-medium text-gray-800">Speech-to-Text</div>
+                                    <div class="text-xs text-gray-600">Twilio STT</div>
+                                </div>
+                                
+                                <!-- LangGraph Agent -->
+                                <div class="text-center">
+                                    <div class="w-16 h-16 bg-purple-100 border-2 border-purple-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <span class="text-purple-800 font-bold text-sm">🧠</span>
+                                    </div>
+                                    <div class="text-sm font-medium text-gray-800">LangGraph Agent</div>
+                                    <div class="text-xs text-gray-600">AI Processing</div>
+                                </div>
+                                
+                                <!-- TTS -->
+                                <div class="text-center">
+                                    <div class="w-16 h-16 bg-orange-100 border-2 border-orange-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <span class="text-orange-800 font-bold text-sm">🗣️</span>
+                                    </div>
+                                    <div class="text-sm font-medium text-gray-800">Text-to-Speech</div>
+                                    <div class="text-xs text-gray-600">Polly.Amy</div>
+                                </div>
+                                
+                                <!-- Audio Output -->
+                                <div class="text-center">
+                                    <div class="w-16 h-16 bg-red-100 border-2 border-red-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <span class="text-red-800 font-bold text-sm">🔊</span>
+                                    </div>
+                                    <div class="text-sm font-medium text-gray-800">Voice Response</div>
+                                    <div class="text-xs text-gray-600">Twilio TTS</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Flow Arrows -->
+                            <div class="mt-6">
+                                <div class="flex justify-between items-center">
+                                    <div class="text-xs text-gray-600">User Speech</div>
+                                    <div class="flex-1 h-0.5 bg-blue-400 mx-4"></div>
+                                    <div class="text-xs text-gray-600">Recognition</div>
+                                    <div class="flex-1 h-0.5 bg-green-400 mx-4"></div>
+                                    <div class="text-xs text-gray-600">AI Processing</div>
+                                    <div class="flex-1 h-0.5 bg-orange-400 mx-4"></div>
+                                    <div class="text-xs text-gray-600">Voice Output</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6 text-center">
+                                <p class="text-sm text-gray-600">
+                                    <strong>Voice Pipeline:</strong> Complete end-to-end voice processing from speech input to AI-generated voice response with real-time streaming.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                     
                     <div class="mb-8">
                         <h4 class="text-lg font-semibold mb-4 text-gray-800">Voice Command Examples</h4>
                         <div class="bg-white p-6 rounded-lg border-2 border-gray-200">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <h5 class="font-semibold text-gray-800 mb-3">Personal Todos</h5>
+                                    <h5 class="font-semibold text-gray-800 mb-3">Personal Productivity</h5>
                                     <ul class="text-sm text-gray-600 space-y-2">
                                         <li>🗣️ "Create a high priority todo to review the quarterly report"</li>
                                         <li>🗣️ "Add a reminder to call the dentist tomorrow at 2 PM"</li>
                                         <li>🗣️ "Schedule a meeting for next Friday from 2 to 3 PM"</li>
                                         <li>🗣️ "Show me all my pending todos"</li>
+                                        <li>🗣️ "Mark the grocery shopping todo as completed"</li>
                                     </ul>
                                 </div>
                                 <div>
                                     <h5 class="font-semibold text-gray-800 mb-3">Team Collaboration</h5>
                                     <ul class="text-sm text-gray-600 space-y-2">
-                                        <li>🗣️ "Create a high priority todo for the development team"</li>
+                                        <li>🗣️ "Create a hackathon team"</li>
                                         <li>🗣️ "What teams are available?"</li>
                                         <li>🗣️ "Who are the members of the development team?"</li>
+                                        <li>🗣️ "Create a high priority todo for the dev team"</li>
+                                        <li>🗣️ "Add admin@sambanova.com to the hackathon team as owner"</li>
                                         <li>🗣️ "Assign a code review task to John in the dev team"</li>
+                                        <li>🗣️ "Change john@example.com to admin role in the dev team"</li>
                                     </ul>
                                 </div>
                             </div>
@@ -673,25 +856,199 @@
                         <div class="bg-white p-4 rounded border">
                             <h4 class="font-semibold text-gray-800 mb-2">Voice Components</h4>
                             <ul class="text-sm text-gray-600 space-y-1">
-                                <li>• <strong>Speech-to-Text:</strong> Twilio speech recognition</li>
-                                <li>• <strong>Text-to-Speech:</strong> Polly.Amy voice</li>
-                                <li>• <strong>Barge-in:</strong> Interrupt while speaking</li>
-                                <li>• <strong>Timeout Handling:</strong> 30s agent processing</li>
+                                <li>• <strong>Speech-to-Text:</strong> Twilio speech recognition engine</li>
+                                <li>• <strong>Text-to-Speech:</strong> Amazon Polly.Amy voice</li>
+                                <li>• <strong>Barge-in:</strong> Interrupt AI while speaking</li>
+                                <li>• <strong>Speech Timeout:</strong> Auto detection (10s)</li>
+                                <li>• <strong>Agent Timeout:</strong> 30s processing time</li>
+                                <li>• <strong>Tool Timeout:</strong> 20s per MCP tool</li>
                                 <li>• <strong>Continuation:</strong> Multi-turn conversations</li>
+                                <li>• <strong>Exit Detection:</strong> Natural conversation ending</li>
                             </ul>
                         </div>
                         <div class="bg-white p-4 rounded border">
                             <h4 class="font-semibold text-gray-800 mb-2">Processing Flow</h4>
                             <ol class="text-sm text-gray-600 space-y-1">
                                 <li>1. User calls Twilio number</li>
-                                <li>2. Twilio webhook triggers Flask endpoint</li>
-                                <li>3. Speech recognized by Twilio</li>
-                                <li>4. Text sent to LangGraph agent</li>
-                                <li>5. Agent processes with MCP tools</li>
-                                <li>6. Response converted to TwiML</li>
-                                <li>7. Polly.Amy speaks response</li>
-                                <li>8. Conversation continues or ends</li>
+                                <li>2. Twilio webhook triggers /sambanova_todo/twilio/call</li>
+                                <li>3. TwiML with &lt;Gather&gt; returned (10s timeout)</li>
+                                <li>4. User speaks, Twilio recognizes speech</li>
+                                <li>5. SpeechResult posted to /process_audio</li>
+                                <li>6. LangGraph agent processes (30s timeout)</li>
+                                <li>7. MCP tools execute (20s per tool)</li>
+                                <li>8. Database & Calendar operations</li>
+                                <li>9. Response converted to TwiML</li>
+                                <li>10. Polly.Amy speaks response with barge-in</li>
+                                <li>11. Conversation continues or ends</li>
                             </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Twilio Phone Integration -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">Twilio Phone Integration</h3>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <p class="text-gray-700 mb-4">
+                        The Sambanova assistant can be accessed via phone calls through Twilio integration, allowing users 
+                        to interact with the AI assistant through voice calls from any phone number. The system uses TwiML 
+                        and Gather for speech recognition with barge-in capability.
+                    </p>
+                    
+                    <!-- Twilio Call Flow Architecture -->
+                    <div class="mb-8">
+                        <h4 class="text-lg font-semibold mb-4 text-gray-800">Twilio Call Flow Architecture</h4>
+                        <div class="bg-white p-6 rounded-lg border-2 border-gray-200">
+                            <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+                                <!-- Phone Call -->
+                                <div class="text-center">
+                                    <div class="w-16 h-16 bg-blue-100 border-2 border-blue-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <span class="text-blue-800 font-bold text-sm">📞</span>
+                                    </div>
+                                    <div class="text-sm font-medium text-gray-800">Phone Call</div>
+                                    <div class="text-xs text-gray-600">PSTN Network</div>
+                                </div>
+                                
+                                <!-- Twilio -->
+                                <div class="text-center">
+                                    <div class="w-16 h-16 bg-red-100 border-2 border-red-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <span class="text-red-800 font-bold text-sm">T</span>
+                                    </div>
+                                    <div class="text-sm font-medium text-gray-800">Twilio</div>
+                                    <div class="text-xs text-gray-600">Voice API</div>
+                                </div>
+                                
+                                <!-- Flask Webhook -->
+                                <div class="text-center">
+                                    <div class="w-16 h-16 bg-green-100 border-2 border-green-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <span class="text-green-800 font-bold text-sm">🌐</span>
+                                    </div>
+                                    <div class="text-sm font-medium text-gray-800">Flask Webhook</div>
+                                    <div class="text-xs text-gray-600">TwiML Response</div>
+                                </div>
+                                
+                                <!-- MCP Client -->
+                                <div class="text-center">
+                                    <div class="w-16 h-16 bg-purple-100 border-2 border-purple-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <span class="text-purple-800 font-bold text-sm">🔌</span>
+                                    </div>
+                                    <div class="text-sm font-medium text-gray-800">MCP Client</div>
+                                    <div class="text-xs text-gray-600">35+ Tools</div>
+                                </div>
+                                
+                                <!-- Database -->
+                                <div class="text-center">
+                                    <div class="w-16 h-16 bg-orange-100 border-2 border-orange-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <span class="text-orange-800 font-bold text-sm">⚙️</span>
+                                    </div>
+                                    <div class="text-sm font-medium text-gray-800">Database</div>
+                                    <div class="text-xs text-gray-600">PostgreSQL</div>
+                                </div>
+                                
+                                <!-- LangGraph Agent -->
+                                <div class="text-center">
+                                    <div class="w-16 h-16 bg-indigo-100 border-2 border-indigo-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <span class="text-indigo-800 font-bold text-sm">🧠</span>
+                                    </div>
+                                    <div class="text-sm font-medium text-gray-800">LangGraph Agent</div>
+                                    <div class="text-xs text-gray-600">AI Processing</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Flow Arrows -->
+                            <div class="mt-6">
+                                <div class="flex justify-between items-center">
+                                    <div class="text-xs text-gray-600">Call Initiation</div>
+                                    <div class="flex-1 h-0.5 bg-blue-400 mx-4"></div>
+                                    <div class="text-xs text-gray-600">Webhook</div>
+                                    <div class="flex-1 h-0.5 bg-green-400 mx-4"></div>
+                                    <div class="text-xs text-gray-600">Tool Execution</div>
+                                    <div class="flex-1 h-0.5 bg-purple-400 mx-4"></div>
+                                    <div class="text-xs text-gray-600">AI Processing</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6 text-center">
+                                <p class="text-sm text-gray-600">
+                                    <strong>Call Flow:</strong> Phone → Twilio → Flask Webhook → LangGraph Agent → MCP Tools → Database/Calendar → TwiML Response
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-white p-4 rounded border">
+                            <h4 class="font-semibold text-gray-800 mb-2">Twilio Components</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• <strong>Twilio Voice API:</strong> Handles incoming/outgoing calls</li>
+                                <li>• <strong>TwiML:</strong> XML-based call flow instructions</li>
+                                <li>• <strong>Gather Element:</strong> Collects speech input with barge-in</li>
+                                <li>• <strong>Say Element:</strong> Text-to-speech via Polly.Amy</li>
+                                <li>• <strong>Redirect Element:</strong> Call continuation logic</li>
+                                <li>• <strong>Webhook Endpoints:</strong> Flask routes for call handling</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-4 rounded border">
+                            <h4 class="font-semibold text-gray-800 mb-2">Call Flow Process</h4>
+                            <ol class="text-sm text-gray-600 space-y-1">
+                                <li>1. User calls Twilio phone number</li>
+                                <li>2. Twilio webhook triggers /twilio/call</li>
+                                <li>3. TwiML with &lt;Gather&gt; returned</li>
+                                <li>4. Greeting: "Hello! I'm your Sambanova productivity assistant"</li>
+                                <li>5. User speaks command</li>
+                                <li>6. Speech posted to /process_audio</li>
+                                <li>7. LangGraph agent processes request</li>
+                                <li>8. MCP tools execute database operations</li>
+                                <li>9. TwiML response with confirmation</li>
+                                <li>10. Call continues or ends based on user</li>
+                            </ol>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-4 rounded border">
+                        <h4 class="font-semibold text-gray-800 mb-2">Twilio Configuration</h4>
+                        <div class="font-mono text-sm bg-gray-100 p-3 rounded">
+                            <pre># Environment Variables
+TWILIO_ACCOUNT_SID=your_account_sid
+TWILIO_AUTH_TOKEN=your_auth_token
+TWILIO_PHONE_NUMBER=+1234567890
+
+# Webhook Endpoints
+POST https://hjlees.com/sambanova_todo/twilio/call
+POST https://hjlees.com/sambanova_todo/twilio/process_audio
+
+# TwiML Response Example
+&lt;Response&gt;
+  &lt;Gather action="/sambanova_todo/twilio/process_audio" 
+          method="POST" 
+          input="speech" 
+          speechTimeout="auto" 
+          timeout="10" 
+          bargeIn="true"&gt;
+    &lt;Say voice="Polly.Amy"&gt;Hello! I'm your Sambanova productivity assistant...&lt;/Say&gt;
+  &lt;/Gather&gt;
+  &lt;Say voice="Polly.Amy"&gt;I didn't hear anything. Please try again.&lt;/Say&gt;
+  &lt;Redirect&gt;/sambanova_todo/twilio/call?is_continuation=true&lt;/Redirect&gt;
+&lt;/Response&gt;</pre>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 bg-blue-50 p-4 rounded border-l-4 border-blue-400">
+                        <h4 class="font-semibold text-blue-800 mb-2">Twilio Setup Instructions</h4>
+                        <div class="space-y-3">
+                            <div>
+                                <p class="text-sm text-blue-700 font-medium mb-1">Step 1: Configure Voice Settings</p>
+                                <p class="text-sm text-blue-600">In Twilio Console → Phone Numbers → Active Numbers → Select your number</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-blue-700 font-medium mb-1">Step 2: Set Webhook URL</p>
+                                <p class="text-sm text-blue-600">A CALL COMES IN: https://hjlees.com/sambanova_todo/twilio/call (HTTP POST)</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-blue-700 font-medium mb-1">Step 3: Test Integration</p>
+                                <p class="text-sm text-blue-600">Call your Twilio number and speak a command</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1395,21 +1752,26 @@ Response: {
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="text-3xl font-bold text-center mb-12">Performance & Deployment</h2>
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div class="bg-blue-50 p-6 rounded-lg text-center">
-                    <div class="text-3xl font-bold text-blue-600 mb-2">30+</div>
+                    <div class="text-3xl font-bold text-blue-600 mb-2">35+</div>
                     <div class="text-sm text-blue-800 font-medium">MCP Tools</div>
-                    <div class="text-xs text-gray-600 mt-1">Database, Calendar, Team Management</div>
+                    <div class="text-xs text-gray-600 mt-1">Voice-enabled operations</div>
                 </div>
                 <div class="bg-green-50 p-6 rounded-lg text-center">
                     <div class="text-3xl font-bold text-green-600 mb-2">30s</div>
                     <div class="text-sm text-green-800 font-medium">Agent Timeout</div>
-                    <div class="text-xs text-gray-600 mt-1">Handles complex operations</div>
+                    <div class="text-xs text-gray-600 mt-1">Complex operations</div>
                 </div>
                 <div class="bg-purple-50 p-6 rounded-lg text-center">
-                    <div class="text-3xl font-bold text-purple-600 mb-2">Multi-Tenant</div>
-                    <div class="text-sm text-purple-800 font-medium">Architecture</div>
-                    <div class="text-xs text-gray-600 mt-1">Teams, Users, Roles, Permissions</div>
+                    <div class="text-3xl font-bold text-purple-600 mb-2">20s</div>
+                    <div class="text-sm text-purple-800 font-medium">Tool Timeout</div>
+                    <div class="text-xs text-gray-600 mt-1">Per MCP tool execution</div>
+                </div>
+                <div class="bg-orange-50 p-6 rounded-lg text-center">
+                    <div class="text-3xl font-bold text-orange-600 mb-2">Multi-Tenant</div>
+                    <div class="text-sm text-orange-800 font-medium">Architecture</div>
+                    <div class="text-xs text-gray-600 mt-1">Teams, Users, Roles</div>
                 </div>
             </div>
             
