@@ -121,15 +121,19 @@ def verify_pin_webhook():
             'ten': '10', 'eleven': '11', 'twelve': '12'
         }
         
-        # Try to extract digits from speech
-        clean_pin = pin
+        # Clean up the PIN - remove non-alphanumeric except spaces
+        # This handles cases like "1234." from DTMF or "one two three four" from speech
+        cleaned_input = pin.strip()
         
-        # If it's already digits, keep it
-        if pin.isdigit():
-            clean_pin = pin
+        # First, try to extract any digits directly (handles DTMF like "1234" or "1234.")
+        digits_only = ''.join(c for c in cleaned_input if c.isdigit())
+        
+        # If we got digits directly (DTMF input), use them
+        if digits_only and len(digits_only) >= 4:
+            clean_pin = digits_only
         else:
-            # Convert spoken words to digits
-            words = pin.lower().replace('-', ' ').replace(',', ' ').split()
+            # No direct digits, try speech-to-digit conversion
+            words = cleaned_input.lower().replace('-', ' ').replace(',', ' ').replace('.', ' ').split()
             converted_digits = []
             for word in words:
                 if word in number_words:
