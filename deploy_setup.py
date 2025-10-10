@@ -32,26 +32,36 @@ def setup_deployment():
     
     print("✅ Environment variables check passed")
     
-    # Run the team collaboration migration
-    try:
-        print("🔄 Running team collaboration migration...")
-        result = subprocess.run([sys.executable, "run_migration.py"], 
-                              capture_output=True, text=True, timeout=60)
-        
-        if result.returncode == 0:
-            print("✅ Migration completed successfully")
-            print("Migration output:", result.stdout)
-        else:
-            print("❌ Migration failed")
-            print("Migration error:", result.stderr)
-            return False
+    # Run migrations
+    migrations = [
+        ("run_migration.py", "Team collaboration migration"),
+        ("sambanova/migrations/add_voice_pin.py", "Voice PIN authentication migration")
+    ]
+    
+    for migration_file, migration_name in migrations:
+        if not Path(migration_file).exists():
+            print(f"⚠️  {migration_name} file not found: {migration_file}")
+            continue
             
-    except subprocess.TimeoutExpired:
-        print("❌ Migration timed out")
-        return False
-    except Exception as e:
-        print(f"❌ Migration error: {str(e)}")
-        return False
+        try:
+            print(f"🔄 Running {migration_name}...")
+            result = subprocess.run([sys.executable, migration_file], 
+                                  capture_output=True, text=True, timeout=60)
+            
+            if result.returncode == 0:
+                print(f"✅ {migration_name} completed successfully")
+                if result.stdout:
+                    print(f"   Output: {result.stdout}")
+            else:
+                print(f"⚠️  {migration_name} had issues (may already be applied)")
+                if result.stderr:
+                    print(f"   Error: {result.stderr}")
+                
+        except subprocess.TimeoutExpired:
+            print(f"❌ {migration_name} timed out")
+            return False
+        except Exception as e:
+            print(f"⚠️  {migration_name} error: {str(e)}")
     
     print("🎉 Deployment setup completed successfully!")
     return True

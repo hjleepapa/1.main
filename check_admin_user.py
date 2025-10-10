@@ -4,6 +4,11 @@ Check and fix admin user credentials
 import os
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Import after loading .env
 from sambanova.models.user_models import User
 from sambanova.security.auth import jwt_auth
 
@@ -13,6 +18,42 @@ db_uri = os.getenv("DB_URI", "postgresql://postgres:postgres@localhost:5432/post
 print(f"🔧 Connecting to database...")
 engine = create_engine(db_uri)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# First, check if voice_pin column exists
+try:
+    with engine.connect() as conn:
+        check_column_sql = text("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name = 'users_sambanova' 
+            AND column_name = 'voice_pin'
+        """)
+        result = conn.execute(check_column_sql).fetchone()
+        
+        if not result:
+            print(f"⚠️  voice_pin column does not exist yet!")
+            print(f"🔧 Running migration to add voice_pin column...")
+            
+            # Add the column
+            alter_sql = text("""
+                ALTER TABLE users_sambanova 
+                ADD COLUMN voice_pin VARCHAR(10) UNIQUE
+            """)
+            conn.execute(alter_sql)
+            
+            # Create index
+            index_sql = text("""
+                CREATE INDEX IF NOT EXISTS idx_users_voice_pin 
+                ON users_sambanova(voice_pin)
+            """)
+            conn.execute(index_sql)
+            
+            conn.commit()
+            print(f"✅ voice_pin column added successfully!")
+except Exception as e:
+    print(f"❌ Error checking/adding voice_pin column: {e}")
+    print(f"💡 Try running: python run_voice_pin_migration.py")
+    exit(1)
 
 with SessionLocal() as session:
     # Check if admin user exists
