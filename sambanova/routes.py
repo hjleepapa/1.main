@@ -414,16 +414,20 @@ async def _run_agent_for_pin_verification(pin: str) -> str:
         stream = agent_graph.astream(input=input_state, stream_mode="values", config=config)
         
         async def process_stream():
-            final_messages = []
+            tool_result = None
             async for state in stream:
+                # Look for tool messages which contain the actual verification result
                 if "messages" in state:
-                    final_messages = state["messages"]
+                    for msg in state["messages"]:
+                        # Check if this is a ToolMessage with our authentication result
+                        if hasattr(msg, 'content') and 'AUTHENTICATED:' in str(msg.content):
+                            tool_result = msg.content
+                            break
             
-            # Get the last message content
-            if final_messages:
-                last_message = final_messages[-1]
-                return getattr(last_message, 'content', "")
-            return "AUTHENTICATION_FAILED: No response from agent"
+            # Return the tool result if found, otherwise authentication failed
+            if tool_result:
+                return tool_result
+            return "AUTHENTICATION_FAILED: Invalid PIN"
         
         return await asyncio.wait_for(process_stream(), timeout=20.0)
     except asyncio.TimeoutError:
