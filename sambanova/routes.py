@@ -9,7 +9,7 @@ import logging
 
 from twilio.twiml.voice_response import VoiceResponse, Connect, Gather
 from .state import AgentState
-from .assistant_graph_todo import TodoAgent
+from .assistant_graph_todo import get_agent
 from langchain_mcp_adapters.client import MultiServerMCPClient
 
 # Import new authentication and team routes

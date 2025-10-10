@@ -273,7 +273,18 @@ class TodoAgent:
 
         return Image(self.graph.get_graph().draw_mermaid_png())
 
-agent = TodoAgent()
+# Lazy initialization to avoid circular imports and environment variable issues
+_agent_instance = None
+
+def get_agent():
+    """Get or create the TodoAgent instance (lazy initialization)"""
+    global _agent_instance
+    if _agent_instance is None:
+        _agent_instance = TodoAgent()
+    return _agent_instance
+
+# For backwards compatibility
+agent = None  # Will be initialized on first use
 
 if __name__ == "__main__":
-    agent.draw_graph()
+    get_agent().draw_graph()

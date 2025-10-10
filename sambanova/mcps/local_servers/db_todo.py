@@ -31,12 +31,19 @@ except ImportError:
         get_calendar_service = None
 
 # Team collaboration imports
-# Import team models with try-except to avoid circular imports during initial import
-try:
-    from sambanova.models.user_models import User, Team, TeamMembership, TeamRole
-except (ImportError, RuntimeError):
-    # If import fails, set to None and continue without team features
-    User = Team = TeamMembership = TeamRole = None
+# Lazy import to avoid circular dependency - will be imported when needed
+User = Team = TeamMembership = TeamRole = None
+
+def _lazy_import_team_models():
+    """Lazy import team models to avoid circular dependency"""
+    global User, Team, TeamMembership, TeamRole
+    if User is None:
+        try:
+            from sambanova.models.user_models import User as U, Team as T, TeamMembership as TM, TeamRole as TR
+            User, Team, TeamMembership, TeamRole = U, T, TM, TR
+        except (ImportError, RuntimeError) as e:
+            # If import fails, continue without team features
+            pass
 
 # Service Account Google Calendar integration
 try:
@@ -1904,6 +1911,7 @@ async def get_teams() -> str:
         List of teams with their details.
     """
     try:
+        _lazy_import_team_models()
         check_database_available()
         
         with SessionLocal() as session:
@@ -1935,6 +1943,7 @@ async def get_team_members(team_id: str) -> str:
         List of team members with their roles.
     """
     try:
+        _lazy_import_team_models()
         check_database_available()
         
         with SessionLocal() as session:
@@ -1985,6 +1994,7 @@ async def create_team_todo(
         The created todo item details.
     """
     try:
+        _lazy_import_team_models()
         pass
         # print(...) # Removed to avoid MCP protocol issues
         check_database_available()
