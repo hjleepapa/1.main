@@ -188,7 +188,10 @@ def verify_pin_webhook():
                     method='POST',
                     speech_timeout='auto',
                     timeout=10,
-                    barge_in=True
+                    barge_in=True,
+                    speech_model='experimental_conversations',  # Better conversational recognition
+                    enhanced=True,  # Use enhanced speech recognition
+                    language='en-US'  # Explicitly set language
                 )
                 
                 # Welcome message
@@ -257,7 +260,10 @@ def process_audio_webhook():
                 method='POST',
                 speech_timeout='auto',
                 timeout=10,
-                barge_in=True
+                barge_in=True,
+                speech_model='experimental_conversations',  # Better conversational recognition
+                enhanced=True,  # Use enhanced speech recognition
+                language='en-US'  # Explicitly set language
             )
             gather.say("I didn't catch that. Could you please repeat?", voice='Polly.Amy')
             response.append(gather)
@@ -305,7 +311,10 @@ def process_audio_webhook():
             method='POST',
             speech_timeout='auto',
             timeout=10,
-            barge_in=True  # Enable barge-in to interrupt while speaking
+            barge_in=True,  # Enable barge-in to interrupt while speaking
+            speech_model='experimental_conversations',  # Better conversational recognition
+            enhanced=True,  # Use enhanced speech recognition
+            language='en-US'  # Explicitly set language
         )
         
         # Add the agent's response to the gather
