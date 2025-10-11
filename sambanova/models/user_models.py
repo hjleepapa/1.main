@@ -18,11 +18,24 @@ class UserRole(PyEnum):
     MEMBER = "member"
     VIEWER = "viewer"
 
-class TeamRole(PyEnum):
+class TeamRole(str, PyEnum):
+    """Team role enum - values stored in database as lowercase"""
     OWNER = "owner"
     ADMIN = "admin"
     MEMBER = "member"
     VIEWER = "viewer"
+    
+    @classmethod
+    def _missing_(cls, value):
+        """Handle case-insensitive lookup"""
+        if isinstance(value, str):
+            # Try uppercase match
+            for member in cls:
+                if member.name == value.upper():
+                    return member
+                if member.value == value.lower():
+                    return member
+        return None
 
 class User(Base):
     __tablename__ = "users_sambanova"
@@ -98,7 +111,8 @@ class TeamMembership(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     team_id = Column(UUID(as_uuid=True), ForeignKey('teams_sambanova.id'), nullable=False)
     user_id = Column(UUID(as_uuid=True), ForeignKey('users_sambanova.id'), nullable=False)
-    role = Column(Enum(TeamRole), default=TeamRole.MEMBER, nullable=False)
+    # Use String instead of Enum for flexibility - Python enum validation still applies
+    role = Column(String(20), default='member', nullable=False)
     
     # Timestamps
     joined_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
