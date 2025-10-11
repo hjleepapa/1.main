@@ -82,11 +82,14 @@ def get_user_teams():
             
             teams = []
             for membership, team in results:
+                # Handle role value - could be enum or string
+                role_value = membership.role.value if hasattr(membership.role, 'value') else str(membership.role).lower()
+                
                 teams.append({
                     'id': str(team.id),
                     'name': team.name,
                     'description': team.description,
-                    'role': membership.role.value,
+                    'role': role_value,
                     'joined_at': membership.joined_at.isoformat(),
                     'created_at': team.created_at.isoformat(),
                     'is_active': team.is_active
@@ -118,6 +121,9 @@ def get_team(team_id):
             
             members = []
             for membership, user in member_results:
+                # Handle role value - could be enum or string
+                role_value = membership.role.value if hasattr(membership.role, 'value') else str(membership.role).lower()
+                
                 members.append({
                     'id': str(user.id),
                     'username': user.username,
@@ -125,7 +131,7 @@ def get_team(team_id):
                     'first_name': user.first_name,
                     'last_name': user.last_name,
                     'full_name': user.full_name,
-                    'role': membership.role.value,
+                    'role': role_value,
                     'joined_at': membership.joined_at.isoformat()
                 })
             
@@ -196,7 +202,7 @@ def add_team_member(team_id):
                     'username': user.username,
                     'email': user.email,
                     'full_name': user.full_name,
-                    'role': membership.role.value,
+                    'role': membership.role.value if hasattr(membership.role, 'value') else str(membership.role).lower(),
                     'joined_at': membership.joined_at.isoformat()
                 }
             }), 201
@@ -283,7 +289,7 @@ def update_member_role(team_id, user_id):
                 'message': 'Member role updated successfully',
                 'member': {
                     'id': str(user_id),
-                    'role': membership.role.value
+                    'role': membership.role.value if hasattr(membership.role, 'value') else str(membership.role).lower()
                 }
             }), 200
             
