@@ -197,11 +197,22 @@ def verify_pin_webhook():
                 response.redirect('/sambanova_todo/twilio/call')
                 print(f"❌ Invalid PIN: {clean_pin}")
                 return Response(str(response), mimetype='text/xml')
+        
+        except Exception as e:
+            print(f"Error in database query: {e}")
+            import traceback
+            traceback.print_exc()
+            response = VoiceResponse()
+            response.say("There was an error verifying your PIN. Please try again.", voice='Polly.Amy')
+            response.redirect('/sambanova_todo/twilio/call')
+            return Response(str(response), mimetype='text/xml')
             
     except Exception as e:
-        print(f"Error in PIN verification: {e}")
+        print(f"Error in verify_pin_webhook: {e}")
+        import traceback
+        traceback.print_exc()
         response = VoiceResponse()
-        response.say("There was an error verifying your PIN. Please try again.", voice='Polly.Amy')
+        response.say("Sorry, there was a system error. Please try again.", voice='Polly.Amy')
         response.redirect('/sambanova_todo/twilio/call')
         return Response(str(response), mimetype='text/xml')
 
