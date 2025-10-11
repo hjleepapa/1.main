@@ -135,7 +135,9 @@ def login():
                     'teams': [
                         {
                             'team_id': str(membership.team_id),
-                            'role': membership.role.value if hasattr(membership.role, 'value') else str(membership.role).lower()
+                            'role': (membership.role.value if hasattr(membership.role, 'value') 
+                                   else str(membership.role) if isinstance(membership.role, str)
+                                   else 'member')
                         }
                         for membership in team_memberships
                     ]
