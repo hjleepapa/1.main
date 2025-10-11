@@ -29,8 +29,12 @@ def voice_assistant():
     return render_template('webrtc_voice_assistant.html')
 
 
-def init_socketio(socketio: SocketIO):
+def init_socketio(socketio_instance: SocketIO):
     """Initialize Socket.IO event handlers"""
+    
+    # Store socketio instance for background tasks
+    global socketio
+    socketio = socketio_instance
     
     @socketio.on('connect', namespace='/voice')
     def handle_connect():
@@ -180,83 +184,88 @@ def init_socketio(socketio: SocketIO):
     
     def process_audio_async(session_id, audio_buffer):
         """Process audio in background task"""
-        try:
-            session = active_sessions.get(session_id)
-            if not session:
-                return
-            
-            print(f"🎧 Processing audio: {len(audio_buffer)} bytes")
-            
-            # Step 1: Transcribe audio using OpenAI Whisper
-            emit('status', {'message': 'Transcribing...'}, namespace='/voice', room=session_id)
-            
-            # Save audio to temporary file (Whisper API requires file)
-            import tempfile
-            with tempfile.NamedTemporaryFile(suffix='.webm', delete=False) as temp_audio:
-                temp_audio.write(audio_buffer)
-                temp_audio_path = temp_audio.name
-            
-            try:
-                with open(temp_audio_path, 'rb') as audio_file:
-                    transcription = openai_client.audio.transcriptions.create(
-                        model="whisper-1",
-                        file=audio_file,
-                        language="en"
-                    )
-                
-                transcribed_text = transcription.text
-                print(f"📝 Transcription: {transcribed_text}")
-                
-                # Send transcription to client
-                emit('transcription', {
-                    'success': True,
-                    'text': transcribed_text
-                }, namespace='/voice', room=session_id)
-                
-                # Step 2: Process with agent
-                emit('status', {'message': 'Processing request...'}, namespace='/voice', room=session_id)
-                
-                agent_response = asyncio.run(process_with_agent(
-                    transcribed_text,
-                    session['user_id'],
-                    session['user_name']
-                ))
-                
-                print(f"🤖 Agent response: {agent_response}")
-                
-                # Step 3: Convert response to speech using OpenAI TTS
-                emit('status', {'message': 'Generating speech...'}, namespace='/voice', room=session_id)
-                
-                speech_response = openai_client.audio.speech.create(
-                    model="tts-1",
-                    voice="nova",  # Options: alloy, echo, fable, onyx, nova, shimmer
-                    input=agent_response
-                )
-                
-                # Convert speech to base64 for transmission
-                audio_base64 = base64.b64encode(speech_response.content).decode('utf-8')
-                
-                # Send response to client
-                emit('agent_response', {
-                    'success': True,
-                    'text': agent_response,
-                    'audio': audio_base64
-                }, namespace='/voice', room=session_id)
-            
-            finally:
-                # Clean up temp file
-                import os
-                if os.path.exists(temp_audio_path):
-                    os.unlink(temp_audio_path)
+        # Get Flask app for application context
+        from flask import current_app
+        app = current_app._get_current_object()
         
-        except Exception as e:
-            print(f"❌ Error processing audio: {e}")
-            import traceback
-            traceback.print_exc()
+        with app.app_context():
+            try:
+                session = active_sessions.get(session_id)
+                if not session:
+                    return
+                
+                print(f"🎧 Processing audio: {len(audio_buffer)} bytes")
+                
+                # Step 1: Transcribe audio using OpenAI Whisper
+                socketio.emit('status', {'message': 'Transcribing...'}, namespace='/voice', room=session_id)
+                
+                # Save audio to temporary file (Whisper API requires file)
+                import tempfile
+                with tempfile.NamedTemporaryFile(suffix='.webm', delete=False) as temp_audio:
+                    temp_audio.write(audio_buffer)
+                    temp_audio_path = temp_audio.name
+                
+                try:
+                    with open(temp_audio_path, 'rb') as audio_file:
+                        transcription = openai_client.audio.transcriptions.create(
+                            model="whisper-1",
+                            file=audio_file,
+                            language="en"
+                        )
+                    
+                    transcribed_text = transcription.text
+                    print(f"📝 Transcription: {transcribed_text}")
+                    
+                    # Send transcription to client
+                    socketio.emit('transcription', {
+                        'success': True,
+                        'text': transcribed_text
+                    }, namespace='/voice', room=session_id)
+                    
+                    # Step 2: Process with agent
+                    socketio.emit('status', {'message': 'Processing request...'}, namespace='/voice', room=session_id)
+                    
+                    agent_response = asyncio.run(process_with_agent(
+                        transcribed_text,
+                        session['user_id'],
+                        session['user_name']
+                    ))
+                    
+                    print(f"🤖 Agent response: {agent_response}")
+                    
+                    # Step 3: Convert response to speech using OpenAI TTS
+                    socketio.emit('status', {'message': 'Generating speech...'}, namespace='/voice', room=session_id)
+                    
+                    speech_response = openai_client.audio.speech.create(
+                        model="tts-1",
+                        voice="nova",  # Options: alloy, echo, fable, onyx, nova, shimmer
+                        input=agent_response
+                    )
+                    
+                    # Convert speech to base64 for transmission
+                    audio_base64 = base64.b64encode(speech_response.content).decode('utf-8')
+                    
+                    # Send response to client
+                    socketio.emit('agent_response', {
+                        'success': True,
+                        'text': agent_response,
+                        'audio': audio_base64
+                    }, namespace='/voice', room=session_id)
+                
+                finally:
+                    # Clean up temp file
+                    import os
+                    if os.path.exists(temp_audio_path):
+                        os.unlink(temp_audio_path)
             
-            emit('error', {
-                'message': f"Error processing audio: {str(e)}"
-            }, namespace='/voice', room=session_id)
+            except Exception as e:
+                print(f"❌ Error processing audio: {e}")
+                import traceback
+                traceback.print_exc()
+                
+                socketio.emit('error', {
+                    'message': f"Error processing audio: {str(e)}"
+                }, namespace='/voice', room=session_id)
 
 
 async def process_with_agent(text: str, user_id: str, user_name: str) -> str:
