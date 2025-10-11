@@ -1,0 +1,26 @@
+services:
+  # Main web service with Flask-SocketIO support
+  - type: web
+    name: sambanova-todo-app
+    env: python
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:$PORT passenger_wsgi:application
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: FLASK_KEY
+        sync: false
+      - key: DB_URI
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_OAUTH2_TOKEN_B64
+        sync: false
+    healthCheckPath: /
+    autoDeploy: true
+
