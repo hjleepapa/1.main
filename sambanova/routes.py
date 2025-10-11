@@ -21,6 +21,9 @@ from .api_routes.team_todo_routes import team_todo_bp
 # Set up logging
 logger = logging.getLogger(__name__)
 
+# Global agent graph cache (initialized on first use)
+_agent_graph_cache = None
+_agent_graph_lock = asyncio.Lock()
 
 sambanova_todo_bp = Blueprint(
     'sambanova_todo',
@@ -355,64 +358,83 @@ def index():
 
 
 async def _get_agent_graph() -> StateGraph:
-    """Helper to initialize the agent graph with tools."""
-    config_path = os.path.join(os.path.dirname(__file__), 'mcps', 'mcp_config.json')
-    if not os.path.exists(config_path):
-        # Fallback path for when running from the root directory
-        config_path = os.path.join('sambanova', 'mcps', 'mcp_config.json')
-
-    with open(config_path) as f:
-        mcp_config = json.load(f)
+    """Helper to initialize the agent graph with tools (cached for performance)."""
+    global _agent_graph_cache
     
-    # Set working directory to project root for MCP servers
-    # __file__ is: /Users/hj/Web Development Projects/1. Main/sambanova/routes.py
-    # We need: /Users/hj/Web Development Projects/1. Main
-    project_root = os.path.dirname(os.path.dirname(__file__))
-    original_cwd = os.getcwd()
-    os.chdir(project_root)
+    # Return cached graph if available
+    if _agent_graph_cache is not None:
+        return _agent_graph_cache
     
-    # Update the MCP config with absolute paths and environment variables
-    for server_name, server_config in mcp_config["mcpServers"].items():
-        if "args" in server_config and len(server_config["args"]) > 0:
-            # Convert relative path to absolute path
-            relative_path = server_config["args"][0]
-            if not os.path.isabs(relative_path):
-                absolute_path = os.path.join(project_root, relative_path)
-                server_config["args"][0] = absolute_path
+    # Use lock to prevent multiple simultaneous initializations
+    async with _agent_graph_lock:
+        # Check again after acquiring lock (another thread might have initialized)
+        if _agent_graph_cache is not None:
+            return _agent_graph_cache
         
-        # Handle environment variable substitution in env section
-        if "env" in server_config:
-            for env_key, env_value in server_config["env"].items():
-                if isinstance(env_value, str) and env_value.startswith("${") and env_value.endswith("}"):
-                    # Extract environment variable name
-                    env_var_name = env_value[2:-1]
-                    env_var_value = os.getenv(env_var_name)
-                    if env_var_value:
-                        server_config["env"][env_key] = env_var_value
-                        print(f"🔧 MCP config: Set {env_key}={env_var_name} from environment")
-                    else:
-                        print(f"⚠️  MCP config: Environment variable {env_var_name} not found")
-    
-    try:
-        # Initialize MCP client (langchain-mcp-adapters 0.1.0+ does not support context manager)
-        print("🔧 Creating MCP client...")
-        client = MultiServerMCPClient(connections=mcp_config["mcpServers"])
-        print("🔧 Getting tools from MCP client...")
-        tools = await asyncio.wait_for(client.get_tools(), timeout=10.0)
-        print(f"✅ MCP client initialized successfully with {len(tools)} tools")
-        print("🔧 Building agent graph...")
-        return TodoAgent(tools=tools).build_graph()
-    except asyncio.TimeoutError:
-        print("❌ MCP client initialization timed out after 10 seconds")
-        raise Exception("Database connection timed out. Please try again.")
-    except Exception as e:
-        print(f"❌ Error initializing MCP client: {e}")
-        print(f"❌ Error type: {type(e)}")
-        import traceback
-        print(f"❌ Traceback: {traceback.format_exc()}")
-        raise Exception(f"Database initialization failed: {str(e)}")
-    finally:
-        os.chdir(original_cwd)
+        print("🔧 Initializing agent graph (first time only)...")
+        
+        config_path = os.path.join(os.path.dirname(__file__), 'mcps', 'mcp_config.json')
+        if not os.path.exists(config_path):
+            # Fallback path for when running from the root directory
+            config_path = os.path.join('sambanova', 'mcps', 'mcp_config.json')
+
+        with open(config_path) as f:
+            mcp_config = json.load(f)
+        
+        # Set working directory to project root for MCP servers
+        # __file__ is: /Users/hj/Web Development Projects/1. Main/sambanova/routes.py
+        # We need: /Users/hj/Web Development Projects/1. Main
+        project_root = os.path.dirname(os.path.dirname(__file__))
+        original_cwd = os.getcwd()
+        os.chdir(project_root)
+        
+        # Update the MCP config with absolute paths and environment variables
+        for server_name, server_config in mcp_config["mcpServers"].items():
+            if "args" in server_config and len(server_config["args"]) > 0:
+                # Convert relative path to absolute path
+                relative_path = server_config["args"][0]
+                if not os.path.isabs(relative_path):
+                    absolute_path = os.path.join(project_root, relative_path)
+                    server_config["args"][0] = absolute_path
+            
+            # Handle environment variable substitution in env section
+            if "env" in server_config:
+                for env_key, env_value in server_config["env"].items():
+                    if isinstance(env_value, str) and env_value.startswith("${") and env_value.endswith("}"):
+                        # Extract environment variable name
+                        env_var_name = env_value[2:-1]
+                        env_var_value = os.getenv(env_var_name)
+                        if env_var_value:
+                            server_config["env"][env_key] = env_var_value
+                            print(f"🔧 MCP config: Set {env_key}={env_var_name} from environment")
+                        else:
+                            print(f"⚠️  MCP config: Environment variable {env_var_name} not found")
+        
+        try:
+            # Initialize MCP client (langchain-mcp-adapters 0.1.0+ does not support context manager)
+            print("🔧 Creating MCP client...")
+            client = MultiServerMCPClient(connections=mcp_config["mcpServers"])
+            print("🔧 Getting tools from MCP client...")
+            tools = await asyncio.wait_for(client.get_tools(), timeout=10.0)
+            print(f"✅ MCP client initialized successfully with {len(tools)} tools")
+            print("🔧 Building agent graph...")
+            
+            # Build and cache the graph
+            _agent_graph_cache = TodoAgent(tools=tools).build_graph()
+            print("✅ Agent graph cached for future requests")
+            
+            return _agent_graph_cache
+        except asyncio.TimeoutError:
+            print("❌ MCP client initialization timed out after 10 seconds")
+            raise Exception("Database connection timed out. Please try again.")
+        except Exception as e:
+            print(f"❌ Error initializing MCP client: {e}")
+            print(f"❌ Error type: {type(e)}")
+            import traceback
+            print(f"❌ Traceback: {traceback.format_exc()}")
+            raise Exception(f"Database initialization failed: {str(e)}")
+        finally:
+            os.chdir(original_cwd)
 
 
 async def _run_agent_for_pin_verification(pin: str) -> str:
