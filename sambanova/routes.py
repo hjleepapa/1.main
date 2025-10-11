@@ -150,16 +150,24 @@ def verify_pin_webhook():
             response.redirect('/sambanova_todo/twilio/call')
             return Response(str(response), mimetype='text/xml')
         
-        # Verify PIN using MCP tool
+        # Verify PIN - use direct database query (fast, <100ms, avoids Twilio timeout)
         try:
-            verification_result = asyncio.run(_run_agent_for_pin_verification(clean_pin))
+            # Import here to avoid circular import
+            from sambanova.mcps.local_servers.db_todo import SessionLocal
+            from sambanova.models.user_models import User as UserModel
+            
+            # Quick database lookup
+            with SessionLocal() as session:
+                user = session.query(UserModel).filter(
+                    UserModel.voice_pin == clean_pin,
+                    UserModel.is_active == True
+                ).first()
             
             # Check if authentication succeeded
-            if "AUTHENTICATED:" in verification_result:
-                # Extract user ID from result
-                parts = verification_result.split('\n\n')[0].split('|')
-                user_id = parts[0].replace('AUTHENTICATED:', '')
-                user_name = parts[1] if len(parts) > 1 else "User"
+            if user:
+                # Extract user info
+                user_id = str(user.id)
+                user_name = user.first_name
                 
                 # Store user ID in session (use call_sid as session key)
                 # In production, use Redis or database for session storage
@@ -174,28 +182,21 @@ def verify_pin_webhook():
                     barge_in=True
                 )
                 
-                # Extract welcome message from verification result
-                welcome_msg = verification_result.split('\n\n', 1)[1] if '\n\n' in verification_result else f"Welcome, {user_name}!"
-                gather.say(f"{welcome_msg} How can I help you today?", voice='Polly.Amy')
+                # Welcome message
+                gather.say(f"Welcome back, {user_name}! How can I help you today?", voice='Polly.Amy')
                 
                 response.say("I didn't hear anything. Please try again.", voice='Polly.Amy')
                 response.redirect(f'/sambanova_todo/twilio/call?is_continuation=true&authenticated=true&user_id={user_id}')
                 
-                print(f"✅ PIN verified for user {user_id}")
+                print(f"✅ PIN verified for user {user_id} ({user.email})")
                 return Response(str(response), mimetype='text/xml')
             else:
-                # Authentication failed
+                # Invalid PIN
                 response = VoiceResponse()
                 response.say("Invalid PIN. Please try again.", voice='Polly.Amy')
                 response.redirect('/sambanova_todo/twilio/call')
-                print(f"❌ PIN verification failed")
+                print(f"❌ Invalid PIN: {clean_pin}")
                 return Response(str(response), mimetype='text/xml')
-                
-        except asyncio.TimeoutError:
-            response = VoiceResponse()
-            response.say("Authentication timed out. Please try again.", voice='Polly.Amy')
-            response.redirect('/sambanova_todo/twilio/call')
-            return Response(str(response), mimetype='text/xml')
             
     except Exception as e:
         print(f"Error in PIN verification: {e}")
