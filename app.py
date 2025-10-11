@@ -5,8 +5,10 @@ import hashlib
 from extensions import db, login_manager, ckeditor, bootstrap, migrate
 from flask_login import current_user # Import current_user
 import smtplib
+from flask_socketio import SocketIO
 
-# Flask-SocketIO will be initialized in the startup script
+# Flask-SocketIO instance (will be initialized in create_app)
+socketio = None
 
 # --- Global Helper Functions & Configuration ---
 def generate_gravatar_url(email, size=80, default_image='mp', rating='g'):
@@ -28,6 +30,8 @@ def generate_gravatar_url(email, size=80, default_image='mp', rating='g'):
 load_dotenv() # It's common to load dotenv at the module level or early in create_app
 
 def create_app():
+    global socketio
+    
     app = Flask(__name__)
 
     # Configuration
@@ -42,6 +46,9 @@ def create_app():
     ckeditor.init_app(app)
     bootstrap.init_app(app)
     migrate.init_app(app, db) # Initialize Flask-Migrate
+    
+    # Initialize Socket.IO for WebRTC voice
+    socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
     # --- Configure Login Manager ---
     # This must be done after initializing the extensions and before registering blueprints that use it.
@@ -84,6 +91,13 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(team_bp)
     app.register_blueprint(team_todo_bp)
+    
+    # Register WebRTC voice assistant blueprint
+    from sambanova.webrtc_voice_server import webrtc_bp, init_socketio
+    app.register_blueprint(webrtc_bp)
+    
+    # Initialize Socket.IO event handlers
+    init_socketio(socketio)
 
     # --- Main Application Routes ---
     @app.route('/', methods=["GET", "POST"])
@@ -186,5 +200,5 @@ app = create_app()
 
 if __name__ == '__main__':
     # This is for local development only.
-    # app = create_app() # Ensure the app is created before running
-    app.run(debug=True)
+    # Use socketio.run() instead of app.run() for WebSocket support
+    socketio.run(app, debug=True, host='0.0.0.0', port=10000)
