@@ -190,6 +190,8 @@
         
         <!-- Authentication Section -->
         <div id="authSection" class="auth-section">
+            <div class="status-message" id="authStatusMessage"></div>
+            
             <div class="mb-3">
                 <label for="pinInput" class="form-label">Enter Your PIN</label>
                 <input type="password" class="form-control" id="pinInput" placeholder="Enter 4-6 digit PIN" maxlength="6">
@@ -255,13 +257,34 @@
         
         // Initialize Socket.IO connection
         function initSocket() {
-            socket = io('/voice', {
-                transports: ['websocket', 'polling']
-            });
+            console.log('🔌 Initializing Socket.IO connection...');
             
-            socket.on('connect', () => {
-                console.log('✅ Connected to voice server');
-            });
+            try {
+                socket = io('/voice', {
+                    transports: ['websocket', 'polling'],
+                    reconnection: true,
+                    reconnectionDelay: 1000,
+                    reconnectionAttempts: 5
+                });
+                
+                socket.on('connect', () => {
+                    console.log('✅ Connected to voice server');
+                    showStatus('Connected! Ready to authenticate.', 'success');
+                });
+                
+                socket.on('connect_error', (error) => {
+                    console.error('❌ Connection error:', error);
+                    showStatus('Connection error. Please refresh the page.', 'error');
+                });
+                
+                socket.on('disconnect', (reason) => {
+                    console.log('⚠️ Disconnected:', reason);
+                    showStatus('Disconnected. Reconnecting...', 'error');
+                });
+            } catch (error) {
+                console.error('❌ Socket.IO initialization error:', error);
+                showStatus('Failed to initialize. Please refresh the page.', 'error');
+            }
             
             socket.on('authenticated', (data) => {
                 if (data.success) {
@@ -315,13 +338,23 @@
         
         // Authenticate user
         function authenticate() {
+            console.log('🔐 Authenticate button clicked');
+            
             const pin = document.getElementById('pinInput').value.trim();
             
             if (!pin || pin.length < 4) {
-                showStatus('Please enter a valid PIN', 'error');
+                showStatus('Please enter a valid PIN (4-6 digits)', 'error');
+                console.log('❌ Invalid PIN length:', pin.length);
                 return;
             }
             
+            if (!socket || !socket.connected) {
+                showStatus('Not connected to server. Please refresh the page.', 'error');
+                console.error('❌ Socket not connected:', socket);
+                return;
+            }
+            
+            console.log('📤 Sending authentication request with PIN');
             showStatus('Authenticating...', 'info');
             socket.emit('authenticate', { pin: pin });
         }
@@ -443,9 +476,18 @@
         
         // Show status message
         function showStatus(message, type) {
-            const statusEl = document.getElementById('statusMessage');
-            statusEl.textContent = message;
-            statusEl.className = `status-message ${type}`;
+            // Show in auth section if visible, otherwise in voice section
+            const authSection = document.getElementById('authSection');
+            const statusEl = authSection.style.display !== 'none' 
+                ? document.getElementById('authStatusMessage')
+                : document.getElementById('statusMessage');
+            
+            if (statusEl) {
+                statusEl.textContent = message;
+                statusEl.className = `status-message ${type}`;
+            }
+            
+            console.log(`📢 Status [${type}]: ${message}`);
         }
         
         // Add transcript item
