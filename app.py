@@ -48,7 +48,9 @@ def create_app():
     migrate.init_app(app, db) # Initialize Flask-Migrate
     
     # Initialize Socket.IO for WebRTC voice
-    socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+    # Use 'eventlet' for production (Gunicorn compatibility)
+    # Use 'threading' for local development
+    socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
     # --- Configure Login Manager ---
     # This must be done after initializing the extensions and before registering blueprints that use it.

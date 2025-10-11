@@ -1,3 +1,12 @@
+#!/usr/bin/env python3
+"""
+WSGI entry point for Flask-SocketIO with eventlet support
+"""
+
+# CRITICAL: Monkey patch MUST be the very first thing
+import eventlet
+eventlet.monkey_patch()
+
 import sys
 import os
 
@@ -10,6 +19,6 @@ from app import create_app, socketio
 # Create the application instance
 app = create_app()
 
-# For WSGI servers, we expose the socketio.wsgi_app instead of app
-# This allows Socket.IO to handle WebSocket upgrades properly
-application = socketio.wsgi_app if socketio else app
+# For Flask-SocketIO with eventlet, we need to expose the Flask app directly
+# Socket.IO middleware is already integrated via socketio.init_app()
+application = app
