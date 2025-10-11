@@ -153,8 +153,14 @@ def verify_pin_webhook():
         # Verify PIN - use direct database query (fast, <100ms, avoids Twilio timeout)
         try:
             # Import here to avoid circular import
-            from sambanova.mcps.local_servers.db_todo import SessionLocal
+            from sambanova.mcps.local_servers.db_todo import _init_database, SessionLocal
             from sambanova.models.user_models import User as UserModel
+            
+            # Initialize database if needed
+            _init_database()
+            
+            if SessionLocal is None:
+                raise Exception("Database not initialized - DB_URI not configured")
             
             # Quick database lookup
             with SessionLocal() as session:
