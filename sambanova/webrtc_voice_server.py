@@ -22,6 +22,10 @@ openai_client = openai.OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 # Active sessions storage
 active_sessions = {}
 
+# Global references for background tasks
+socketio = None
+flask_app = None
+
 
 @webrtc_bp.route('/voice-assistant')
 def voice_assistant():
@@ -32,9 +36,13 @@ def voice_assistant():
 def init_socketio(socketio_instance: SocketIO):
     """Initialize Socket.IO event handlers"""
     
-    # Store socketio instance for background tasks
-    global socketio
+    # Store socketio instance and Flask app for background tasks
+    global socketio, flask_app
     socketio = socketio_instance
+    
+    # Get Flask app from current context (we're being called during app setup)
+    from flask import current_app
+    flask_app = current_app._get_current_object()
     
     @socketio.on('connect', namespace='/voice')
     def handle_connect():
@@ -184,11 +192,8 @@ def init_socketio(socketio_instance: SocketIO):
     
     def process_audio_async(session_id, audio_buffer):
         """Process audio in background task"""
-        # Get Flask app for application context
-        from flask import current_app
-        app = current_app._get_current_object()
-        
-        with app.app_context():
+        # Use the stored Flask app instance for application context
+        with flask_app.app_context():
             try:
                 session = active_sessions.get(session_id)
                 if not session:
