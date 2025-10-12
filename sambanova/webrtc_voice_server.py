@@ -311,9 +311,11 @@ def init_socketio(socketio_instance: SocketIO, app):
 async def process_with_agent(text: str, user_id: str, user_name: str) -> str:
     """Process user input with the agent"""
     try:
-        # Get the agent
-        agent = get_agent()
-        graph = agent.build_graph()
+        # Import the routes module to use its agent graph initialization
+        from sambanova.routes import _get_agent_graph
+        
+        # Get the agent graph with tools
+        graph = await _get_agent_graph()
         
         # Create initial state
         initial_state = AgentState(
