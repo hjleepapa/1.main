@@ -297,6 +297,23 @@
                 }
             });
             
+            socket.on('welcome_greeting', (data) => {
+                console.log('👋 Welcome greeting received:', data.text);
+                
+                // Add to transcript
+                addTranscript('agent', data.text);
+                
+                // Play welcome audio
+                if (data.audio) {
+                    playAudioResponse(data.audio);
+                }
+                
+                // Show ready status after greeting
+                setTimeout(() => {
+                    showStatus('Ready to help! Click the microphone to speak.', 'success');
+                }, 2000);
+            });
+            
             socket.on('recording_started', () => {
                 console.log('🎤 Recording started');
             });

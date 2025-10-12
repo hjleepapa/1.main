@@ -103,6 +103,13 @@ def init_socketio(socketio_instance: SocketIO, app):
                         'user_name': user.first_name,
                         'message': f"Welcome back, {user.first_name}!"
                     })
+                    
+                    # Send welcome greeting with audio (background task)
+                    socketio.start_background_task(
+                        send_welcome_greeting, 
+                        session_id, 
+                        user.first_name
+                    )
                 else:
                     # Authentication failed
                     print(f"❌ Authentication failed: Invalid PIN")
@@ -185,6 +192,37 @@ def init_socketio(socketio_instance: SocketIO, app):
         
         # Process audio asynchronously
         socketio.start_background_task(process_audio_async, session_id, audio_buffer)
+    
+    
+    def send_welcome_greeting(session_id, user_name):
+        """Send welcome greeting with TTS audio after authentication"""
+        with flask_app.app_context():
+            try:
+                print(f"🎤 Generating welcome greeting for {user_name}")
+                
+                # Generate welcome message
+                welcome_text = f"Welcome back, {user_name}! I'm your Sambanova productivity assistant. How can I help you today?"
+                
+                # Generate TTS audio
+                speech_response = openai_client.audio.speech.create(
+                    model="tts-1",
+                    voice="nova",
+                    input=welcome_text
+                )
+                
+                # Convert to base64
+                audio_base64 = base64.b64encode(speech_response.content).decode('utf-8')
+                
+                # Send to client
+                socketio.emit('welcome_greeting', {
+                    'text': welcome_text,
+                    'audio': audio_base64
+                }, namespace='/voice', room=session_id)
+                
+                print(f"✅ Welcome greeting sent to {user_name}")
+                
+            except Exception as e:
+                print(f"❌ Error generating welcome greeting: {e}")
     
     
     def process_audio_async(session_id, audio_buffer):
