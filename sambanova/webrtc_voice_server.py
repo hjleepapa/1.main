@@ -286,9 +286,16 @@ async def process_with_agent(text: str, user_id: str, user_name: str) -> str:
             is_authenticated=True
         )
         
+        # Create config with thread_id for checkpointer
+        config = {
+            "configurable": {
+                "thread_id": f"webrtc_{user_id}_{int(asyncio.get_event_loop().time())}"
+            }
+        }
+        
         # Run agent with timeout
         result = await asyncio.wait_for(
-            graph.ainvoke(initial_state),
+            graph.ainvoke(initial_state, config),
             timeout=30.0
         )
         
