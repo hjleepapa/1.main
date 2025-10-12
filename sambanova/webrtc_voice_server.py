@@ -33,16 +33,13 @@ def voice_assistant():
     return render_template('webrtc_voice_assistant.html')
 
 
-def init_socketio(socketio_instance: SocketIO):
+def init_socketio(socketio_instance: SocketIO, app):
     """Initialize Socket.IO event handlers"""
     
     # Store socketio instance and Flask app for background tasks
     global socketio, flask_app
     socketio = socketio_instance
-    
-    # Get Flask app from current context (we're being called during app setup)
-    from flask import current_app
-    flask_app = current_app._get_current_object()
+    flask_app = app  # Store Flask app directly (passed as parameter)
     
     @socketio.on('connect', namespace='/voice')
     def handle_connect():

@@ -98,8 +98,8 @@ def create_app():
     from sambanova.webrtc_voice_server import webrtc_bp, init_socketio
     app.register_blueprint(webrtc_bp)
     
-    # Initialize Socket.IO event handlers
-    init_socketio(socketio)
+    # Initialize Socket.IO event handlers (pass app explicitly)
+    init_socketio(socketio, app)
 
     # --- Main Application Routes ---
     @app.route('/', methods=["GET", "POST"])
