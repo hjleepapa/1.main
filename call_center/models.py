@@ -92,5 +92,5 @@ class AgentActivity(db.Model):
     from_state = db.Column(db.String(20))
     to_state = db.Column(db.String(20))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    metadata = db.Column(db.JSON)
+    extra_data = db.Column(db.JSON)  # Additional activity metadata
 

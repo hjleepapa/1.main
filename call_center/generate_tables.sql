@@ -56,7 +56,7 @@ CREATE TABLE cc_agent_activities (
     from_state VARCHAR(20),
     to_state VARCHAR(20),
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    metadata JSONB
+    extra_data JSONB
 );
 
 -- Create indexes for better performance
@@ -91,6 +91,7 @@ COMMENT ON COLUMN cc_calls.state IS 'Call state: idle, ringing, connected, held,
 COMMENT ON COLUMN cc_calls.direction IS 'Call direction: inbound or outbound';
 COMMENT ON COLUMN cc_calls.customer_data IS 'JSON data for customer information popup';
 COMMENT ON COLUMN cc_agent_activities.activity_type IS 'Activity type: login, logout, state_change, call_start, call_end';
+COMMENT ON COLUMN cc_agent_activities.extra_data IS 'Additional activity metadata in JSON format';
 
 -- Optional: Insert a test agent for development
 -- Uncomment the following lines if you want to create a test agent
