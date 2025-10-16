@@ -94,6 +94,10 @@ def create_app():
     app.register_blueprint(team_bp)
     app.register_blueprint(team_todo_bp)
     
+    # Register call center blueprint
+    from call_center import call_center_bp
+    app.register_blueprint(call_center_bp)
+    
     # Register WebRTC voice assistant blueprint
     from sambanova.webrtc_voice_server import webrtc_bp, init_socketio
     app.register_blueprint(webrtc_bp)
