@@ -9,6 +9,7 @@ from datetime import datetime, timedelta, timezone
 import os
 import sys
 import logging
+import json
 from pydantic import BaseModel
 from enum import StrEnum
 import pandas as pd
@@ -1259,14 +1260,21 @@ async def create_calendar_event(
                 pass
                 # print(...) # Removed to avoid MCP protocol issues
     
-        result = CalendarEvent.model_validate(new_event.__dict__).model_dump_json(indent=2)
-        # print(...) # Removed to avoid MCP protocol issues
-        return result
+        # Return simplified result to avoid MCP protocol issues with large JSON
+        result_dict = {
+            "id": str(new_event.id),
+            "title": new_event.title,
+            "event_from": new_event.event_from.isoformat() if new_event.event_from else None,
+            "event_to": new_event.event_to.isoformat() if new_event.event_to else None,
+            "google_calendar_event_id": new_event.google_calendar_event_id,
+            "status": "created"
+        }
+        return json.dumps(result_dict)
         
     except Exception as e:
         error_msg = f"Error executing tool create_calendar_event: {str(e)}"
-        # print(...) # Removed to avoid MCP protocol issues
-        return error_msg
+        logging.error(error_msg)
+        return json.dumps({"error": error_msg, "status": "failed"})
 
 @mcp.tool()
 async def get_calendar_events() -> str:

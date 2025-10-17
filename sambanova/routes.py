@@ -7,6 +7,7 @@ import asyncio
 import json
 import os
 import logging
+import time
 
 from twilio.twiml.voice_response import VoiceResponse, Connect, Gather
 from .state import AgentState
@@ -419,6 +420,7 @@ def process_audio_webhook():
             reset_thread = True
             _run_agent_async._reset_threads.remove(user_id)
             print(f"🔄 Resetting conversation thread for user {user_id} (previous timeout/error)")
+            print(f"🔄 Reset threads set contains: {_run_agent_async._reset_threads}")
         
         # Process with the agent (with timeout to prevent hanging)
         # Note: Twilio HTTP timeout is ~15 seconds, so we must respond faster
@@ -709,9 +711,15 @@ async def _run_agent_async(prompt: str, user_id: Optional[str] = None, user_name
     )
     
     # Use timestamped thread ID after errors to start fresh conversation
-    import time
     thread_suffix = f"-{int(time.time())}" if reset_thread else ""
-    config = {"configurable": {"thread_id": f"user-{user_id}{thread_suffix}" if user_id else f"flask-thread-1{thread_suffix}"}}
+    thread_id = f"user-{user_id}{thread_suffix}" if user_id else f"flask-thread-1{thread_suffix}"
+    config = {"configurable": {"thread_id": thread_id}}
+    
+    # Debug logging
+    if reset_thread:
+        print(f"🆕 Using FRESH thread_id: {thread_id} (reset=True)")
+    else:
+        print(f"📝 Using existing thread_id: {thread_id} (reset=False)")
 
     # Stream through the graph to execute the agent logic with timeout
     try:
