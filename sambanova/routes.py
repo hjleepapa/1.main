@@ -413,41 +413,52 @@ def process_audio_webhook():
         # Get authenticated user_id from query params
         user_id = request.args.get('user_id')
         
+        # Check if this user's thread needs to be reset (after previous timeout/error)
+        reset_thread = False
+        if user_id and hasattr(_run_agent_async, '_reset_threads') and user_id in _run_agent_async._reset_threads:
+            reset_thread = True
+            _run_agent_async._reset_threads.remove(user_id)
+            print(f"🔄 Resetting conversation thread for user {user_id} (previous timeout/error)")
+        
         # Process with the agent (with timeout to prevent hanging)
         # Note: Twilio HTTP timeout is ~15 seconds, so we must respond faster
-        # On error, we retry immediately with a fresh thread to avoid cascading errors
         try:
             agent_response = asyncio.run(asyncio.wait_for(
-                _run_agent_async(transcribed_text, user_id=user_id, reset_thread=False),
+                _run_agent_async(transcribed_text, user_id=user_id, reset_thread=reset_thread),
                 timeout=12.0  # Reduced from 30 to 12 seconds to stay under Twilio's 15s timeout
             ))
         except asyncio.TimeoutError:
-            print(f"⏰ Agent timed out after 12 seconds - retrying with fresh thread")
-            # Retry with fresh thread to avoid incomplete tool call state
-            try:
-                agent_response = asyncio.run(asyncio.wait_for(
-                    _run_agent_async(transcribed_text, user_id=user_id, reset_thread=True),
-                    timeout=5.0  # Quick retry with shorter timeout
-                ))
-            except:
-                agent_response = "I'm sorry, I'm taking too long to process that request. Please try again with a simpler request."
+            print(f"⏰ Agent timed out after 12 seconds")
+            # Mark this user's thread for reset on next request
+            if user_id:
+                # Store in a simple in-memory cache (production would use Redis)
+                if not hasattr(_run_agent_async, '_reset_threads'):
+                    _run_agent_async._reset_threads = set()
+                _run_agent_async._reset_threads.add(user_id)
+                print(f"🔄 Marked user {user_id} for thread reset on next request")
+            agent_response = "I'm sorry, that operation is taking too long. The task may still complete in the background. Please check your calendar or todo list, or try a simpler request."
         except Exception as e:
             print(f"Error in agent processing: {e}")
-            # Check if this is the tool_call_id error - if so, retry with reset
             error_str = str(e)
-            if "tool_call" in error_str.lower() or "tool_calls" in error_str.lower():
-                print(f"🔧 Detected incomplete tool call error - retrying with fresh thread")
-                # Retry immediately with fresh thread
-                try:
-                    agent_response = asyncio.run(asyncio.wait_for(
-                        _run_agent_async(transcribed_text, user_id=user_id, reset_thread=True),
-                        timeout=5.0
-                    ))
-                except Exception as retry_error:
-                    print(f"Retry also failed: {retry_error}")
-                    agent_response = "I'm sorry, I encountered an error. Please try rephrasing your request."
+            
+            # Provide user-friendly error messages
+            if "tool_call" in error_str.lower():
+                print(f"🔧 Detected incomplete tool call error - marking thread for reset")
+                # Mark this user's thread for reset on next request
+                if user_id:
+                    if not hasattr(_run_agent_async, '_reset_threads'):
+                        _run_agent_async._reset_threads = set()
+                    _run_agent_async._reset_threads.add(user_id)
+                agent_response = "I had trouble completing the previous operation. Please try your request again, or ask me to check what's in your calendar or todo list."
+            elif "BrokenResourceError" in error_str:
+                # Mark for reset since MCP connection may be broken
+                if user_id:
+                    if not hasattr(_run_agent_async, '_reset_threads'):
+                        _run_agent_async._reset_threads = set()
+                    _run_agent_async._reset_threads.add(user_id)
+                agent_response = "I encountered a connection issue. The operation may have completed in the background. Please check your calendar or todo list."
             else:
-                agent_response = "I'm sorry, I encountered an error processing your request. Please try again."
+                agent_response = "I'm sorry, I encountered an error processing your request. Please try again or rephrase your question."
         
         # Check if agent response indicates a transfer request
         if agent_response.startswith("TRANSFER_INITIATED:"):

@@ -310,20 +310,32 @@ class TodoAgent:
                                     print(f"❌   Exception {i+1}: {type(exc).__name__}: {exc}")
                                 first_error = eg.exceptions[0] if eg.exceptions else eg
                                 error_str = str(first_error)
-                                result = f"I encountered an error: {error_str[:200]}"
-                                print(f"❌ Tool {tool_name} error (unwrapped): {error_str}")
+                                error_type = type(first_error).__name__
+                                
+                                # Handle BrokenResourceError (MCP connection issue)
+                                if "BrokenResourceError" in error_type or not error_str.strip():
+                                    result = "I encountered a connection issue with the database. The operation may have completed. Please check your calendar."
+                                else:
+                                    result = f"I encountered an error: {error_str[:200]}"
+                                print(f"❌ Tool {tool_name} error (unwrapped): {error_str if error_str else error_type}")
                             except Exception as tool_error:
                                 error_str = str(tool_error)
                                 print(f"❌ Tool {tool_name} error: {error_str}")
                                 print(f"❌ Tool {tool_name} error type: {type(tool_error)}")
                                 
                                 # Handle specific error types
-                                if "TaskGroup" in error_str:
+                                error_type = type(tool_error).__name__
+                                if "BrokenResourceError" in error_type:
+                                    result = "I encountered a database connection issue. The operation may have completed. Please check your calendar or todo list."
+                                elif "TaskGroup" in error_str:
                                     result = "I encountered a system processing error. The task may have been created successfully. Please check your todo list."
                                 elif "Database not available" in error_str or "DB_URI" in error_str:
                                     result = "I'm sorry, there's a database connection issue. Please try again in a moment."
                                 elif "validation" in error_str.lower():
                                     result = "I encountered a data validation error. Let me try again."
+                                elif not error_str.strip():
+                                    # Empty error message
+                                    result = "I encountered an unexpected error. Please try again or rephrase your request."
                                 else:
                                     result = f"I encountered an error: {error_str[:100]}"
                             
