@@ -212,16 +212,18 @@
     <audio id="remoteAudio"></audio>
 
     <!-- Scripts -->
-    <!-- Load SIP.js library (version 0.20.x has better browser compatibility) -->
-    <script src="https://cdn.jsdelivr.net/npm/sip.js@0.20.0/dist/sip.min.js"></script>
+    <!-- Load JsSIP library (locally hosted, v3.10.1) -->
+    <script src="{{ url_for('call_center.static', filename='js/jssip.min.js') }}"></script>
     <script>
-        // Wait for SIP.js to load before initializing app
+        // Verify JsSIP loaded correctly
         window.addEventListener('load', function() {
-            if (typeof SIP === 'undefined') {
-                console.error('SIP.js library failed to load!');
-                alert('Error: SIP.js library not loaded. Please refresh the page.');
+            if (typeof JsSIP !== 'undefined') {
+                console.log('✓ JsSIP v3.10.1 loaded successfully');
+                // Make it available as SIP for compatibility
+                window.SIP = window.JsSIP;
             } else {
-                console.log('SIP.js loaded successfully:', SIP);
+                console.error('❌ JsSIP library failed to load!');
+                alert('Error: SIP library not loaded. Please refresh the page or contact support.');
             }
         });
     </script>

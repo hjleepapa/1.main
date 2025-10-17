@@ -215,52 +215,75 @@ class CallCenterAgent {
     }
     
     initSIPClient(username, password, domain) {
-        // Initialize SIP.js User Agent
-        const uri = SIP.UserAgent.makeURI(`sip:${username}@${domain}`);
+        // Initialize JsSIP User Agent
+        console.log(`Initializing SIP client for ${username}@${domain}`);
         
-        const transportOptions = {
-            server: `wss://${domain}:7443`  // Adjust port as needed
+        const socket = new JsSIP.WebSocketInterface(`wss://${domain}:7443`);
+        
+        const configuration = {
+            sockets: [socket],
+            uri: `sip:${username}@${domain}`,
+            password: password,
+            display_name: username,
+            register: true
         };
         
-        const userAgentOptions = {
-            authorizationUsername: username,
-            authorizationPassword: password,
-            transportOptions,
-            uri,
-            delegate: {
-                onInvite: (invitation) => this.handleIncomingCall(invitation)
-            }
-        };
+        this.sipUser = new JsSIP.UA(configuration);
         
-        this.sipUser = new SIP.UserAgent(userAgentOptions);
-        
-        // Connect
-        this.sipUser.start().then(() => {
-            console.log('SIP User Agent started');
+        // Event handlers
+        this.sipUser.on('connected', (e) => {
+            console.log('✓ SIP connected');
             this.updateSIPStatus(true);
-            
-            // Register
-            const registerer = new SIP.Registerer(this.sipUser);
-            registerer.register();
-        }).catch((error) => {
+        });
+        
+        this.sipUser.on('disconnected', (e) => {
+            console.log('✗ SIP disconnected');
+            this.updateSIPStatus(false);
+        });
+        
+        this.sipUser.on('registered', (e) => {
+            console.log('✓ SIP registered');
+            this.updateSIPStatus(true);
+        });
+        
+        this.sipUser.on('unregistered', (e) => {
+            console.log('SIP unregistered');
+        });
+        
+        this.sipUser.on('registrationFailed', (e) => {
+            console.error('✗ SIP registration failed:', e);
+            this.updateSIPStatus(false);
+            alert('Failed to register with SIP server. Please check your credentials.');
+        });
+        
+        this.sipUser.on('newRTCSession', (e) => {
+            console.log('New RTC session');
+            this.handleIncomingCall(e.session);
+        });
+        
+        // Start the User Agent
+        try {
+            this.sipUser.start();
+            console.log('SIP User Agent started');
+        } catch (error) {
             console.error('Failed to start SIP User Agent:', error);
             this.updateSIPStatus(false);
-            alert('Failed to connect to SIP server. Please check your credentials.');
-        });
+            alert('Failed to connect to SIP server: ' + error.message);
+        }
     }
     
-    handleIncomingCall(invitation) {
-        console.log('Incoming call:', invitation);
+    handleIncomingCall(session) {
+        console.log('Incoming call:', session);
         
-        this.currentSession = invitation;
+        this.currentSession = session;
         
-        // Extract caller information
-        const remoteIdentity = invitation.remoteIdentity;
+        // Extract caller information (JsSIP API)
+        const remoteIdentity = session.remote_identity;
         const callerNumber = remoteIdentity.uri.user;
-        const callerName = remoteIdentity.displayName || callerNumber;
+        const callerName = remoteIdentity.display_name || callerNumber;
         
         // Generate call ID
-        const callId = invitation.request.callId;
+        const callId = session.id;
         
         // Mock customer data (in production, fetch from CRM)
         const customerId = callerNumber;
