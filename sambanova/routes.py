@@ -415,16 +415,39 @@ def process_audio_webhook():
         
         # Process with the agent (with timeout to prevent hanging)
         # Note: Twilio HTTP timeout is ~15 seconds, so we must respond faster
+        # On error, we retry immediately with a fresh thread to avoid cascading errors
         try:
             agent_response = asyncio.run(asyncio.wait_for(
-                _run_agent_async(transcribed_text, user_id=user_id),
+                _run_agent_async(transcribed_text, user_id=user_id, reset_thread=False),
                 timeout=12.0  # Reduced from 30 to 12 seconds to stay under Twilio's 15s timeout
             ))
         except asyncio.TimeoutError:
-            agent_response = "I'm sorry, I'm taking too long to process that request. Please try again with a simpler request."
+            print(f"⏰ Agent timed out after 12 seconds - retrying with fresh thread")
+            # Retry with fresh thread to avoid incomplete tool call state
+            try:
+                agent_response = asyncio.run(asyncio.wait_for(
+                    _run_agent_async(transcribed_text, user_id=user_id, reset_thread=True),
+                    timeout=5.0  # Quick retry with shorter timeout
+                ))
+            except:
+                agent_response = "I'm sorry, I'm taking too long to process that request. Please try again with a simpler request."
         except Exception as e:
             print(f"Error in agent processing: {e}")
-            agent_response = "I'm sorry, I encountered an error processing your request. Please try again."
+            # Check if this is the tool_call_id error - if so, retry with reset
+            error_str = str(e)
+            if "tool_call" in error_str.lower() or "tool_calls" in error_str.lower():
+                print(f"🔧 Detected incomplete tool call error - retrying with fresh thread")
+                # Retry immediately with fresh thread
+                try:
+                    agent_response = asyncio.run(asyncio.wait_for(
+                        _run_agent_async(transcribed_text, user_id=user_id, reset_thread=True),
+                        timeout=5.0
+                    ))
+                except Exception as retry_error:
+                    print(f"Retry also failed: {retry_error}")
+                    agent_response = "I'm sorry, I encountered an error. Please try rephrasing your request."
+            else:
+                agent_response = "I'm sorry, I encountered an error processing your request. Please try again."
         
         # Check if agent response indicates a transfer request
         if agent_response.startswith("TRANSFER_INITIATED:"):
@@ -637,8 +660,15 @@ async def _run_agent_for_pin_verification(pin: str) -> str:
         traceback.print_exc()
         return f"AUTHENTICATION_ERROR: {str(e)}"
 
-async def _run_agent_async(prompt: str, user_id: Optional[str] = None, user_name: Optional[str] = None) -> str:
-    """Runs the agent for a given prompt and returns the final response."""
+async def _run_agent_async(prompt: str, user_id: Optional[str] = None, user_name: Optional[str] = None, reset_thread: bool = False) -> str:
+    """Runs the agent for a given prompt and returns the final response.
+    
+    Args:
+        prompt: User's input text
+        user_id: Authenticated user ID
+        user_name: User's display name
+        reset_thread: If True, starts a new conversation thread (used after timeouts/errors)
+    """
     try:
         agent_graph = await _get_agent_graph()
     except Exception as e:
@@ -652,7 +682,11 @@ async def _run_agent_async(prompt: str, user_id: Optional[str] = None, user_name
         authenticated_user_name=user_name,
         is_authenticated=bool(user_id)
     )
-    config = {"configurable": {"thread_id": f"user-{user_id}" if user_id else "flask-thread-1"}}
+    
+    # Use timestamped thread ID after errors to start fresh conversation
+    import time
+    thread_suffix = f"-{int(time.time())}" if reset_thread else ""
+    config = {"configurable": {"thread_id": f"user-{user_id}{thread_suffix}" if user_id else f"flask-thread-1{thread_suffix}"}}
 
     # Stream through the graph to execute the agent logic with timeout
     try:
