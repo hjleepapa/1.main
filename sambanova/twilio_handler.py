@@ -175,6 +175,13 @@ async def twilio_handler(websocket):
         try:
             client = MultiServerMCPClient(connections=mcp_config["mcpServers"])
             tools = await client.get_tools()
+            
+            # Add call transfer tools
+            from .mcps.local_servers.call_transfer import get_transfer_tools
+            transfer_tools = get_transfer_tools()
+            tools.extend(transfer_tools)
+            logger.info(f"✅ Added {len(transfer_tools)} call transfer tools")
+            
             agent_graph = TodoAgent(tools=tools).build_graph()
             logger.info("✅ Sambanova agent and tools initialized successfully")
         finally:
@@ -284,6 +291,45 @@ async def twilio_handler(websocket):
                         print(text_chunk, end="", flush=True)
                     print("\n")
 
+                    # 3. Check if agent response indicates a transfer request
+                    if agent_response_text.startswith("TRANSFER_INITIATED:"):
+                        # Parse transfer details
+                        transfer_data = agent_response_text.replace("TRANSFER_INITIATED:", "")
+                        parts = transfer_data.split("|")
+                        target_extension = parts[0] if len(parts) > 0 else "201"
+                        department = parts[1] if len(parts) > 1 else "support"
+                        reason = parts[2] if len(parts) > 2 else "User requested transfer"
+                        
+                        logger.info(f"Transfer request detected: extension={target_extension}, dept={department}, reason={reason}")
+                        
+                        # Send transfer marker to Twilio
+                        await websocket.send(json.dumps({
+                            "event": "mark",
+                            "streamSid": data.get("streamSid", call_sid),
+                            "mark": {
+                                "name": "transfer",
+                                "label": "transfer-to-freepbx",
+                                "parameters": {
+                                    "to_extension": target_extension,
+                                    "department": department,
+                                    "reason": reason
+                                }
+                            }
+                        }))
+                        logger.info(f"Transfer marker sent for extension {target_extension}")
+                        
+                        # Inform user before transfer
+                        transfer_message = f"Transferring you to {department}. Please wait."
+                        await websocket.send(json.dumps({
+                            "event": "response",
+                            "streamSid": call_sid,
+                            "text": transfer_message
+                        }))
+                        
+                        # Close WebSocket after transfer initiation
+                        logger.info("Closing WebSocket after transfer initiation")
+                        return
+                    
                     # 3. Send the agent's response back to Twilio
                     if agent_response_text:
                         logger.info("Sending Sambanova agent response to Twilio...")

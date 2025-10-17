@@ -66,6 +66,11 @@ class TodoAgent:
             - "assign [task] to [person] in [team]" → FIRST get_team_members to find user, THEN use create_team_todo
             - "create [priority] todo for [team]" → use create_team_todo immediately
             
+            CALL TRANSFER (VOICE CALLS ONLY):
+            - "transfer me" / "speak to agent" / "talk to human" → use transfer_to_agent immediately
+            - "transfer to [department]" → use transfer_to_agent with department parameter
+            - "what departments" / "who can I talk to" → use get_available_departments immediately
+            
             CRITICAL RULES FOR TEAM OPERATIONS:
             1. When user mentions a team name, use get_teams to find the exact team_id
             2. When assigning to a person, use get_team_members to find their user_id
@@ -128,6 +133,10 @@ class TodoAgent:
             
             DATABASE:
             - query_db: Execute SQL queries
+            
+            CALL TRANSFER (VOICE CALLS):
+            - transfer_to_agent: Transfer call to human agent or department
+            - get_available_departments: List available departments for transfer
 
             EXAMPLES:
             
@@ -199,6 +208,19 @@ class TodoAgent:
                STEP 1: use create_team(name="Hackathon Team")
                STEP 2: use add_team_member(team_name="Hackathon", email="admin@sambanova.com", role="owner")
                STEP 3: Confirm "Hackathon team created and admin@sambanova.com added as owner"
+            
+            CALL TRANSFER EXAMPLES:
+            User: "I need to speak to a human"
+               → IMMEDIATELY use transfer_to_agent(department="support", reason="User requested human agent")
+            
+            User: "Transfer me to sales"
+               → IMMEDIATELY use transfer_to_agent(department="sales", reason="User requested sales department")
+            
+            User: "This is too complicated, I need help"
+               → IMMEDIATELY use transfer_to_agent(department="support", reason="User needs additional assistance")
+            
+            User: "What departments can I talk to?"
+               → IMMEDIATELY use get_available_departments()
             
             ROLE HIERARCHY:
             - owner: Full control (can delete team, manage all members)

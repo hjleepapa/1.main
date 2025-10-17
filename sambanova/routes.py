@@ -228,6 +228,48 @@ def verify_pin_webhook():
         response.redirect('/sambanova_todo/twilio/call')
         return Response(str(response), mimetype='text/xml')
 
+@sambanova_todo_bp.route('/twilio/transfer', methods=['POST'])
+def transfer_to_agent():
+    """
+    Transfer the call to a FreePBX extension/queue.
+    Expects POST parameters:
+    - extension: The FreePBX extension or queue number to transfer to
+    - call_sid: The Twilio Call SID
+    """
+    try:
+        extension = request.form.get('extension') or request.args.get('extension', '201')
+        call_sid = request.form.get('CallSid', '')
+        
+        logger.info(f"Transferring call {call_sid} to extension {extension}")
+        
+        # Create TwiML response for transfer
+        response = VoiceResponse()
+        response.say("Transferring you to an agent. Please wait.", voice='Polly.Amy')
+        
+        # Dial the FreePBX extension
+        # Format: sip:extension@freepbx-domain
+        freepbx_domain = os.getenv('FREEPBX_DOMAIN', '34.26.59.14')  # Use your FreePBX IP/domain
+        sip_uri = f"sip:{extension}@{freepbx_domain}"
+        
+        response.dial(sip_uri)
+        
+        # If dial fails, provide fallback message
+        response.say("I'm sorry, the transfer failed. Please try again later.", voice='Polly.Amy')
+        response.hangup()
+        
+        logger.info(f"Transfer TwiML generated for call {call_sid} to {sip_uri}")
+        return Response(str(response), mimetype='text/xml')
+        
+    except Exception as e:
+        logger.error(f"Error in transfer endpoint: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        response = VoiceResponse()
+        response.say("I'm sorry, there was an error transferring your call. Please try again.", voice='Polly.Amy')
+        response.hangup()
+        return Response(str(response), mimetype='text/xml')
+
 @sambanova_todo_bp.route('/twilio/process_audio', methods=['POST'])
 def process_audio_webhook():
     """
@@ -273,6 +315,16 @@ def process_audio_webhook():
             response.redirect(f'/sambanova_todo/twilio/call?is_continuation=true&authenticated=true{user_param}')
             return Response(str(response), mimetype='text/xml')
         
+        # Check if user wants to transfer to an agent
+        transfer_phrases = ['transfer', 'agent', 'human', 'representative', 'operator', 'speak to someone', 'talk to someone', 'real person']
+        if any(phrase in transcribed_text.lower() for phrase in transfer_phrases):
+            # Redirect to transfer endpoint
+            webhook_base_url = get_webhook_base_url()
+            response = VoiceResponse()
+            response.redirect(f'{webhook_base_url}/sambanova_todo/twilio/transfer?extension=201')
+            logger.info(f"Redirecting call to transfer endpoint based on user request: {transcribed_text}")
+            return Response(str(response), mimetype='text/xml')
+        
         # Check if user wants to end the call
         exit_phrases = ['exit', 'goodbye', 'bye', 'that\'s it', 'that is it', 'thank you', 'thanks', 'done', 'finished', 'end call', 'hang up']
         if any(phrase in transcribed_text.lower() for phrase in exit_phrases):
@@ -296,6 +348,19 @@ def process_audio_webhook():
         except Exception as e:
             print(f"Error in agent processing: {e}")
             agent_response = "I'm sorry, I encountered an error processing your request. Please try again."
+        
+        # Check if agent response indicates a transfer request
+        if agent_response.startswith("TRANSFER_INITIATED:"):
+            # Parse transfer details
+            transfer_data = agent_response.replace("TRANSFER_INITIATED:", "")
+            parts = transfer_data.split("|")
+            target_extension = parts[0] if len(parts) > 0 else "201"
+            
+            webhook_base_url = get_webhook_base_url()
+            response = VoiceResponse()
+            response.redirect(f'{webhook_base_url}/sambanova_todo/twilio/transfer?extension={target_extension}')
+            logger.info(f"Agent initiated transfer to extension {target_extension}")
+            return Response(str(response), mimetype='text/xml')
         
         # Return TwiML with the agent's response and barge-in capability
         response = VoiceResponse()
@@ -426,6 +491,13 @@ async def _get_agent_graph() -> StateGraph:
             print("🔧 Getting tools from MCP client...")
             tools = await asyncio.wait_for(client.get_tools(), timeout=10.0)
             print(f"✅ MCP client initialized successfully with {len(tools)} tools")
+            
+            # Add call transfer tools (non-MCP tools)
+            from .mcps.local_servers.call_transfer import get_transfer_tools
+            transfer_tools = get_transfer_tools()
+            tools.extend(transfer_tools)
+            print(f"✅ Added {len(transfer_tools)} call transfer tools")
+            
             print("🔧 Building agent graph...")
             
             # Build and cache the graph
