@@ -250,36 +250,31 @@ def transfer_to_agent():
         # Get configuration
         freepbx_domain = os.getenv('FREEPBX_DOMAIN', '34.26.59.14')
         transfer_timeout = int(os.getenv('TRANSFER_TIMEOUT', '30'))
-        use_trunk_number = os.getenv('USE_TRUNK_NUMBER_TRANSFER', 'false').lower() == 'true'
-        trunk_number = os.getenv('TWILIO_TRUNK_NUMBER', '+19256337818')
+        sip_username = os.getenv('FREEPBX_SIP_USERNAME', '')
+        sip_password = os.getenv('FREEPBX_SIP_PASSWORD', '')
         
-        # Choose transfer method based on configuration
-        if use_trunk_number:
-            # Method 1: Use trunk number routing (requires FreePBX inbound route)
-            logger.info(f"Using trunk number transfer to {trunk_number}")
-            dial = response.dial(
-                answer_on_bridge=True,
-                timeout=transfer_timeout,
-                caller_id=caller_number,
-                action=f'/sambanova_todo/twilio/transfer_callback?extension={extension}'
-            )
-            dial.number(trunk_number)
+        # Build SIP URI for FreePBX extension
+        # Flow: Voice AI (current call) → Transfer → FreePBX extension
+        sip_uri = f"sip:{extension}@{freepbx_domain}"
+        logger.info(f"Transferring to SIP URI: {sip_uri}")
+        
+        # Create Dial verb with transfer settings
+        dial = response.dial(
+            answer_on_bridge=True,  # Wait for agent to answer before connecting
+            timeout=transfer_timeout,
+            caller_id=caller_number,
+            action=f'/sambanova_todo/twilio/transfer_callback?extension={extension}'
+        )
+        
+        # Add SIP destination
+        if sip_username and sip_password:
+            # Use SIP authentication if configured
+            dial.sip(sip_uri, username=sip_username, password=sip_password)
+            logger.info(f"Using SIP auth with username: {sip_username}")
         else:
-            # Method 2: Direct SIP URI (requires SIP trunk configuration)
-            sip_uri = f"sip:{extension}@{freepbx_domain};transport=udp"
-            logger.info(f"Using SIP URI transfer to {sip_uri}")
-            
-            dial = response.dial(
-                answer_on_bridge=True,
-                timeout=transfer_timeout,
-                caller_id=caller_number,
-                action=f'/sambanova_todo/twilio/transfer_callback?extension={extension}'
-            )
-            dial.sip(
-                sip_uri,
-                username=os.getenv('FREEPBX_SIP_USERNAME', ''),
-                password=os.getenv('FREEPBX_SIP_PASSWORD', '')
-            )
+            # Use IP-based authentication (recommended)
+            dial.sip(sip_uri)
+            logger.info("Using IP-based SIP authentication")
         
         # If dial fails, provide fallback message
         response.say("I'm sorry, the transfer failed. Please try again later.", voice='Polly.Amy')
