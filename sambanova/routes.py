@@ -428,37 +428,51 @@ def process_audio_webhook():
                 timeout=12.0  # Reduced from 30 to 12 seconds to stay under Twilio's 15s timeout
             ))
         except asyncio.TimeoutError:
-            print(f"⏰ Agent timed out after 12 seconds")
-            # Mark this user's thread for reset on next request
+            print(f"⏰ Outer timeout: Agent took more than 12 seconds")
+            # Mark user for thread reset
             if user_id:
-                # Store in a simple in-memory cache (production would use Redis)
                 if not hasattr(_run_agent_async, '_reset_threads'):
                     _run_agent_async._reset_threads = set()
                 _run_agent_async._reset_threads.add(user_id)
-                print(f"🔄 Marked user {user_id} for thread reset on next request")
-            agent_response = "I'm sorry, that operation is taking too long. The task may still complete in the background. Please check your calendar or todo list, or try a simpler request."
+                print(f"🔄 Marked user {user_id} for thread reset")
+            agent_response = "I'm sorry, that operation is taking too long. The task may still complete in the background. Please check your calendar or todo list."
         except Exception as e:
-            print(f"Error in agent processing: {e}")
-            error_str = str(e)
+            print(f"Error in agent processing (outer): {e}")
+            agent_response = f"AGENT_ERROR:unexpected:{str(e)[:100]}"
+        
+        # Check if agent returned an error marker and handle accordingly
+        if agent_response.startswith("AGENT_TIMEOUT:"):
+            print(f"⏰ Agent timed out internally")
+            if user_id:
+                if not hasattr(_run_agent_async, '_reset_threads'):
+                    _run_agent_async._reset_threads = set()
+                _run_agent_async._reset_threads.add(user_id)
+                print(f"🔄 Marked user {user_id} for thread reset")
+            agent_response = "I'm sorry, that operation is taking too long. Please try a simpler request."
             
-            # Provide user-friendly error messages
-            if "tool_call" in error_str.lower():
-                print(f"🔧 Detected incomplete tool call error - marking thread for reset")
-                # Mark this user's thread for reset on next request
+        elif agent_response.startswith("AGENT_ERROR:"):
+            # Parse error type and message
+            parts = agent_response.split(":", 2)
+            error_type = parts[1] if len(parts) > 1 else "unknown"
+            error_msg = parts[2] if len(parts) > 2 else ""
+            
+            print(f"🔧 Agent returned error: type={error_type}, msg={error_msg}")
+            
+            # Mark user for thread reset on these error types
+            if error_type in ["tool_call_incomplete", "broken_resource"]:
                 if user_id:
                     if not hasattr(_run_agent_async, '_reset_threads'):
                         _run_agent_async._reset_threads = set()
                     _run_agent_async._reset_threads.add(user_id)
-                agent_response = "I had trouble completing the previous operation. Please try your request again, or ask me to check what's in your calendar or todo list."
-            elif "BrokenResourceError" in error_str:
-                # Mark for reset since MCP connection may be broken
-                if user_id:
-                    if not hasattr(_run_agent_async, '_reset_threads'):
-                        _run_agent_async._reset_threads = set()
-                    _run_agent_async._reset_threads.add(user_id)
-                agent_response = "I encountered a connection issue. The operation may have completed in the background. Please check your calendar or todo list."
+                    print(f"🔄 Marked user {user_id} for thread reset due to {error_type}")
+            
+            # User-friendly messages
+            if error_type == "tool_call_incomplete":
+                agent_response = "I had trouble with the previous operation. Please try your request again."
+            elif error_type == "broken_resource":
+                agent_response = "I encountered a connection issue. The operation may have completed. Please check your calendar or todo list."
             else:
-                agent_response = "I'm sorry, I encountered an error processing your request. Please try again or rephrase your question."
+                agent_response = "I'm sorry, I encountered an error. Please try again or rephrase your question."
         
         # Check if agent response indicates a transfer request
         if agent_response.startswith("TRANSFER_INITIATED:"):
@@ -714,10 +728,19 @@ async def _run_agent_async(prompt: str, user_id: Optional[str] = None, user_name
         
         return await asyncio.wait_for(process_stream(), timeout=10.0)  # Reduced from 25 to 10 seconds
     except asyncio.TimeoutError:
-        return "I'm sorry, I'm taking too long to process that request. Please try again with a simpler request."
+        # Return a special marker for timeout
+        return "AGENT_TIMEOUT: Taking too long to process. Please try a simpler request."
     except Exception as e:
         print(f"Error in agent execution: {e}")
-        return "I'm sorry, I encountered an error processing your request. Please try again."
+        error_str = str(e)
+        
+        # Return special markers for specific errors so they can be detected upstream
+        if "tool_call" in error_str.lower():
+            return f"AGENT_ERROR:tool_call_incomplete:{error_str[:100]}"
+        elif "BrokenResourceError" in error_str:
+            return "AGENT_ERROR:broken_resource:Connection issue with database"
+        else:
+            return f"AGENT_ERROR:general:{error_str[:100]}"
 
 
 @sambanova_todo_bp.route('/run_agent', methods=['POST'])
