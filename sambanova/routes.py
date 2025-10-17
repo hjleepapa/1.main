@@ -8,6 +8,7 @@ import json
 import os
 import logging
 import time
+import sentry_sdk
 
 from twilio.twiml.voice_response import VoiceResponse, Connect, Gather
 from .state import AgentState
@@ -358,193 +359,243 @@ def process_audio_webhook():
     - Continuous conversation flow
     - Graceful error handling
     """
-    try:
-        # Get the transcribed text from the request
-        transcribed_text = request.form.get('SpeechResult', '')
-        call_sid = request.form.get('CallSid', '')
-        
-        print(f"Processing audio for call {call_sid}: {transcribed_text}")
-        
-        if not transcribed_text or len(transcribed_text.strip()) < 2:
-            response = VoiceResponse()
-            
-            # Get authenticated user_id for redirect
-            user_id = request.args.get('user_id', '')
-            user_param = f'&user_id={user_id}' if user_id else ''
-            
-            # Use Gather with barge-in for "didn't catch that" response
-            gather = Gather(
-                input='speech',
-                action=f'/sambanova_todo/twilio/process_audio?user_id={user_id}' if user_id else '/sambanova_todo/twilio/process_audio',
-                method='POST',
-                speech_timeout='auto',
-                timeout=10,
-                barge_in=True,
-                speech_model='experimental_conversations',  # Better conversational recognition
-                enhanced=True,  # Use enhanced speech recognition
-                language='en-US'  # Explicitly set language
-            )
-            gather.say("I didn't catch that. Could you please repeat?", voice='Polly.Amy')
-            response.append(gather)
-            
-            # Fallback
-            response.say("I didn't hear anything. Please try again.", voice='Polly.Amy')
-            response.redirect(f'/sambanova_todo/twilio/call?is_continuation=true&authenticated=true{user_param}')
-            return Response(str(response), mimetype='text/xml')
-        
-        # Check if user wants to transfer to an agent
-        transfer_phrases = ['transfer', 'agent', 'human', 'representative', 'operator', 'speak to someone', 'talk to someone', 'real person']
-        if any(phrase in transcribed_text.lower() for phrase in transfer_phrases):
-            # Redirect to transfer endpoint
-            webhook_base_url = get_webhook_base_url()
-            response = VoiceResponse()
-            response.redirect(f'{webhook_base_url}/sambanova_todo/twilio/transfer?extension=2000')
-            logger.info(f"Redirecting call to transfer endpoint based on user request: {transcribed_text}")
-            return Response(str(response), mimetype='text/xml')
-        
-        # Check if user wants to end the call
-        exit_phrases = ['exit', 'goodbye', 'bye', 'that\'s it', 'that is it', 'thank you', 'thanks', 'done', 'finished', 'end call', 'hang up']
-        if any(phrase in transcribed_text.lower() for phrase in exit_phrases):
-            # End the call gracefully
-            response = VoiceResponse()
-            response.say("Thank you for using Sambanova productivity assistant! Have a great day!", voice='Polly.Amy')
-            response.hangup()
-            return Response(str(response), mimetype='text/xml')
-        
-        # Get authenticated user_id from query params
-        user_id = request.args.get('user_id')
-        
-        # Check if this user's thread needs to be reset (after previous timeout/error)
-        reset_thread = False
-        if user_id and hasattr(_run_agent_async, '_reset_threads') and user_id in _run_agent_async._reset_threads:
-            reset_thread = True
-            _run_agent_async._reset_threads.remove(user_id)
-            print(f"🔄 Resetting conversation thread for user {user_id} (previous timeout/error)")
-            print(f"🔄 Reset threads set contains: {_run_agent_async._reset_threads}")
-        
-        # Process with the agent (with timeout to prevent hanging)
-        # Note: Twilio HTTP timeout is ~15 seconds, so we must respond faster
+    # Start Sentry transaction for performance monitoring
+    with sentry_sdk.start_transaction(op="voice_call", name="process_audio") as transaction:
         try:
-            agent_response = asyncio.run(asyncio.wait_for(
-                _run_agent_async(transcribed_text, user_id=user_id, reset_thread=reset_thread),
-                timeout=12.0  # Reduced from 30 to 12 seconds to stay under Twilio's 15s timeout
-            ))
-        except asyncio.TimeoutError:
-            print(f"⏰ Outer timeout: Agent took more than 12 seconds")
-            # Mark user for thread reset
-            if user_id:
-                if not hasattr(_run_agent_async, '_reset_threads'):
-                    _run_agent_async._reset_threads = set()
-                _run_agent_async._reset_threads.add(user_id)
-                print(f"🔄 Marked user {user_id} for thread reset")
-            agent_response = "I'm sorry, that operation is taking too long. The task may still complete in the background. Please check your calendar or todo list."
-        except Exception as e:
-            print(f"Error in agent processing (outer): {e}")
-            agent_response = f"AGENT_ERROR:unexpected:{str(e)[:100]}"
+            # Get the transcribed text from the request
+            transcribed_text = request.form.get('SpeechResult', '')
+            call_sid = request.form.get('CallSid', '')
+            user_id = request.args.get('user_id')
+            
+            # Set Sentry context for this call
+            sentry_sdk.set_context("voice_call", {
+                "call_sid": call_sid,
+                "user_id": user_id,
+                "transcribed_text": transcribed_text[:100]  # First 100 chars
+            })
+            sentry_sdk.set_user({"id": user_id} if user_id else None)
         
-        # Check if agent returned an error marker and handle accordingly
-        if agent_response.startswith("AGENT_TIMEOUT:"):
-            print(f"⏰ Agent timed out internally")
-            if user_id:
-                if not hasattr(_run_agent_async, '_reset_threads'):
-                    _run_agent_async._reset_threads = set()
-                _run_agent_async._reset_threads.add(user_id)
-                print(f"🔄 Marked user {user_id} for thread reset")
-            agent_response = "I'm sorry, that operation is taking too long. Please try a simpler request."
+            print(f"Processing audio for call {call_sid}: {transcribed_text}")
+        
+            if not transcribed_text or len(transcribed_text.strip()) < 2:
+                response = VoiceResponse()
+                
+                # Get authenticated user_id for redirect
+                user_param = f'&user_id={user_id}' if user_id else ''
+                
+                # Use Gather with barge-in for "didn't catch that" response
+                gather = Gather(
+                    input='speech',
+                    action=f'/sambanova_todo/twilio/process_audio?user_id={user_id}' if user_id else '/sambanova_todo/twilio/process_audio',
+                    method='POST',
+                    speech_timeout='auto',
+                    timeout=10,
+                    barge_in=True,
+                    speech_model='experimental_conversations',  # Better conversational recognition
+                    enhanced=True,  # Use enhanced speech recognition
+                    language='en-US'  # Explicitly set language
+                )
+                gather.say("I didn't catch that. Could you please repeat?", voice='Polly.Amy')
+                response.append(gather)
+                
+                # Fallback
+                response.say("I didn't hear anything. Please try again.", voice='Polly.Amy')
+                response.redirect(f'/sambanova_todo/twilio/call?is_continuation=true&authenticated=true{user_param}')
+                return Response(str(response), mimetype='text/xml')
             
-        elif agent_response.startswith("AGENT_ERROR:"):
-            # Parse error type and message
-            parts = agent_response.split(":", 2)
-            error_type = parts[1] if len(parts) > 1 else "unknown"
-            error_msg = parts[2] if len(parts) > 2 else ""
+            # Check if user wants to transfer to an agent
+            transfer_phrases = ['transfer', 'agent', 'human', 'representative', 'operator', 'speak to someone', 'talk to someone', 'real person']
+            if any(phrase in transcribed_text.lower() for phrase in transfer_phrases):
+                # Redirect to transfer endpoint
+                webhook_base_url = get_webhook_base_url()
+                response = VoiceResponse()
+                response.redirect(f'{webhook_base_url}/sambanova_todo/twilio/transfer?extension=2000')
+                logger.info(f"Redirecting call to transfer endpoint based on user request: {transcribed_text}")
+                return Response(str(response), mimetype='text/xml')
             
-            print(f"🔧 Agent returned error: type={error_type}, msg={error_msg}")
+            # Check if user wants to end the call
+            exit_phrases = ['exit', 'goodbye', 'bye', 'that\'s it', 'that is it', 'thank you', 'thanks', 'done', 'finished', 'end call', 'hang up']
+            if any(phrase in transcribed_text.lower() for phrase in exit_phrases):
+                # End the call gracefully
+                response = VoiceResponse()
+                response.say("Thank you for using Sambanova productivity assistant! Have a great day!", voice='Polly.Amy')
+                response.hangup()
+                return Response(str(response), mimetype='text/xml')
             
-            # Mark user for thread reset on these error types
-            if error_type in ["tool_call_incomplete", "broken_resource"]:
+            # Check if this user's thread needs to be reset (after previous timeout/error)
+            reset_thread = False
+            if user_id and hasattr(_run_agent_async, '_reset_threads') and user_id in _run_agent_async._reset_threads:
+                reset_thread = True
+                _run_agent_async._reset_threads.remove(user_id)
+                print(f"🔄 Resetting conversation thread for user {user_id} (previous timeout/error)")
+                print(f"🔄 Reset threads set contains: {_run_agent_async._reset_threads}")
+                
+                # Track thread reset in Sentry
+                sentry_sdk.capture_message(
+                    "Conversation thread reset after timeout/error",
+                    level="info",
+                    extras={"user_id": user_id}
+                )
+        
+            # Process with the agent (with timeout to prevent hanging)
+            # Note: Twilio HTTP timeout is ~15 seconds, so we must respond faster
+            start_time = time.time()
+            
+            with sentry_sdk.start_span(op="agent_processing", description="LangGraph agent execution"):
+                try:
+                    agent_response = asyncio.run(asyncio.wait_for(
+                        _run_agent_async(transcribed_text, user_id=user_id, reset_thread=reset_thread),
+                        timeout=12.0  # Reduced from 30 to 12 seconds to stay under Twilio's 15s timeout
+                    ))
+                    processing_time = time.time() - start_time
+                    sentry_sdk.set_measurement("agent_processing_time", processing_time, "second")
+                except asyncio.TimeoutError:
+                    processing_time = time.time() - start_time
+                    print(f"⏰ Outer timeout: Agent took more than 12 seconds (actual: {processing_time:.2f}s)")
+                    
+                    # Track timeout in Sentry
+                    sentry_sdk.capture_message(
+                        "Agent processing timeout",
+                        level="warning",
+                        extras={
+                            "user_id": user_id,
+                            "call_sid": call_sid,
+                            "prompt": transcribed_text,
+                            "timeout_duration": processing_time
+                        }
+                    )
+                    
+                    # Mark user for thread reset
+                    if user_id:
+                        if not hasattr(_run_agent_async, '_reset_threads'):
+                            _run_agent_async._reset_threads = set()
+                        _run_agent_async._reset_threads.add(user_id)
+                        print(f"🔄 Marked user {user_id} for thread reset")
+                    agent_response = "I'm sorry, that operation is taking too long. The task may still complete in the background. Please check your calendar or todo list."
+                except Exception as e:
+                    processing_time = time.time() - start_time
+                    print(f"Error in agent processing (outer): {e}")
+                    
+                    # Capture exception in Sentry
+                    sentry_sdk.capture_exception(e)
+                    
+                    agent_response = f"AGENT_ERROR:unexpected:{str(e)[:100]}"
+        
+            # Check if agent returned an error marker and handle accordingly
+            if agent_response.startswith("AGENT_TIMEOUT:"):
+                print(f"⏰ Agent timed out internally")
                 if user_id:
                     if not hasattr(_run_agent_async, '_reset_threads'):
                         _run_agent_async._reset_threads = set()
                     _run_agent_async._reset_threads.add(user_id)
-                    print(f"🔄 Marked user {user_id} for thread reset due to {error_type}")
+                    print(f"🔄 Marked user {user_id} for thread reset")
+                agent_response = "I'm sorry, that operation is taking too long. Please try a simpler request."
+                
+            elif agent_response.startswith("AGENT_ERROR:"):
+                # Parse error type and message
+                parts = agent_response.split(":", 2)
+                error_type = parts[1] if len(parts) > 1 else "unknown"
+                error_msg = parts[2] if len(parts) > 2 else ""
+                
+                print(f"🔧 Agent returned error: type={error_type}, msg={error_msg}")
+                
+                # Track error in Sentry
+                sentry_sdk.capture_message(
+                    f"Agent error: {error_type}",
+                    level="error",
+                    extras={
+                        "error_type": error_type,
+                        "error_message": error_msg,
+                        "user_id": user_id,
+                        "call_sid": call_sid
+                    }
+                )
+                
+                # Mark user for thread reset on these error types
+                if error_type in ["tool_call_incomplete", "broken_resource"]:
+                    if user_id:
+                        if not hasattr(_run_agent_async, '_reset_threads'):
+                            _run_agent_async._reset_threads = set()
+                        _run_agent_async._reset_threads.add(user_id)
+                        print(f"🔄 Marked user {user_id} for thread reset due to {error_type}")
+                
+                # User-friendly messages
+                if error_type == "tool_call_incomplete":
+                    agent_response = "I had trouble with the previous operation. Please try your request again."
+                elif error_type == "broken_resource":
+                    agent_response = "I encountered a connection issue. The operation may have completed. Please check your calendar or todo list."
+                else:
+                    agent_response = "I'm sorry, I encountered an error. Please try again or rephrase your question."
             
-            # User-friendly messages
-            if error_type == "tool_call_incomplete":
-                agent_response = "I had trouble with the previous operation. Please try your request again."
-            elif error_type == "broken_resource":
-                agent_response = "I encountered a connection issue. The operation may have completed. Please check your calendar or todo list."
-            else:
-                agent_response = "I'm sorry, I encountered an error. Please try again or rephrase your question."
-        
-        # Check if agent response indicates a transfer request
-        if agent_response.startswith("TRANSFER_INITIATED:"):
-            # Parse transfer details
-            transfer_data = agent_response.replace("TRANSFER_INITIATED:", "")
-            parts = transfer_data.split("|")
-            target_extension = parts[0] if len(parts) > 0 else "2000"
+            # Check if agent response indicates a transfer request
+            if agent_response.startswith("TRANSFER_INITIATED:"):
+                # Parse transfer details
+                transfer_data = agent_response.replace("TRANSFER_INITIATED:", "")
+                parts = transfer_data.split("|")
+                target_extension = parts[0] if len(parts) > 0 else "2000"
+                
+                webhook_base_url = get_webhook_base_url()
+                response = VoiceResponse()
+                response.redirect(f'{webhook_base_url}/sambanova_todo/twilio/transfer?extension={target_extension}')
+                logger.info(f"Agent initiated transfer to extension {target_extension}")
+                return Response(str(response), mimetype='text/xml')
             
-            webhook_base_url = get_webhook_base_url()
+            # Return TwiML with the agent's response and barge-in capability
             response = VoiceResponse()
-            response.redirect(f'{webhook_base_url}/sambanova_todo/twilio/transfer?extension={target_extension}')
-            logger.info(f"Agent initiated transfer to extension {target_extension}")
+            
+            # Preserve user_id in redirects
+            user_param = f'?user_id={user_id}' if user_id else ''
+            auth_param = f'&authenticated=true' if user_id else ''
+            
+            # Use Gather with speech input to enable barge-in functionality
+            gather = Gather(
+                input='speech',
+                action=f'/sambanova_todo/twilio/process_audio{user_param}',
+                method='POST',
+                speech_timeout='auto',
+                timeout=10,
+                barge_in=True,  # Enable barge-in to interrupt while speaking
+                speech_model='experimental_conversations',  # Better conversational recognition
+                enhanced=True,  # Use enhanced speech recognition
+                language='en-US'  # Explicitly set language
+            )
+        
+            # Add the agent's response to the gather
+            gather.say(agent_response, voice='Polly.Amy')
+            response.append(gather)
+            
+            # Fallback if no speech is detected after the response
+            response.say("I didn't hear anything. Please try again.", voice='Polly.Amy')
+            response.redirect(f'/sambanova_todo/twilio/call?is_continuation=true{auth_param}{user_param}')
+            
+            print(f"Generated TwiML response: {str(response)}")
             return Response(str(response), mimetype='text/xml')
-        
-        # Return TwiML with the agent's response and barge-in capability
-        response = VoiceResponse()
-        
-        # Preserve user_id in redirects
-        user_param = f'?user_id={user_id}' if user_id else ''
-        auth_param = f'&authenticated=true' if user_id else ''
-        
-        # Use Gather with speech input to enable barge-in functionality
-        gather = Gather(
-            input='speech',
-            action=f'/sambanova_todo/twilio/process_audio{user_param}',
-            method='POST',
-            speech_timeout='auto',
-            timeout=10,
-            barge_in=True,  # Enable barge-in to interrupt while speaking
-            speech_model='experimental_conversations',  # Better conversational recognition
-            enhanced=True,  # Use enhanced speech recognition
-            language='en-US'  # Explicitly set language
-        )
-        
-        # Add the agent's response to the gather
-        gather.say(agent_response, voice='Polly.Amy')
-        response.append(gather)
-        
-        # Fallback if no speech is detected after the response
-        response.say("I didn't hear anything. Please try again.", voice='Polly.Amy')
-        response.redirect(f'/sambanova_todo/twilio/call?is_continuation=true{auth_param}{user_param}')
-        
-        print(f"Generated TwiML response: {str(response)}")
-        return Response(str(response), mimetype='text/xml')
-        
-    except Exception as e:
-        print(f"Error processing audio: {e}")
-        response = VoiceResponse()
-        
-        # Preserve user_id in error redirects
-        user_id = request.args.get('user_id', '')
-        user_param = f'?user_id={user_id}' if user_id else ''
-        auth_param = f'&authenticated=true' if user_id else ''
-        
-        # Use Gather with barge-in for error messages too
-        gather = Gather(
-            input='speech',
-            action=f'/sambanova_todo/twilio/process_audio{user_param}',
-            method='POST',
-            speech_timeout='auto',
-            timeout=10,
-            barge_in=True
-        )
-        gather.say("I'm sorry, I encountered an error processing your request. Please try again.", voice='Polly.Amy')
-        response.append(gather)
-        
-        # Fallback
-        response.say("I didn't hear anything. Please try again.", voice='Polly.Amy')
-        response.redirect(f'/sambanova_todo/twilio/call?is_continuation=true{auth_param}{user_param}')
-        return Response(str(response), mimetype='text/xml')
+            
+        except Exception as e:
+            print(f"Error processing audio: {e}")
+            sentry_sdk.capture_exception(e)
+            response = VoiceResponse()
+            
+            # Preserve user_id in error redirects
+            user_param = f'?user_id={user_id}' if user_id else ''
+            auth_param = f'&authenticated=true' if user_id else ''
+            
+            # Use Gather with barge-in for error messages too
+            gather = Gather(
+                input='speech',
+                action=f'/sambanova_todo/twilio/process_audio{user_param}',
+                method='POST',
+                speech_timeout='auto',
+                timeout=10,
+                barge_in=True
+            )
+            gather.say("I'm sorry, I encountered an error processing your request. Please try again.", voice='Polly.Amy')
+            response.append(gather)
+            
+            # Fallback
+            response.say("I didn't hear anything. Please try again.", voice='Polly.Amy')
+            response.redirect(f'/sambanova_todo/twilio/call?is_continuation=true{auth_param}{user_param}')
+            return Response(str(response), mimetype='text/xml')
 
 # WebSocket server is now handled by a separate process
 # See websocket_server.py for the Twilio voice streaming implementation

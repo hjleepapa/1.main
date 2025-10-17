@@ -7,6 +7,12 @@ from flask_login import current_user # Import current_user
 import smtplib
 from flask_socketio import SocketIO
 
+# Sentry integration for error monitoring
+import sentry_sdk
+from sentry_sdk.integrations.flask import FlaskIntegration
+from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+from sentry_sdk.integrations.logging import LoggingIntegration
+
 # Flask-SocketIO instance (will be initialized in create_app)
 socketio = None
 
@@ -28,6 +34,30 @@ def generate_gravatar_url(email, size=80, default_image='mp', rating='g'):
     return f"https://www.gravatar.com/avatar/{email_hash}?s={size}&d={default_image}&r={rating}"
 
 load_dotenv() # It's common to load dotenv at the module level or early in create_app
+
+# Initialize Sentry for error monitoring
+sentry_dsn = os.getenv('SENTRY_DSN')
+if sentry_dsn:
+    sentry_sdk.init(
+        dsn=sentry_dsn,
+        integrations=[
+            FlaskIntegration(),
+            SqlalchemyIntegration(),
+            LoggingIntegration(
+                level=None,  # Capture all log levels
+                event_level=None  # Don't send logs as events by default
+            ),
+        ],
+        traces_sample_rate=1.0,  # 100% transaction tracing for demo/development
+        profiles_sample_rate=1.0,  # 100% profiling
+        environment=os.getenv('RENDER_ENVIRONMENT', 'production') if os.getenv('RENDER') else 'development',
+        release=os.getenv('RENDER_GIT_COMMIT', 'dev'),
+        # Optional: Set user context
+        before_send=lambda event, hint: event,
+    )
+    print(f"✅ Sentry initialized: environment={os.getenv('RENDER_ENVIRONMENT', 'development')}")
+else:
+    print("⚠️  Sentry DSN not configured - error monitoring disabled")
 
 def create_app():
     global socketio
