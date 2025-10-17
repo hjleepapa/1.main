@@ -12,7 +12,17 @@ import uuid
 @call_center_bp.route('/')
 def index():
     """Render the call center UI"""
-    return render_template('call_center.html')
+    # Import config to pass to template
+    try:
+        from .config import SIP_CONFIG
+    except ImportError:
+        # Fallback if config not created yet
+        SIP_CONFIG = {
+            'domain': 'sip.example.com',
+            'wss_port': 7443
+        }
+    
+    return render_template('call_center.html', sip_config=SIP_CONFIG)
 
 @call_center_bp.route('/api/agent/login', methods=['POST'])
 def agent_login():

@@ -293,15 +293,16 @@ class TodoAgent:
                         
                         if tool:
                             # Execute the async tool with timeout
+                            # Reduced timeout to stay under Twilio's 15-second HTTP limit
                             try:
                                 if hasattr(tool, 'ainvoke'):
-                                    result = await asyncio.wait_for(tool.ainvoke(tool_args), timeout=20.0)
+                                    result = await asyncio.wait_for(tool.ainvoke(tool_args), timeout=8.0)
                                 else:
-                                    result = await asyncio.wait_for(asyncio.to_thread(tool.invoke, tool_args), timeout=20.0)
+                                    result = await asyncio.wait_for(asyncio.to_thread(tool.invoke, tool_args), timeout=8.0)
                                 print(f"✅ Tool {tool_name} completed successfully")
                             except asyncio.TimeoutError:
                                 result = "I'm sorry, the database operation timed out. Please try again."
-                                print(f"⏰ Tool {tool_name} timed out after 20 seconds")
+                                print(f"⏰ Tool {tool_name} timed out after 8 seconds")
                             except ExceptionGroup as eg:
                                 # Unwrap ExceptionGroup and get the first exception
                                 print(f"❌ Tool {tool_name} ExceptionGroup with {len(eg.exceptions)} exception(s)")

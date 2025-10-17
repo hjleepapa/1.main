@@ -215,10 +215,17 @@
     <!-- Load JsSIP library (locally hosted, v3.10.1) -->
     <script src="{{ url_for('call_center.static', filename='js/jssip.min.js') }}"></script>
     <script>
+        // SIP Configuration from server
+        window.SIP_CONFIG = {
+            domain: '{{ sip_config.domain }}',
+            wss_port: {{ sip_config.wss_port }}
+        };
+        
         // Verify JsSIP loaded correctly
         window.addEventListener('load', function() {
             if (typeof JsSIP !== 'undefined') {
                 console.log('✓ JsSIP v3.10.1 loaded successfully');
+                console.log('SIP Config:', window.SIP_CONFIG);
                 // Make it available as SIP for compatibility
                 window.SIP = window.JsSIP;
             } else {

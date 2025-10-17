@@ -5,9 +5,13 @@ Copy this file to config.py and update with your settings
 
 # SIP Server Configuration
 SIP_CONFIG = {
-    'domain': '34.26.59.14',  # Your SIP server domain
-    'wss_port': 7443,  # WebSocket Secure port
-    'transport': 'wss',  # Use WSS for secure WebSocket
+    'domain': '34.26.59.14',  # Your SIP server domain or IP
+    'wss_port': 7443,         # WebSocket Secure port
+                              # Common ports:
+                              #   7443 - Asterisk/FreePBX default WSS port
+                              #   8089 - Alternative FreePBX HTTPS/WSS port
+                              #   443  - Standard HTTPS (if using reverse proxy)
+    'transport': 'wss',       # Use WSS for secure WebSocket
     
     # STUN/TURN servers for NAT traversal
     'ice_servers': [

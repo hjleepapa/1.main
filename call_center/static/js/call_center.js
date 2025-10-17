@@ -218,7 +218,12 @@ class CallCenterAgent {
         // Initialize JsSIP User Agent
         console.log(`Initializing SIP client for ${username}@${domain}`);
         
-        const socket = new JsSIP.WebSocketInterface(`wss://${domain}:7443`);
+        // Get port from config (default to 7443 if not set)
+        const wssPort = window.SIP_CONFIG ? window.SIP_CONFIG.wss_port : 7443;
+        const wsUrl = `wss://${domain}:${wssPort}`;
+        console.log(`Connecting to WebSocket: ${wsUrl}`);
+        
+        const socket = new JsSIP.WebSocketInterface(wsUrl);
         
         const configuration = {
             sockets: [socket],
