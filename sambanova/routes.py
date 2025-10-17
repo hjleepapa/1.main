@@ -239,25 +239,54 @@ def transfer_to_agent():
     try:
         extension = request.form.get('extension') or request.args.get('extension', '2000')
         call_sid = request.form.get('CallSid', '')
+        caller_number = request.form.get('From', '')
         
-        logger.info(f"Transferring call {call_sid} to extension {extension}")
+        logger.info(f"Transferring call {call_sid} from {caller_number} to extension {extension}")
         
         # Create TwiML response for transfer
         response = VoiceResponse()
         response.say("Transferring you to an agent. Please wait.", voice='Polly.Amy')
         
-        # Dial the FreePBX extension
-        # Format: sip:extension@freepbx-domain
-        freepbx_domain = os.getenv('FREEPBX_DOMAIN', '34.26.59.14')  # Use your FreePBX IP/domain
-        sip_uri = f"sip:{extension}@{freepbx_domain}"
+        # Get configuration
+        freepbx_domain = os.getenv('FREEPBX_DOMAIN', '34.26.59.14')
+        transfer_timeout = int(os.getenv('TRANSFER_TIMEOUT', '30'))
+        use_trunk_number = os.getenv('USE_TRUNK_NUMBER_TRANSFER', 'false').lower() == 'true'
+        trunk_number = os.getenv('TWILIO_TRUNK_NUMBER', '+19256337818')
         
-        response.dial(sip_uri)
+        # Choose transfer method based on configuration
+        if use_trunk_number:
+            # Method 1: Use trunk number routing (requires FreePBX inbound route)
+            logger.info(f"Using trunk number transfer to {trunk_number}")
+            dial = response.dial(
+                answer_on_bridge=True,
+                timeout=transfer_timeout,
+                caller_id=caller_number,
+                action=f'/sambanova_todo/twilio/transfer_callback?extension={extension}'
+            )
+            dial.number(trunk_number)
+        else:
+            # Method 2: Direct SIP URI (requires SIP trunk configuration)
+            sip_uri = f"sip:{extension}@{freepbx_domain};transport=udp"
+            logger.info(f"Using SIP URI transfer to {sip_uri}")
+            
+            dial = response.dial(
+                answer_on_bridge=True,
+                timeout=transfer_timeout,
+                caller_id=caller_number,
+                action=f'/sambanova_todo/twilio/transfer_callback?extension={extension}'
+            )
+            dial.sip(
+                sip_uri,
+                username=os.getenv('FREEPBX_SIP_USERNAME', ''),
+                password=os.getenv('FREEPBX_SIP_PASSWORD', '')
+            )
         
         # If dial fails, provide fallback message
         response.say("I'm sorry, the transfer failed. Please try again later.", voice='Polly.Amy')
         response.hangup()
         
-        logger.info(f"Transfer TwiML generated for call {call_sid} to {sip_uri}")
+        logger.info(f"Transfer TwiML generated for call {call_sid}")
+        logger.info(f"TwiML content: {str(response)}")
         return Response(str(response), mimetype='text/xml')
         
     except Exception as e:
@@ -266,7 +295,59 @@ def transfer_to_agent():
         traceback.print_exc()
         
         response = VoiceResponse()
-        response.say("I'm sorry, there was an error ring your call. Please try again.", voice='Polly.Amy')
+        response.say("I'm sorry, there was an error transferring your call. Please try again.", voice='Polly.Amy')
+        response.hangup()
+        return Response(str(response), mimetype='text/xml')
+
+@sambanova_todo_bp.route('/twilio/transfer_callback', methods=['POST'])
+def transfer_callback():
+    """
+    Callback handler for transfer status.
+    Logs transfer results and handles failures.
+    """
+    try:
+        dial_call_status = request.form.get('DialCallStatus', 'unknown')
+        call_sid = request.form.get('CallSid', '')
+        extension = request.args.get('extension', '2000')
+        
+        logger.info(f"Transfer callback for call {call_sid}: status={dial_call_status}, extension={extension}")
+        
+        response = VoiceResponse()
+        
+        if dial_call_status == 'completed':
+            # Transfer succeeded - call is now connected to agent
+            logger.info(f"✅ Transfer successful for call {call_sid} to extension {extension}")
+            # Call will continue on the agent side
+            
+        elif dial_call_status == 'busy':
+            response.say("The agent is currently busy. Please try again later.", voice='Polly.Amy')
+            response.hangup()
+            logger.warning(f"⚠️ Transfer failed - agent busy: call {call_sid}")
+            
+        elif dial_call_status == 'no-answer':
+            response.say("The agent did not answer. Please try again later.", voice='Polly.Amy')
+            response.hangup()
+            logger.warning(f"⚠️ Transfer failed - no answer: call {call_sid}")
+            
+        elif dial_call_status == 'failed' or dial_call_status == 'canceled':
+            response.say("The transfer could not be completed. Please call back later.", voice='Polly.Amy')
+            response.hangup()
+            logger.error(f"❌ Transfer failed: call {call_sid}, status={dial_call_status}")
+            
+        else:
+            response.say("An unexpected error occurred. Please try again.", voice='Polly.Amy')
+            response.hangup()
+            logger.error(f"❌ Unknown transfer status: {dial_call_status} for call {call_sid}")
+        
+        return Response(str(response), mimetype='text/xml')
+        
+    except Exception as e:
+        logger.error(f"Error in transfer callback: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        response = VoiceResponse()
+        response.say("An error occurred. Goodbye.", voice='Polly.Amy')
         response.hangup()
         return Response(str(response), mimetype='text/xml')
 
