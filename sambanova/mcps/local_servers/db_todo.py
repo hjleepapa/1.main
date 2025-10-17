@@ -731,71 +731,12 @@ async def create_todo(
                     # print(msg, flush=True)  # Removed to avoid MCP protocol issues
             logging.info(msg)
             
-            if get_calendar_service:
-                try:
-                    pass
-                    # print(...) # Removed to avoid MCP protocol issues
-                    calendar_service = get_calendar_service()
-                    # print(...) # Removed to avoid MCP protocol issues
-                    
-                    # Use due_date as the event start time, with 1 hour duration
-                    event_start = due_date
-                    event_end = due_date + timedelta(hours=1)
-                    # print(...) # Removed to avoid MCP protocol issues
-                    
-                    # Create Google Calendar event using the proper API format
-                    event_body = {
-                        'summary': f"Todo: {title}",
-                        'description': description or "",
-                        'start': {
-                            'dateTime': event_start.isoformat(),
-                            'timeZone': 'UTC',
-                        },
-                        'end': {
-                            'dateTime': event_end.isoformat(),
-                            'timeZone': 'UTC',
-                        },
-                    }
-                    
-                    # print(...) # Removed to avoid MCP protocol issues
-                    created_event = calendar_service.events().insert(
-                        calendarId='primary', 
-                        body=event_body
-                    ).execute()
-                    
-                    google_event_id = created_event.get('id')
-                    # print(...) # Removed to avoid MCP protocol issues
-                    # print(...) # Removed to avoid MCP protocol issues
-                    
-                    if google_event_id:
-                    
-                        pass  #                         
-                        # Update the todo with the Google Calendar event ID
-                        new_todo.google_calendar_event_id = google_event_id
-                        session.commit()
-                        session.refresh(new_todo)
-                    else:
-                        pass  # Google Calendar event creation failed
-                except Exception as calendar_error:
-                    pass  # Google Calendar error handled elsewhere
-            else:
-                pass  # Google Calendar service not available
-    
-        # Convert SQLAlchemy object to dict properly
-        todo_dict = {
-            "id": str(new_todo.id),
-            "created_at": new_todo.created_at.isoformat(),
-            "updated_at": new_todo.updated_at.isoformat(),
-            "title": new_todo.title,
-            "description": new_todo.description,
-            "completed": new_todo.completed,
-            "priority": new_todo.priority,
-            "due_date": new_todo.due_date.isoformat() if new_todo.due_date else None,
-            "google_calendar_event_id": new_todo.google_calendar_event_id
-        }
-        result = Todo.model_validate(todo_dict).model_dump_json(indent=2)
-        # print(...) # Removed to avoid MCP protocol issues
-        return result
+            # Skip Google Calendar sync for voice calls to avoid timeout
+            # Database todo is created successfully - return immediately
+            
+            # Return simple success message
+            due_str = f" due {new_todo.due_date.strftime('%b %d')}" if new_todo.due_date else ""
+            return f"Todo '{title}' created successfully with {priority.value} priority{due_str}."
         
     except Exception as e:
         error_msg = f"Error executing tool create_todo: {str(e)}"
@@ -1217,13 +1158,13 @@ async def create_calendar_event(
             
             # Skip Google Calendar sync for voice calls to avoid timeout
             # Database event is created successfully - return immediately
-    
-        # Return simple success message - don't wait for slow Google Calendar API
-        # Format dates for natural speech response
-        from_str = new_event.event_from.strftime('%b %d at %I:%M %p') if new_event.event_from else "unknown time"
-        to_str = new_event.event_to.strftime('%I:%M %p') if new_event.event_to else "unknown time"
-        
-        return f"Calendar event '{title}' created successfully from {from_str} to {to_str}."
+            
+            # Return simple success message - don't wait for slow Google Calendar API
+            # Format dates for natural speech response
+            from_str = new_event.event_from.strftime('%b %d at %I:%M %p') if new_event.event_from else "unknown time"
+            to_str = new_event.event_to.strftime('%I:%M %p') if new_event.event_to else "unknown time"
+            
+            return f"Calendar event '{title}' created successfully from {from_str} to {to_str}."
         
     except Exception as e:
         error_msg = f"Error executing tool create_calendar_event: {str(e)}"
