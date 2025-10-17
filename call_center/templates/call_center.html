@@ -212,7 +212,19 @@
     <audio id="remoteAudio"></audio>
 
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/sip.js@0.21.2/dist/sip.min.js"></script>
+    <!-- Load SIP.js library (version 0.20.x has better browser compatibility) -->
+    <script src="https://cdn.jsdelivr.net/npm/sip.js@0.20.0/dist/sip.min.js"></script>
+    <script>
+        // Wait for SIP.js to load before initializing app
+        window.addEventListener('load', function() {
+            if (typeof SIP === 'undefined') {
+                console.error('SIP.js library failed to load!');
+                alert('Error: SIP.js library not loaded. Please refresh the page.');
+            } else {
+                console.log('SIP.js loaded successfully:', SIP);
+            }
+        });
+    </script>
     <script src="{{ url_for('call_center.static', filename='js/call_center.js') }}"></script>
 </body>
 </html>
