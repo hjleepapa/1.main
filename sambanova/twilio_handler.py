@@ -296,7 +296,7 @@ async def twilio_handler(websocket):
                         # Parse transfer details
                         transfer_data = agent_response_text.replace("TRANSFER_INITIATED:", "")
                         parts = transfer_data.split("|")
-                        target_extension = parts[0] if len(parts) > 0 else "201"
+                        target_extension = parts[0] if len(parts) > 0 else "2000"
                         department = parts[1] if len(parts) > 1 else "support"
                         reason = parts[2] if len(parts) > 2 else "User requested transfer"
                         

@@ -237,7 +237,7 @@ def transfer_to_agent():
     - call_sid: The Twilio Call SID
     """
     try:
-        extension = request.form.get('extension') or request.args.get('extension', '201')
+        extension = request.form.get('extension') or request.args.get('extension', '2000')
         call_sid = request.form.get('CallSid', '')
         
         logger.info(f"Transferring call {call_sid} to extension {extension}")
@@ -266,7 +266,7 @@ def transfer_to_agent():
         traceback.print_exc()
         
         response = VoiceResponse()
-        response.say("I'm sorry, there was an error transferring your call. Please try again.", voice='Polly.Amy')
+        response.say("I'm sorry, there was an error ring your call. Please try again.", voice='Polly.Amy')
         response.hangup()
         return Response(str(response), mimetype='text/xml')
 
@@ -321,7 +321,7 @@ def process_audio_webhook():
             # Redirect to transfer endpoint
             webhook_base_url = get_webhook_base_url()
             response = VoiceResponse()
-            response.redirect(f'{webhook_base_url}/sambanova_todo/twilio/transfer?extension=201')
+            response.redirect(f'{webhook_base_url}/sambanova_todo/twilio/transfer?extension=2000')
             logger.info(f"Redirecting call to transfer endpoint based on user request: {transcribed_text}")
             return Response(str(response), mimetype='text/xml')
         
@@ -354,7 +354,7 @@ def process_audio_webhook():
             # Parse transfer details
             transfer_data = agent_response.replace("TRANSFER_INITIATED:", "")
             parts = transfer_data.split("|")
-            target_extension = parts[0] if len(parts) > 0 else "201"
+            target_extension = parts[0] if len(parts) > 0 else "2000"
             
             webhook_base_url = get_webhook_base_url()
             response = VoiceResponse()
