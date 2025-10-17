@@ -88,9 +88,9 @@ class TodoAgent:
             - Work/business: high priority
             - Personal/hobbies: low priority
             - If no priority mentioned: medium priority
-            - If no due date mentioned: ALWAYS use today's date (2025-09-30)
+            - If no due date mentioned: ALWAYS use today's date (2025-10-17)
             
-            CRITICAL: Today's date is 2025-10-10. NEVER use dates from 2023 or 2024. Always use 2025-10-10 as the default date when no specific date is provided.
+            CRITICAL: Today's date is 2025-10-17 (October 17, 2025). NEVER use dates from 2023 or 2024. Always use 2025-10-17 as the default date when no specific date is provided.
 
             <todo_priorities>
             {todo_priorities}
@@ -142,7 +142,7 @@ class TodoAgent:
             
             PERSONAL PRODUCTIVITY:
             User: "Create a todo for grocery shopping" 
-               → IMMEDIATELY use create_todo(title="Grocery shopping", priority="medium", due_date="2025-09-30")
+               → IMMEDIATELY use create_todo(title="Grocery shopping", priority="medium", due_date="2025-10-17")
             
             User: "Add Costco shopping to my list" 
                → IMMEDIATELY use create_todo(title="Costco shopping", priority="medium")
@@ -196,11 +196,11 @@ class TodoAgent:
                    priority="medium"
                )
             
-            User: "Create a demo team meeting on October 10th at 5 PM"
+            User: "Create a demo team meeting tomorrow at 5 PM"
                → IMMEDIATELY use create_calendar_event(
                    title="Demo team meeting",
-                   event_from="2025-10-10T17:00:00",
-                   event_to="2025-10-10T18:00:00"
+                   event_from="2025-10-18T17:00:00",
+                   event_to="2025-10-18T18:00:00"
                )
             
             COMPLEX TEAM WORKFLOW:
