@@ -1215,61 +1215,15 @@ async def create_calendar_event(
             session.refresh(new_event)
             # print(...) # Removed to avoid MCP protocol issues
             
-            # Create corresponding Google Calendar event
-            google_event_id = None
-            if get_calendar_service:
-                try:
-                    pass
-                    # print(...) # Removed to avoid MCP protocol issues
-                    calendar_service = get_calendar_service()
-                    
-                    # Create Google Calendar event using the proper API format
-                    event_body = {
-                        'summary': title,
-                        'description': description or "",
-                        'start': {
-                            'dateTime': event_from.isoformat(),
-                            'timeZone': 'UTC',
-                        },
-                        'end': {
-                            'dateTime': event_to.isoformat(),
-                            'timeZone': 'UTC',
-                        },
-                    }
-                    
-                    created_event = calendar_service.events().insert(
-                        calendarId='primary', 
-                        body=event_body
-                    ).execute()
-                    
-                    google_event_id = created_event.get('id')
-                    
-                    if google_event_id:
-                    
-                        pass  #                         
-                        # Update the event with the Google Calendar event ID
-                        new_event.google_calendar_event_id = google_event_id
-                        session.commit()
-                        session.refresh(new_event)
-                    else:
-                        pass
-                        # print(...) # Removed to avoid MCP protocol issues
-                except Exception as calendar_error:
-                    pass  #                     
-            else:
-                pass
-                # print(...) # Removed to avoid MCP protocol issues
+            # Skip Google Calendar sync for voice calls to avoid timeout
+            # Database event is created successfully - return immediately
     
-        # Return simplified result to avoid MCP protocol issues with large JSON
-        result_dict = {
-            "id": str(new_event.id),
-            "title": new_event.title,
-            "event_from": new_event.event_from.isoformat() if new_event.event_from else None,
-            "event_to": new_event.event_to.isoformat() if new_event.event_to else None,
-            "google_calendar_event_id": new_event.google_calendar_event_id,
-            "status": "created"
-        }
-        return json.dumps(result_dict)
+        # Return simple success message - don't wait for slow Google Calendar API
+        # Format dates for natural speech response
+        from_str = new_event.event_from.strftime('%b %d at %I:%M %p') if new_event.event_from else "unknown time"
+        to_str = new_event.event_to.strftime('%I:%M %p') if new_event.event_to else "unknown time"
+        
+        return f"Calendar event '{title}' created successfully from {from_str} to {to_str}."
         
     except Exception as e:
         error_msg = f"Error executing tool create_calendar_event: {str(e)}"
