@@ -7,7 +7,7 @@ import os
 import json
 import logging
 from typing import Dict, Any, List, Optional
-from composio import ComposioToolSet, Action, ComposioClient
+from composio import ComposioToolSet, Action
 
 logger = logging.getLogger(__name__)
 
@@ -16,24 +16,26 @@ class ComposioManager:
     
     def __init__(self):
         """Initialize Composio client"""
-        # Import environment config
-        from .environment_config import config
-        
-        self.api_key = config.COMPOSIO_API_KEY
-        self.project_id = config.COMPOSIO_PROJECT_ID
+        # Import environment config (optional)
+        try:
+            from .environment_config import config
+            self.api_key = config.COMPOSIO_API_KEY
+            self.project_id = config.COMPOSIO_PROJECT_ID
+        except ImportError:
+            # Fallback to environment variables
+            self.api_key = os.getenv('COMPOSIO_API_KEY', 'ak_68Xsj6WGv3Zl4ooBgkcD')
+            self.project_id = os.getenv('COMPOSIO_PROJECT_ID', 'pr_bz7nkY2wflSi')
         
         try:
-            self.client = ComposioClient(api_key=self.api_key)
             self.toolset = ComposioToolSet(api_key=self.api_key)
             logger.info("✅ Composio client initialized")
         except Exception as e:
             logger.error(f"❌ Composio initialization failed: {e}")
-            self.client = None
             self.toolset = None
     
     def is_available(self) -> bool:
         """Check if Composio is available"""
-        return self.client is not None and self.toolset is not None
+        return self.toolset is not None
     
     def get_slack_tools(self) -> List[Any]:
         """Get Slack integration tools"""

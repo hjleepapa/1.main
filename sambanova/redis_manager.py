@@ -16,14 +16,19 @@ class RedisManager:
     
     def __init__(self):
         """Initialize Redis connection"""
-        # Import environment config
-        from .environment_config import config
-        
-        # Redis connection details
-        redis_host = config.REDIS_HOST
-        redis_port = config.REDIS_PORT
-        redis_password = config.REDIS_PASSWORD
-        redis_db = config.REDIS_DB
+        # Import environment config (optional)
+        try:
+            from .environment_config import config
+            redis_host = config.REDIS_HOST
+            redis_port = config.REDIS_PORT
+            redis_password = config.REDIS_PASSWORD
+            redis_db = config.REDIS_DB
+        except ImportError:
+            # Fallback to environment variables
+            redis_host = os.getenv('REDIS_HOST', 'localhost')
+            redis_port = int(os.getenv('REDIS_PORT', 6379))
+            redis_password = os.getenv('REDIS_PASSWORD', '')
+            redis_db = int(os.getenv('REDIS_DB', 0))
         
         try:
             self.redis_client = redis.Redis(

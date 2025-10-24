@@ -13,7 +13,17 @@ from dotenv import load_dotenv
 
 from .state import AgentState
 from .mcps.local_servers.db_todo import TodoPriority, ReminderImportance
-from .composio_tools import get_all_integration_tools, test_composio_connection
+# Optional Composio imports - app should work without them
+try:
+    from .composio_tools import get_all_integration_tools, test_composio_connection
+    COMPOSIO_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️ Composio not available: {e}")
+    COMPOSIO_AVAILABLE = False
+    def get_all_integration_tools():
+        return []
+    def test_composio_connection():
+        return False
 from .redis_manager import redis_manager
 
 

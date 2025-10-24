@@ -14,7 +14,26 @@ import openai
 from sambanova.assistant_graph_todo import get_agent
 from sambanova.state import AgentState
 from langchain_core.messages import HumanMessage
-from sambanova.redis_manager import redis_manager, create_session, get_session, update_session, delete_session
+# Optional Redis imports - app should work without them
+try:
+    from sambanova.redis_manager import redis_manager, create_session, get_session, update_session, delete_session
+    REDIS_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️ Redis not available: {e}")
+    REDIS_AVAILABLE = False
+    # Create dummy functions for fallback
+    class DummyRedisManager:
+        def is_available(self):
+            return False
+    redis_manager = DummyRedisManager()
+    def create_session(*args, **kwargs):
+        return False
+    def get_session(*args, **kwargs):
+        return None
+    def update_session(*args, **kwargs):
+        return False
+    def delete_session(*args, **kwargs):
+        return False
 
 webrtc_bp = Blueprint('webrtc_voice', __name__, url_prefix='/sambanova_todo/webrtc')
 
