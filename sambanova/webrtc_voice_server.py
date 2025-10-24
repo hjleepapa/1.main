@@ -7,19 +7,21 @@ import asyncio
 import json
 import os
 import base64
+import time
 from flask import Blueprint, render_template, request, jsonify
 from flask_socketio import SocketIO, emit, join_room, leave_room
 import openai
 from sambanova.assistant_graph_todo import get_agent
 from sambanova.state import AgentState
 from langchain_core.messages import HumanMessage
+from sambanova.redis_manager import redis_manager, create_session, get_session, update_session, delete_session
 
 webrtc_bp = Blueprint('webrtc_voice', __name__, url_prefix='/sambanova_todo/webrtc')
 
 # Initialize OpenAI client for Whisper and TTS
 openai_client = openai.OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
-# Active sessions storage
+# Active sessions storage (fallback for when Redis is unavailable)
 active_sessions = {}
 
 # Global references for background tasks
@@ -47,14 +49,29 @@ def init_socketio(socketio_instance: SocketIO, app):
         session_id = request.sid
         print(f"✅ WebRTC client connected: {session_id}")
         
-        # Initialize session
-        active_sessions[session_id] = {
-            'authenticated': False,
-            'user_id': None,
-            'user_name': None,
-            'audio_buffer': b'',
-            'is_recording': False
+        # Initialize session in Redis (with fallback to in-memory)
+        session_data = {
+            'authenticated': 'False',
+            'user_id': '',
+            'user_name': '',
+            'audio_buffer': '',
+            'is_recording': 'False',
+            'connected_at': str(time.time())
         }
+        
+        if redis_manager.is_available():
+            create_session(session_id, session_data, ttl=3600)  # 1 hour TTL
+            print(f"✅ Session stored in Redis: {session_id}")
+        else:
+            # Fallback to in-memory storage
+            active_sessions[session_id] = {
+                'authenticated': False,
+                'user_id': None,
+                'user_name': None,
+                'audio_buffer': b'',
+                'is_recording': False
+            }
+            print(f"⚠️ Using in-memory storage (Redis unavailable): {session_id}")
         
         emit('connected', {'session_id': session_id})
     
@@ -65,8 +82,13 @@ def init_socketio(socketio_instance: SocketIO, app):
         session_id = request.sid
         print(f"❌ WebRTC client disconnected: {session_id}")
         
-        if session_id in active_sessions:
-            del active_sessions[session_id]
+        if redis_manager.is_available():
+            delete_session(session_id)
+            print(f"✅ Session deleted from Redis: {session_id}")
+        else:
+            if session_id in active_sessions:
+                del active_sessions[session_id]
+                print(f"✅ Session deleted from memory: {session_id}")
     
     
     @socketio.on('authenticate', namespace='/voice')
@@ -92,11 +114,22 @@ def init_socketio(socketio_instance: SocketIO, app):
                 
                 if user:
                     # Authentication successful
-                    active_sessions[session_id]['authenticated'] = True
-                    active_sessions[session_id]['user_id'] = str(user.id)
-                    active_sessions[session_id]['user_name'] = user.first_name
+                    auth_updates = {
+                        'authenticated': 'True',
+                        'user_id': str(user.id),
+                        'user_name': user.first_name,
+                        'authenticated_at': str(time.time())
+                    }
                     
-                    print(f"✅ Authentication successful: {user.email}")
+                    if redis_manager.is_available():
+                        update_session(session_id, auth_updates)
+                        print(f"✅ Authentication stored in Redis: {user.email}")
+                    else:
+                        # Fallback to in-memory
+                        active_sessions[session_id]['authenticated'] = True
+                        active_sessions[session_id]['user_id'] = str(user.id)
+                        active_sessions[session_id]['user_name'] = user.first_name
+                        print(f"✅ Authentication stored in memory: {user.email}")
                     
                     emit('authenticated', {
                         'success': True,
@@ -131,17 +164,36 @@ def init_socketio(socketio_instance: SocketIO, app):
         """Start audio recording"""
         session_id = request.sid
         
-        if session_id not in active_sessions:
-            emit('error', {'message': 'Session not found'})
-            return
+        # Get session data
+        session_data = None
+        if redis_manager.is_available():
+            session_data = get_session(session_id)
+            if not session_data:
+                emit('error', {'message': 'Session not found'})
+                return
+        else:
+            if session_id not in active_sessions:
+                emit('error', {'message': 'Session not found'})
+                return
+            session_data = active_sessions[session_id]
         
-        if not active_sessions[session_id]['authenticated']:
+        # Check authentication
+        is_authenticated = session_data.get('authenticated') == 'True' if redis_manager.is_available() else session_data.get('authenticated', False)
+        if not is_authenticated:
             emit('error', {'message': 'Please authenticate first'})
             return
         
         print(f"🎤 Recording started: {session_id}")
-        active_sessions[session_id]['is_recording'] = True
-        active_sessions[session_id]['audio_buffer'] = b''
+        
+        # Update recording state
+        if redis_manager.is_available():
+            update_session(session_id, {
+                'is_recording': 'True',
+                'audio_buffer': ''
+            })
+        else:
+            active_sessions[session_id]['is_recording'] = True
+            active_sessions[session_id]['audio_buffer'] = b''
         
         emit('recording_started', {'success': True})
     
@@ -151,15 +203,35 @@ def init_socketio(socketio_instance: SocketIO, app):
         """Receive audio data chunks from client"""
         session_id = request.sid
         
-        if session_id not in active_sessions:
-            return
+        # Get session data
+        session_data = None
+        if redis_manager.is_available():
+            session_data = get_session(session_id)
+            if not session_data:
+                return
+        else:
+            if session_id not in active_sessions:
+                return
+            session_data = active_sessions[session_id]
         
-        if not active_sessions[session_id]['is_recording']:
+        # Check if recording
+        is_recording = session_data.get('is_recording') == 'True' if redis_manager.is_available() else session_data.get('is_recording', False)
+        if not is_recording:
             return
         
         # Append audio chunk to buffer
         audio_chunk = base64.b64decode(data['audio'])
-        active_sessions[session_id]['audio_buffer'] += audio_chunk
+        
+        if redis_manager.is_available():
+            # For Redis, we need to handle binary data differently
+            # Store as base64 string in Redis
+            current_buffer = session_data.get('audio_buffer', '')
+            new_chunk_b64 = base64.b64encode(audio_chunk).decode('utf-8')
+            updated_buffer = current_buffer + new_chunk_b64
+            update_session(session_id, {'audio_buffer': updated_buffer})
+        else:
+            # In-memory storage
+            active_sessions[session_id]['audio_buffer'] += audio_chunk
     
     
     @socketio.on('stop_recording', namespace='/voice')
@@ -167,21 +239,46 @@ def init_socketio(socketio_instance: SocketIO, app):
         """Stop recording and process audio"""
         session_id = request.sid
         
-        if session_id not in active_sessions:
-            emit('error', {'message': 'Session not found'})
-            return
+        # Get session data
+        session_data = None
+        if redis_manager.is_available():
+            session_data = get_session(session_id)
+            if not session_data:
+                emit('error', {'message': 'Session not found'})
+                return
+        else:
+            if session_id not in active_sessions:
+                emit('error', {'message': 'Session not found'})
+                return
+            session_data = active_sessions[session_id]
         
-        session = active_sessions[session_id]
-        
-        if not session['is_recording']:
+        # Check if recording
+        is_recording = session_data.get('is_recording') == 'True' if redis_manager.is_available() else session_data.get('is_recording', False)
+        if not is_recording:
             emit('error', {'message': 'Not recording'})
             return
         
         print(f"🛑 Recording stopped: {session_id}")
-        session['is_recording'] = False
+        
+        # Update recording state
+        if redis_manager.is_available():
+            update_session(session_id, {'is_recording': 'False'})
+        else:
+            session_data['is_recording'] = False
         
         # Get audio buffer
-        audio_buffer = session['audio_buffer']
+        if redis_manager.is_available():
+            # Decode base64 string back to binary
+            audio_buffer_b64 = session_data.get('audio_buffer', '')
+            if not audio_buffer_b64:
+                emit('transcription', {
+                    'success': False,
+                    'message': 'No audio data received.'
+                })
+                return
+            audio_buffer = base64.b64decode(audio_buffer_b64)
+        else:
+            audio_buffer = session_data['audio_buffer']
         
         if len(audio_buffer) < 1000:  # Too short
             emit('transcription', {
@@ -230,9 +327,21 @@ def init_socketio(socketio_instance: SocketIO, app):
         # Use the stored Flask app instance for application context
         with flask_app.app_context():
             try:
-                session = active_sessions.get(session_id)
-                if not session:
-                    return
+                # Get session data
+                session = None
+                if redis_manager.is_available():
+                    session_data = get_session(session_id)
+                    if not session_data:
+                        return
+                    # Convert Redis session data to expected format
+                    session = {
+                        'user_id': session_data.get('user_id'),
+                        'user_name': session_data.get('user_name')
+                    }
+                else:
+                    session = active_sessions.get(session_id)
+                    if not session:
+                        return
                 
                 print(f"🎧 Processing audio: {len(audio_buffer)} bytes")
                 

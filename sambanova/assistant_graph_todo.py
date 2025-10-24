@@ -13,6 +13,8 @@ from dotenv import load_dotenv
 
 from .state import AgentState
 from .mcps.local_servers.db_todo import TodoPriority, ReminderImportance
+from .composio_tools import get_all_integration_tools, test_composio_connection
+from .redis_manager import redis_manager
 
 
 load_dotenv()
@@ -48,6 +50,13 @@ class TodoAgent:
             - "mark [todo] as completed" / "complete [todo]" → use complete_todo immediately
             - "delete todo/reminder/event" → use delete_todo/delete_reminder/delete_calendar_event immediately
             - "update todo/reminder/event" → use update_todo/update_reminder/update_calendar_event immediately
+            
+            EXTERNAL INTEGRATIONS (via Composio):
+            - "send a Slack message" / "message the team" → use Slack tools
+            - "create a GitHub issue" / "open a ticket" → use GitHub tools
+            - "send an email" / "email someone" → use Gmail tools
+            - "create a Notion page" / "add to Notion" → use Notion tools
+            - "create a Jira ticket" / "log a bug" → use Jira tools
             - "sync calendar" → use sync_google_calendar_events immediately
             
             TEAM MANAGEMENT:

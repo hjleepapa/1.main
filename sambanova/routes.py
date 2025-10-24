@@ -676,6 +676,19 @@ async def _get_agent_graph() -> StateGraph:
             tools.extend(transfer_tools)
             print(f"✅ Added {len(transfer_tools)} call transfer tools")
             
+            # Add Composio integration tools
+            try:
+                from .composio_tools import get_all_integration_tools, test_composio_connection
+                if test_composio_connection():
+                    composio_tools = get_all_integration_tools()
+                    tools.extend(composio_tools)
+                    print(f"✅ Added {len(composio_tools)} Composio integration tools")
+                else:
+                    print("⚠️ Composio connection test failed, skipping external integrations")
+            except Exception as e:
+                print(f"⚠️ Failed to load Composio tools: {e}")
+                print("⚠️ Continuing without external integrations")
+            
             print("🔧 Building agent graph...")
             
             # Build and cache the graph

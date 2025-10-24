@@ -21,6 +21,53 @@ services:
         sync: false
       - key: GOOGLE_OAUTH2_TOKEN_B64
         sync: false
+      # Redis Configuration (NEW)
+      - key: REDIS_HOST
+        sync: false
+      - key: REDIS_PORT
+        value: 6379
+      - key: REDIS_PASSWORD
+        sync: false
+      - key: REDIS_DB
+        value: 0
+      # Composio Configuration (NEW)
+      - key: COMPOSIO_API_KEY
+        value: ak_68Xsj6WGv3Zl4ooBgkcD
+      - key: COMPOSIO_PROJECT_ID
+        value: pr_bz7nkY2wflSi
+      # Twilio Configuration
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_PHONE_NUMBER
+        sync: false
+      # Webhook URLs (Update with your Render app name)
+      - key: WEBHOOK_BASE_URL
+        sync: false
+      - key: WEBSOCKET_BASE_URL
+        sync: false
+      # FreePBX Configuration
+      - key: FREEPBX_DOMAIN
+        value: 34.26.59.14
+      - key: TRANSFER_TIMEOUT
+        value: 30
+      - key: SUPPORT_EXTENSION
+        value: 2000
+      - key: SALES_EXTENSION
+        value: 2000
+      - key: GENERAL_EXTENSION
+        value: 2000
+      - key: OPERATOR_EXTENSION
+        value: 2000
+      # Rate Limiting Configuration (NEW)
+      - key: RATELIMIT_STORAGE_URL
+        sync: false
+      - key: RATELIMIT_DEFAULT
+        value: 10 per minute
+      # Sentry Configuration (Optional)
+      - key: SENTRY_DSN
+        sync: false
     healthCheckPath: /
     autoDeploy: true
 
