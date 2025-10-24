@@ -240,6 +240,7 @@ def init_socketio(socketio_instance: SocketIO, app):
         
         # Append audio chunk to buffer
         audio_chunk = base64.b64decode(data['audio'])
+        print(f"🔍 Debug: received audio chunk: {len(audio_chunk)} bytes")
         
         if redis_manager.is_available():
             # For Redis, we need to handle binary data differently
@@ -248,9 +249,11 @@ def init_socketio(socketio_instance: SocketIO, app):
             new_chunk_b64 = base64.b64encode(audio_chunk).decode('utf-8')
             updated_buffer = current_buffer + new_chunk_b64
             update_session(session_id, {'audio_buffer': updated_buffer})
+            print(f"🔍 Debug: updated Redis audio buffer: {len(updated_buffer)} chars")
         else:
             # In-memory storage
             active_sessions[session_id]['audio_buffer'] += audio_chunk
+            print(f"🔍 Debug: updated in-memory audio buffer: {len(active_sessions[session_id]['audio_buffer'])} bytes")
     
     
     @socketio.on('stop_recording', namespace='/voice')
@@ -289,15 +292,19 @@ def init_socketio(socketio_instance: SocketIO, app):
         if redis_manager.is_available():
             # Decode base64 string back to binary
             audio_buffer_b64 = session_data.get('audio_buffer', '')
+            print(f"🔍 Debug: audio_buffer_b64 length: {len(audio_buffer_b64)}")
             if not audio_buffer_b64:
+                print("❌ No audio data in Redis session")
                 emit('transcription', {
                     'success': False,
                     'message': 'No audio data received.'
                 })
                 return
             audio_buffer = base64.b64decode(audio_buffer_b64)
+            print(f"🔍 Debug: decoded audio_buffer length: {len(audio_buffer)}")
         else:
             audio_buffer = session_data['audio_buffer']
+            print(f"🔍 Debug: in-memory audio_buffer length: {len(audio_buffer)}")
         
         if len(audio_buffer) < 1000:  # Too short
             emit('transcription', {
