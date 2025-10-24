@@ -6,6 +6,13 @@ Handles Redis and Composio environment variables
 import os
 from typing import Optional
 
+def safe_int(value: str, default: int = 0) -> int:
+    """Safely convert string to int with fallback"""
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        return default
+
 class EnvironmentConfig:
     """Environment configuration manager for Sambanova project"""
     
@@ -32,9 +39,9 @@ class EnvironmentConfig:
     
     # Redis Configuration (NEW)
     REDIS_HOST: str = os.getenv('REDIS_HOST', 'localhost')
-    REDIS_PORT: int = int(os.getenv('REDIS_PORT', '6379'))
+    REDIS_PORT: int = safe_int(os.getenv('REDIS_PORT', '6379'), 6379)
     REDIS_PASSWORD: Optional[str] = os.getenv('REDIS_PASSWORD')
-    REDIS_DB: int = int(os.getenv('REDIS_DB', '0'))
+    REDIS_DB: int = safe_int(os.getenv('REDIS_DB', '0'), 0)
     
     # Composio Configuration (NEW)
     COMPOSIO_API_KEY: str = os.getenv('COMPOSIO_API_KEY', 'ak_68Xsj6WGv3Zl4ooBgkcD')
@@ -47,7 +54,7 @@ class EnvironmentConfig:
     FREEPBX_DOMAIN: str = os.getenv('FREEPBX_DOMAIN', '34.26.59.14')
     FREEPBX_SIP_USERNAME: Optional[str] = os.getenv('FREEPBX_SIP_USERNAME')
     FREEPBX_SIP_PASSWORD: Optional[str] = os.getenv('FREEPBX_SIP_PASSWORD')
-    TRANSFER_TIMEOUT: int = int(os.getenv('TRANSFER_TIMEOUT', '30'))
+    TRANSFER_TIMEOUT: int = safe_int(os.getenv('TRANSFER_TIMEOUT', '30'), 30)
     SUPPORT_EXTENSION: str = os.getenv('SUPPORT_EXTENSION', '2000')
     SALES_EXTENSION: str = os.getenv('SALES_EXTENSION', '2000')
     GENERAL_EXTENSION: str = os.getenv('GENERAL_EXTENSION', '2000')

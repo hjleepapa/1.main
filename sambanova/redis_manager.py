@@ -9,6 +9,13 @@ import redis
 from typing import Optional, Dict, Any, List
 import logging
 
+def safe_int(value: str, default: int = 0) -> int:
+    """Safely convert string to int with fallback"""
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        return default
+
 logger = logging.getLogger(__name__)
 
 class RedisManager:
@@ -26,9 +33,9 @@ class RedisManager:
         except ImportError:
             # Fallback to environment variables
             redis_host = os.getenv('REDIS_HOST', 'localhost')
-            redis_port = int(os.getenv('REDIS_PORT', 6379))
+            redis_port = safe_int(os.getenv('REDIS_PORT', '6379'), 6379)
             redis_password = os.getenv('REDIS_PASSWORD', '')
-            redis_db = int(os.getenv('REDIS_DB', 0))
+            redis_db = safe_int(os.getenv('REDIS_DB', '0'), 0)
         
         try:
             self.redis_client = redis.Redis(
