@@ -43,6 +43,10 @@ class ComposioManager:
             if not self.is_available():
                 return []
             
+            # Debug: Check what methods are available
+            available_methods = [method for method in dir(self.toolset) if not method.startswith('_')]
+            logger.info(f"🔍 Available ComposioToolSet methods: {available_methods[:10]}...")
+            
             # Try different method names for getting tools
             if hasattr(self.toolset, 'get_tools'):
                 slack_tools = self.toolset.get_tools(apps=["slack"])
@@ -50,8 +54,13 @@ class ComposioManager:
                 slack_tools = self.toolset.get_actions(apps=["slack"])
             elif hasattr(self.toolset, 'list_tools'):
                 slack_tools = self.toolset.list_tools(apps=["slack"])
+            elif hasattr(self.toolset, 'tools'):
+                # Try accessing tools as a property
+                all_tools = getattr(self.toolset, 'tools', [])
+                slack_tools = [tool for tool in all_tools if 'slack' in str(tool).lower()]
             else:
                 logger.warning("⚠️ No compatible method found for getting tools")
+                logger.warning(f"⚠️ Available methods: {available_methods}")
                 return []
             
             logger.info(f"✅ Loaded {len(slack_tools)} Slack tools")
