@@ -7,7 +7,7 @@
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center">
                 <h1 class="text-4xl font-bold text-gray-800 mb-4">Sambanova Voice AI Productivity System</h1>
-                <p class="text-xl text-gray-600 mb-8">LangGraph + Twilio + MCP + Team Management + Call Transfer + Sentry Monitoring</p>
+                <p class="text-xl text-gray-600 mb-8">LangGraph + Twilio + MCP + Team Management + Call Transfer + Sentry Monitoring + Redis + Composio + Audio Stream Player</p>
                 <div class="flex justify-center flex-wrap gap-2">
                     <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">Flask</span>
                     <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">LangGraph</span>
@@ -21,6 +21,9 @@
                     <span class="bg-teal-100 text-teal-800 px-3 py-1 rounded-full text-sm font-medium">FreePBX Call Transfer</span>
                     <span class="bg-rose-100 text-rose-800 px-3 py-1 rounded-full text-sm font-medium">Sentry Monitoring</span>
                     <span class="bg-lime-100 text-lime-800 px-3 py-1 rounded-full text-sm font-medium">WebRTC Call Center</span>
+                    <span class="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-sm font-medium">Redis Cache</span>
+                    <span class="bg-violet-100 text-violet-800 px-3 py-1 rounded-full text-sm font-medium">Composio Tools</span>
+                    <span class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm font-medium">Audio Stream Player</span>
                 </div>
             </div>
         </div>
@@ -363,6 +366,80 @@
                         <div class="bg-white p-4 rounded text-center">
                             <div class="text-2xl font-bold text-rose-600">100%</div>
                             <div class="text-xs text-gray-600">Sentry Trace Rate</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New Features: Redis, Composio, Audio Stream Player -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">Latest Features (October 2025)</h3>
+                <div class="bg-gradient-to-r from-amber-50 to-violet-50 p-6 rounded-lg border-2 border-amber-200">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Redis Integration -->
+                        <div class="bg-white p-5 rounded-lg shadow-sm">
+                            <div class="flex items-center mb-3">
+                                <span class="bg-amber-100 p-2 rounded-full mr-3">
+                                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+                                    </svg>
+                                </span>
+                                <h4 class="text-lg font-semibold text-gray-800">Redis Session Management</h4>
+                            </div>
+                            <ul class="text-sm text-gray-600 space-y-1.5">
+                                <li>✓ Session storage & caching</li>
+                                <li>✓ Audio buffer management</li>
+                                <li>✓ Real-time notifications (Pub/Sub)</li>
+                                <li>✓ Rate limiting & analytics</li>
+                                <li>✓ User activity tracking</li>
+                            </ul>
+                            <div class="mt-3 text-xs text-gray-500">
+                                <strong>Files:</strong> redis_manager.py, REDIS_DATA_GUIDE.md
+                            </div>
+                        </div>
+
+                        <!-- Composio Integration -->
+                        <div class="bg-white p-5 rounded-lg shadow-sm">
+                            <div class="flex items-center mb-3">
+                                <span class="bg-violet-100 p-2 rounded-full mr-3">
+                                    <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                    </svg>
+                                </span>
+                                <h4 class="text-lg font-semibold text-gray-800">Composio Tool Integration</h4>
+                            </div>
+                            <ul class="text-sm text-gray-600 space-y-1.5">
+                                <li>✓ Slack workspace integration</li>
+                                <li>✓ GitHub repository management</li>
+                                <li>✓ Gmail email automation</li>
+                                <li>✓ Notion workspace sync</li>
+                                <li>✓ Jira project management</li>
+                            </ul>
+                            <div class="mt-3 text-xs text-gray-500">
+                                <strong>Integration:</strong> External tool orchestration
+                            </div>
+                        </div>
+
+                        <!-- Audio Stream Player -->
+                        <div class="bg-white p-5 rounded-lg shadow-sm">
+                            <div class="flex items-center mb-3">
+                                <span class="bg-emerald-100 p-2 rounded-full mr-3">
+                                    <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+                                    </svg>
+                                </span>
+                                <h4 class="text-lg font-semibold text-gray-800">Audio Stream Player</h4>
+                            </div>
+                            <ul class="text-sm text-gray-600 space-y-1.5">
+                                <li>✓ Redis audio buffer playback</li>
+                                <li>✓ WebM format support</li>
+                                <li>✓ Real-time audio streaming</li>
+                                <li>✓ Session audio download</li>
+                                <li>✓ Audio format detection</li>
+                            </ul>
+                            <div class="mt-3 text-xs text-gray-500">
+                                <strong>Files:</strong> audio_player_routes.py, audio_stream_player.py
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -896,6 +973,140 @@
   "exp": 1728589200,  // 30 minutes from issue
   "iat": 1728587400   // issued at timestamp
 }</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New Features Technical Details -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">New Features Technical Details</h3>
+                <div class="space-y-8">
+                    
+                    <!-- Redis Integration Details -->
+                    <div class="bg-gradient-to-r from-amber-50 to-orange-50 p-6 rounded-lg border-2 border-amber-200">
+                        <h4 class="text-xl font-semibold mb-4 text-gray-800 flex items-center">
+                            <span class="bg-amber-100 p-2 rounded-full mr-3">
+                                <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+                                </svg>
+                            </span>
+                            Redis Session Management & Caching
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h5 class="font-semibold text-gray-700 mb-2">Session Management</h5>
+                                <ul class="text-sm text-gray-600 space-y-1">
+                                    <li>• Session creation, retrieval, updates, deletion</li>
+                                    <li>• Audio buffer storage (base64 encoded)</li>
+                                    <li>• User authentication state management</li>
+                                    <li>• Session expiration handling</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h5 class="font-semibold text-gray-700 mb-2">Real-time Features</h5>
+                                <ul class="text-sm text-gray-600 space-y-1">
+                                    <li>• Pub/Sub notifications for team updates</li>
+                                    <li>• Rate limiting (requests per minute)</li>
+                                    <li>• User activity tracking & analytics</li>
+                                    <li>• Cache invalidation strategies</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="mt-4 p-3 bg-gray-100 rounded">
+                            <code class="text-sm text-gray-700">
+                                # Redis connection with environment config<br>
+                                REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379')<br>
+                                # Session data structure<br>
+                                session_data = {<br>
+                                &nbsp;&nbsp;'user_id': 'user-123', 'audio_buffer': 'base64...',<br>
+                                &nbsp;&nbsp;'created_at': timestamp, 'expires_at': ttl<br>
+                                }
+                            </code>
+                        </div>
+                    </div>
+
+                    <!-- Composio Integration Details -->
+                    <div class="bg-gradient-to-r from-violet-50 to-purple-50 p-6 rounded-lg border-2 border-violet-200">
+                        <h4 class="text-xl font-semibold mb-4 text-gray-800 flex items-center">
+                            <span class="bg-violet-100 p-2 rounded-full mr-3">
+                                <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                </svg>
+                            </span>
+                            Composio External Tool Integration
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h5 class="font-semibold text-gray-700 mb-2">Supported Platforms</h5>
+                                <ul class="text-sm text-gray-600 space-y-1">
+                                    <li>• <strong>Slack:</strong> Message sending, channel management</li>
+                                    <li>• <strong>GitHub:</strong> Repository operations, issue tracking</li>
+                                    <li>• <strong>Gmail:</strong> Email composition, sending, management</li>
+                                    <li>• <strong>Notion:</strong> Page creation, database operations</li>
+                                    <li>• <strong>Jira:</strong> Ticket creation, project management</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h5 class="font-semibold text-gray-700 mb-2">Integration Features</h5>
+                                <ul class="text-sm text-gray-600 space-y-1">
+                                    <li>• OAuth2 authentication for each platform</li>
+                                    <li>• Robust method discovery for API compatibility</li>
+                                    <li>• Error handling for missing methods</li>
+                                    <li>• Tool orchestration with LangGraph</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="mt-4 p-3 bg-gray-100 rounded">
+                            <code class="text-sm text-gray-700">
+                                # Composio tool loading with fallback methods<br>
+                                if hasattr(toolset, 'get_tools'):<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;tools = toolset.get_tools(apps=["slack"])<br>
+                                elif hasattr(toolset, 'get_actions'):<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;tools = toolset.get_actions(apps=["slack"])
+                            </code>
+                        </div>
+                    </div>
+
+                    <!-- Audio Stream Player Details -->
+                    <div class="bg-gradient-to-r from-emerald-50 to-green-50 p-6 rounded-lg border-2 border-emerald-200">
+                        <h4 class="text-xl font-semibold mb-4 text-gray-800 flex items-center">
+                            <span class="bg-emerald-100 p-2 rounded-full mr-3">
+                                <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+                                </svg>
+                            </span>
+                            Audio Stream Player & WebM Support
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h5 class="font-semibold text-gray-700 mb-2">Audio Processing</h5>
+                                <ul class="text-sm text-gray-600 space-y-1">
+                                    <li>• WebM format detection & handling</li>
+                                    <li>• Base64 audio buffer decoding</li>
+                                    <li>• Real-time audio streaming from Redis</li>
+                                    <li>• Audio format conversion (WebM → WAV fallback)</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h5 class="font-semibold text-gray-700 mb-2">Player Features</h5>
+                                <ul class="text-sm text-gray-600 space-y-1">
+                                    <li>• Session-based audio playback</li>
+                                    <li>• Audio file download (WebM/WAV)</li>
+                                    <li>• Audio buffer analysis & debugging</li>
+                                    <li>• Flask-SocketIO real-time updates</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="mt-4 p-3 bg-gray-100 rounded">
+                            <code class="text-sm text-gray-700">
+                                # WebM format detection<br>
+                                if audio_data.startswith(b'\x1a\x45\xdf\xa3'):<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;return Response(audio_data, mimetype='audio/webm')<br>
+                                # Audio buffer from Redis<br>
+                                audio_buffer = session_data.get('audio_buffer', '')<br>
+                                audio_data = base64.b64decode(audio_buffer)
+                            </code>
                         </div>
                     </div>
                 </div>
