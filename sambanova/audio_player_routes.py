@@ -66,6 +66,7 @@ def create_wav_file(audio_data):
     ]
     
     for params in audio_params:
+        temp_file = None
         try:
             # Create temporary WAV file
             temp_file = tempfile.NamedTemporaryFile(suffix='.wav', delete=False)
@@ -81,7 +82,7 @@ def create_wav_file(audio_data):
             
         except Exception as e:
             print(f"❌ Failed with {params['desc']}: {e}")
-            if os.path.exists(temp_file.name):
+            if temp_file and os.path.exists(temp_file.name):
                 os.unlink(temp_file.name)
             continue
     

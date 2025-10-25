@@ -176,8 +176,8 @@ yarl==1.20.0
 zipp==3.21.0
 sentry-sdk[flask]>=2.0.0
 redis>=5.0.0
-# Audio processing libraries for audio stream player
-PyAudio>=0.2.11
+# Audio processing libraries for audio stream player (optional - requires system audio libraries)
+# PyAudio>=0.2.11  # Commented out - requires PortAudio system library not available on Render.com
 
 # Additional integrations
 composio-core>=0.3.0
