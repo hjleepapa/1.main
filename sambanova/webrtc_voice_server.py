@@ -722,18 +722,65 @@ def init_socketio(socketio_instance: SocketIO, app):
                 
                 # Save audio to temporary file (Whisper API requires file)
                 import tempfile
-                with tempfile.NamedTemporaryFile(suffix='.webm', delete=False) as temp_audio:
-                    temp_audio.write(audio_buffer)
-                    temp_audio_path = temp_audio.name
+                import os
+                
+                # Detect audio format from buffer header
+                def detect_audio_format(buffer):
+                    """Detect audio format from buffer header"""
+                    if buffer.startswith(b'RIFF') and b'WAVE' in buffer[:12]:
+                        return '.wav'
+                    elif buffer.startswith(b'ID3') or buffer.startswith(b'\xff\xfb'):
+                        return '.mp3'
+                    elif buffer.startswith(b'OggS'):
+                        return '.ogg'
+                    elif buffer.startswith(b'\x1a\x45\xdf\xa3'):  # WebM/Matroska
+                        return '.webm'
+                    elif buffer.startswith(b'ftyp'):
+                        return '.m4a'
+                    else:
+                        return '.wav'  # Default fallback
+                
+                # Detect the best format to try first
+                detected_format = detect_audio_format(audio_buffer)
+                print(f"🔍 Debug: detected audio format: {detected_format}")
+                
+                # Try detected format first, then fallback to others
+                audio_formats = [detected_format] + ['.wav', '.mp3', '.webm', '.ogg', '.m4a']
+                audio_formats = list(dict.fromkeys(audio_formats))  # Remove duplicates while preserving order
+                
+                temp_audio_path = None
+                transcription = None
+                
+                for audio_format in audio_formats:
+                    try:
+                        with tempfile.NamedTemporaryFile(suffix=audio_format, delete=False) as temp_audio:
+                            temp_audio.write(audio_buffer)
+                            temp_audio_path = temp_audio.name
+                        
+                        print(f"🔍 Debug: trying audio format: {audio_format}")
+                        
+                        with open(temp_audio_path, 'rb') as audio_file:
+                            transcription = openai_client.audio.transcriptions.create(
+                                model="whisper-1",
+                                file=audio_file,
+                                language="en"
+                            )
+                        
+                        print(f"✅ Success with format: {audio_format}")
+                        break  # Success, exit the loop
+                        
+                    except Exception as format_error:
+                        print(f"❌ Failed with format {audio_format}: {format_error}")
+                        # Clean up the failed temp file
+                        if temp_audio_path and os.path.exists(temp_audio_path):
+                            os.unlink(temp_audio_path)
+                        temp_audio_path = None
+                        continue
+                
+                if not transcription:
+                    raise Exception("All audio formats failed. Audio data may be corrupted.")
                 
                 try:
-                    with open(temp_audio_path, 'rb') as audio_file:
-                        transcription = openai_client.audio.transcriptions.create(
-                            model="whisper-1",
-                            file=audio_file,
-                            language="en"
-                        )
-                    
                     transcribed_text = transcription.text
                     print(f"📝 Transcription: {transcribed_text}")
                     sentry_capture_voice_event("transcription_completed", session_id, session.get('user_id'), details={"text_length": len(transcribed_text)})
