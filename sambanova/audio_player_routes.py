@@ -168,29 +168,44 @@ def api_download_audio(session_id):
         except Exception as e:
             return jsonify({'success': False, 'message': f'Failed to decode audio: {e}'})
         
-        # Create WAV file
-        wav_file_path, format_desc = create_wav_file(audio_data)
-        if not wav_file_path:
-            return jsonify({'success': False, 'message': f'Failed to create WAV file: {format_desc}'})
-        
-        # Return WAV file
-        def generate():
-            with open(wav_file_path, 'rb') as f:
-                while True:
-                    data = f.read(1024)
-                    if not data:
-                        break
-                    yield data
-            # Clean up
-            os.unlink(wav_file_path)
-        
-        return Response(
-            generate(),
-            mimetype='audio/wav',
-            headers={
-                'Content-Disposition': f'attachment; filename=audio_{session_id}.wav'
-            }
-        )
+        # Check if audio is WebM format (from WebRTC)
+        if audio_data.startswith(b'\x1a\x45\xdf\xa3'):  # WebM/Matroska header
+            # For WebM, return the original file without conversion
+            def generate():
+                yield audio_data
+            
+            return Response(
+                generate(),
+                mimetype='audio/webm',
+                headers={
+                    'Content-Disposition': f'attachment; filename="session_{session_id}_audio.webm"',
+                    'Content-Type': 'audio/webm'
+                }
+            )
+        else:
+            # For other formats, create WAV file
+            wav_file_path, format_desc = create_wav_file(audio_data)
+            if not wav_file_path:
+                return jsonify({'success': False, 'message': f'Failed to create WAV file: {format_desc}'})
+            
+            # Return WAV file
+            def generate():
+                with open(wav_file_path, 'rb') as f:
+                    while True:
+                        data = f.read(1024)
+                        if not data:
+                            break
+                        yield data
+                # Clean up
+                os.unlink(wav_file_path)
+            
+            return Response(
+                generate(),
+                mimetype='audio/wav',
+                headers={
+                    'Content-Disposition': f'attachment; filename=audio_{session_id}.wav'
+                }
+            )
         
     except Exception as e:
         return jsonify({'success': False, 'message': f'Error: {e}'})
