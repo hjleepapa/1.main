@@ -724,6 +724,42 @@ def init_socketio(socketio_instance: SocketIO, app):
                 import tempfile
                 import os
                 
+                # Validate and analyze audio buffer
+                def analyze_audio_buffer(buffer):
+                    """Analyze audio buffer for debugging"""
+                    print(f"🔍 Debug: Audio buffer analysis:")
+                    print(f"  - Length: {len(buffer)} bytes")
+                    print(f"  - First 20 bytes: {buffer[:20].hex()}")
+                    print(f"  - First 20 chars: {buffer[:20]}")
+                    
+                    # Check for common audio headers
+                    if buffer.startswith(b'RIFF'):
+                        print(f"  - RIFF header detected (WAV)")
+                    elif buffer.startswith(b'ID3'):
+                        print(f"  - ID3 header detected (MP3)")
+                    elif buffer.startswith(b'\xff\xfb'):
+                        print(f"  - MP3 sync header detected")
+                    elif buffer.startswith(b'OggS'):
+                        print(f"  - Ogg header detected")
+                    elif buffer.startswith(b'\x1a\x45\xdf\xa3'):
+                        print(f"  - WebM/Matroska header detected")
+                    elif buffer.startswith(b'ftyp'):
+                        print(f"  - MP4/M4A header detected")
+                    else:
+                        print(f"  - No recognized audio header")
+                    
+                    # Check if buffer contains mostly null bytes or repeated patterns
+                    null_count = buffer.count(b'\x00')
+                    if null_count > len(buffer) * 0.8:
+                        print(f"  - WARNING: Buffer contains {null_count} null bytes ({null_count/len(buffer)*100:.1f}%)")
+                    
+                    # Check for repeated patterns
+                    if len(set(buffer[:100])) < 10:
+                        print(f"  - WARNING: Buffer shows repetitive pattern")
+                
+                # Analyze the audio buffer
+                analyze_audio_buffer(audio_buffer)
+                
                 # Detect audio format from buffer header
                 def detect_audio_format(buffer):
                     """Detect audio format from buffer header"""
@@ -778,7 +814,39 @@ def init_socketio(socketio_instance: SocketIO, app):
                         continue
                 
                 if not transcription:
-                    raise Exception("All audio formats failed. Audio data may be corrupted.")
+                    # Try creating a proper WAV file from raw audio data
+                    print("🔍 Debug: Trying to create WAV file from raw audio data")
+                    try:
+                        import wave
+                        import struct
+                        
+                        # Create a proper WAV file with WAV headers
+                        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_audio:
+                            temp_audio_path = temp_audio.name
+                        
+                        # Write WAV header and audio data
+                        with wave.open(temp_audio_path, 'wb') as wav_file:
+                            # Set WAV parameters (assuming 16-bit, 44.1kHz, mono)
+                            wav_file.setnchannels(1)  # Mono
+                            wav_file.setsampwidth(2)  # 16-bit
+                            wav_file.setframerate(44100)  # 44.1kHz
+                            wav_file.writeframes(audio_buffer)
+                        
+                        print(f"🔍 Debug: Created WAV file with proper headers")
+                        
+                        # Try transcription with the proper WAV file
+                        with open(temp_audio_path, 'rb') as audio_file:
+                            transcription = openai_client.audio.transcriptions.create(
+                                model="whisper-1",
+                                file=audio_file,
+                                language="en"
+                            )
+                        
+                        print(f"✅ Success with proper WAV format")
+                        
+                    except Exception as wav_error:
+                        print(f"❌ WAV creation failed: {wav_error}")
+                        raise Exception("All audio formats failed. Audio data may be corrupted.")
                 
                 try:
                     transcribed_text = transcription.text
