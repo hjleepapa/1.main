@@ -123,6 +123,19 @@ def debug_session(session_id):
                 debug_data['audio_buffer_length'] = len(audio_buffer)
                 debug_data['audio_buffer_preview'] = audio_buffer[:100] + "..." if len(audio_buffer) > 100 else audio_buffer
                 
+                # Test base64 decoding
+                try:
+                    if audio_buffer:
+                        decoded = base64.b64decode(audio_buffer)
+                        debug_data['decoded_audio_length'] = len(decoded)
+                        debug_data['base64_valid'] = True
+                    else:
+                        debug_data['decoded_audio_length'] = 0
+                        debug_data['base64_valid'] = True
+                except Exception as e:
+                    debug_data['base64_valid'] = False
+                    debug_data['base64_error'] = str(e)
+                
                 return jsonify({
                     'success': True,
                     'session_id': session_id,
@@ -158,6 +171,38 @@ def debug_session(session_id):
                     'success': False,
                     'message': 'Session not found in memory',
                     'session_id': session_id
+                })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'session_id': session_id
+        })
+
+
+@webrtc_bp.route('/clear-session/<session_id>')
+def clear_session(session_id):
+    """Clear Redis session data for testing"""
+    try:
+        if redis_manager.is_available():
+            # Clear the session
+            delete_session(session_id)
+            return jsonify({
+                'success': True,
+                'message': f'Session {session_id} cleared from Redis'
+            })
+        else:
+            # Clear from memory
+            if session_id in active_sessions:
+                del active_sessions[session_id]
+                return jsonify({
+                    'success': True,
+                    'message': f'Session {session_id} cleared from memory'
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'message': f'Session {session_id} not found'
                 })
     except Exception as e:
         return jsonify({
@@ -385,11 +430,11 @@ def init_socketio(socketio_instance: SocketIO, app):
         if redis_manager.is_available():
             update_session(session_id, {
                 'is_recording': 'True',
-                'audio_buffer': ''
+                'audio_buffer': ''  # Start with empty string for base64 concatenation
             })
         else:
             active_sessions[session_id]['is_recording'] = True
-            active_sessions[session_id]['audio_buffer'] = b''
+            active_sessions[session_id]['audio_buffer'] = b''  # Start with empty bytes for binary concatenation
         
         emit('recording_started', {'success': True})
     
@@ -428,7 +473,28 @@ def init_socketio(socketio_instance: SocketIO, app):
                 # Store as base64 string in Redis
                 current_buffer = session_data.get('audio_buffer', '')
                 new_chunk_b64 = base64.b64encode(audio_chunk).decode('utf-8')
+                
+                # Validate current buffer is valid base64
+                if current_buffer:
+                    try:
+                        # Test if current buffer is valid base64
+                        base64.b64decode(current_buffer)
+                        print(f"🔍 Debug: current buffer is valid base64, length: {len(current_buffer)}")
+                    except Exception as e:
+                        print(f"⚠️ Current buffer is not valid base64, resetting: {e}")
+                        current_buffer = ''  # Reset if corrupted
+                
                 updated_buffer = current_buffer + new_chunk_b64
+                
+                # Validate the updated buffer
+                try:
+                    test_decode = base64.b64decode(updated_buffer)
+                    print(f"🔍 Debug: updated buffer is valid base64, decoded length: {len(test_decode)}")
+                except Exception as e:
+                    print(f"❌ Updated buffer is not valid base64: {e}")
+                    # Use only the new chunk if concatenation failed
+                    updated_buffer = new_chunk_b64
+                    print(f"🔍 Debug: using only new chunk, length: {len(updated_buffer)}")
                 
                 # Use Redis append operation for better performance
                 try:
