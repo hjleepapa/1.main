@@ -279,6 +279,8 @@ class TodoAgent:
             response = await self.llm.ainvoke([SystemMessage(content=system_prompt)] + state.messages)
             print(f"🤖 Assistant response: {response.content}")
             print(f"🤖 Tool calls: {response.tool_calls if hasattr(response, 'tool_calls') else 'None'}")
+            print(f"🤖 Available tools: {len(self.tools)}")
+            print(f"🤖 Tool names: {[tool.name for tool in self.tools[:5]]}...")  # Show first 5 tools
             
             state.messages.append(response)
             return state

@@ -43,7 +43,17 @@ class ComposioManager:
             if not self.is_available():
                 return []
             
-            slack_tools = self.toolset.get_tools(apps=["slack"])
+            # Try different method names for getting tools
+            if hasattr(self.toolset, 'get_tools'):
+                slack_tools = self.toolset.get_tools(apps=["slack"])
+            elif hasattr(self.toolset, 'get_actions'):
+                slack_tools = self.toolset.get_actions(apps=["slack"])
+            elif hasattr(self.toolset, 'list_tools'):
+                slack_tools = self.toolset.list_tools(apps=["slack"])
+            else:
+                logger.warning("⚠️ No compatible method found for getting tools")
+                return []
+            
             logger.info(f"✅ Loaded {len(slack_tools)} Slack tools")
             return slack_tools
         except Exception as e:
@@ -56,7 +66,17 @@ class ComposioManager:
             if not self.is_available():
                 return []
             
-            github_tools = self.toolset.get_tools(apps=["github"])
+            # Try different method names for getting tools
+            if hasattr(self.toolset, 'get_tools'):
+                github_tools = self.toolset.get_tools(apps=["github"])
+            elif hasattr(self.toolset, 'get_actions'):
+                github_tools = self.toolset.get_actions(apps=["github"])
+            elif hasattr(self.toolset, 'list_tools'):
+                github_tools = self.toolset.list_tools(apps=["github"])
+            else:
+                logger.warning("⚠️ No compatible method found for getting tools")
+                return []
+            
             logger.info(f"✅ Loaded {len(github_tools)} GitHub tools")
             return github_tools
         except Exception as e:
@@ -69,7 +89,17 @@ class ComposioManager:
             if not self.is_available():
                 return []
             
-            gmail_tools = self.toolset.get_tools(apps=["gmail"])
+            # Try different method names for getting tools
+            if hasattr(self.toolset, 'get_tools'):
+                gmail_tools = self.toolset.get_tools(apps=["gmail"])
+            elif hasattr(self.toolset, 'get_actions'):
+                gmail_tools = self.toolset.get_actions(apps=["gmail"])
+            elif hasattr(self.toolset, 'list_tools'):
+                gmail_tools = self.toolset.list_tools(apps=["gmail"])
+            else:
+                logger.warning("⚠️ No compatible method found for getting tools")
+                return []
+            
             logger.info(f"✅ Loaded {len(gmail_tools)} Gmail tools")
             return gmail_tools
         except Exception as e:
@@ -82,7 +112,17 @@ class ComposioManager:
             if not self.is_available():
                 return []
             
-            notion_tools = self.toolset.get_tools(apps=["notion"])
+            # Try different method names for getting tools
+            if hasattr(self.toolset, 'get_tools'):
+                notion_tools = self.toolset.get_tools(apps=["notion"])
+            elif hasattr(self.toolset, 'get_actions'):
+                notion_tools = self.toolset.get_actions(apps=["notion"])
+            elif hasattr(self.toolset, 'list_tools'):
+                notion_tools = self.toolset.list_tools(apps=["notion"])
+            else:
+                logger.warning("⚠️ No compatible method found for getting tools")
+                return []
+            
             logger.info(f"✅ Loaded {len(notion_tools)} Notion tools")
             return notion_tools
         except Exception as e:
@@ -95,7 +135,17 @@ class ComposioManager:
             if not self.is_available():
                 return []
             
-            jira_tools = self.toolset.get_tools(apps=["jira"])
+            # Try different method names for getting tools
+            if hasattr(self.toolset, 'get_tools'):
+                jira_tools = self.toolset.get_tools(apps=["jira"])
+            elif hasattr(self.toolset, 'get_actions'):
+                jira_tools = self.toolset.get_actions(apps=["jira"])
+            elif hasattr(self.toolset, 'list_tools'):
+                jira_tools = self.toolset.list_tools(apps=["jira"])
+            else:
+                logger.warning("⚠️ No compatible method found for getting tools")
+                return []
+            
             logger.info(f"✅ Loaded {len(jira_tools)} Jira tools")
             return jira_tools
         except Exception as e:
@@ -122,8 +172,17 @@ class ComposioManager:
             if not self.is_available():
                 return []
             
-            # Get available apps from Composio
-            apps = self.toolset.get_available_apps()
+            # Try different method names for getting apps
+            if hasattr(self.toolset, 'get_available_apps'):
+                apps = self.toolset.get_available_apps()
+            elif hasattr(self.toolset, 'list_apps'):
+                apps = self.toolset.list_apps()
+            elif hasattr(self.toolset, 'get_apps'):
+                apps = self.toolset.get_apps()
+            else:
+                logger.warning("⚠️ No compatible method found for getting apps")
+                return []
+            
             return apps
         except Exception as e:
             logger.error(f"❌ Failed to get available apps: {e}")
