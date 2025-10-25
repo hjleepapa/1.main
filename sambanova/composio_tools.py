@@ -47,24 +47,29 @@ class ComposioManager:
             available_methods = [method for method in dir(self.toolset) if not method.startswith('_')]
             logger.info(f"🔍 Available ComposioToolSet methods: {available_methods[:10]}...")
             
-            # Try different method names for getting tools
-            if hasattr(self.toolset, 'get_tools'):
-                slack_tools = self.toolset.get_tools(apps=["slack"])
-            elif hasattr(self.toolset, 'get_actions'):
-                slack_tools = self.toolset.get_actions(apps=["slack"])
-            elif hasattr(self.toolset, 'list_tools'):
-                slack_tools = self.toolset.list_tools(apps=["slack"])
-            elif hasattr(self.toolset, 'tools'):
-                # Try accessing tools as a property
-                all_tools = getattr(self.toolset, 'tools', [])
-                slack_tools = [tool for tool in all_tools if 'slack' in str(tool).lower()]
-            else:
-                logger.warning("⚠️ No compatible method found for getting tools")
-                logger.warning(f"⚠️ Available methods: {available_methods}")
+            # Try to get Slack actions using the correct API
+            try:
+                # Use get_apps to find Slack app
+                apps = self.toolset.get_apps()
+                slack_app = None
+                for app in apps:
+                    if 'slack' in str(app).lower():
+                        slack_app = app
+                        break
+                
+                if slack_app:
+                    # Get actions for Slack app
+                    slack_actions = self.toolset.get_action_schemas(app=slack_app)
+                    logger.info(f"✅ Loaded {len(slack_actions)} Slack actions")
+                    return slack_actions
+                else:
+                    logger.warning("⚠️ Slack app not found in available apps")
+                    return []
+                    
+            except Exception as e:
+                logger.error(f"❌ Failed to get Slack actions: {e}")
                 return []
             
-            logger.info(f"✅ Loaded {len(slack_tools)} Slack tools")
-            return slack_tools
         except Exception as e:
             logger.error(f"❌ Failed to load Slack tools: {e}")
             return []
@@ -209,6 +214,29 @@ class ComposioManager:
             return True
         except Exception as e:
             logger.error(f"❌ Composio connection test failed: {e}")
+            return False
+    
+    def send_slack_message(self, channel: str, message: str) -> bool:
+        """Send a message to a Slack channel"""
+        try:
+            if not self.is_available():
+                logger.error("❌ Composio not available")
+                return False
+            
+            # Use execute_action to send Slack message
+            result = self.toolset.execute_action(
+                action="SLACK_SEND_MESSAGE",
+                params={
+                    "channel": channel,
+                    "text": message
+                }
+            )
+            
+            logger.info(f"✅ Slack message sent to {channel}: {message}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to send Slack message: {e}")
             return False
 
 

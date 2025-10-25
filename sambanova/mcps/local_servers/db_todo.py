@@ -734,6 +734,15 @@ async def create_todo(
             # Skip Google Calendar sync for voice calls to avoid timeout
             # Database todo is created successfully - return immediately
             
+            # Send Slack notification
+            try:
+                from ..composio_tools import composio_manager
+                slack_message = f"📝 New todo created: '{title}' with {priority.value} priority{due_str}"
+                composio_manager.send_slack_message("#productivity", slack_message)
+            except Exception as e:
+                # Don't fail todo creation if Slack notification fails
+                logging.warning(f"⚠️ Failed to send Slack notification: {e}")
+            
             # Return simple success message
             due_str = f" due {new_todo.due_date.strftime('%b %d')}" if new_todo.due_date else ""
             return f"Todo '{title}' created successfully with {priority.value} priority{due_str}."
@@ -1972,6 +1981,19 @@ async def create_team_todo(
                             # print(...) # Removed to avoid MCP protocol issues
                 except Exception as e:
                     pass  #                     
+            
+            # Send Slack notification for team todo
+            try:
+                from ..composio_tools import composio_manager
+                assignee_info = ""
+                if assignee_id:
+                    assignee = session.query(User).filter(User.id == assignee_id).first()
+                    assignee_info = f" (assigned to {assignee.full_name})"
+                slack_message = f"📝 New team todo: '{title}' for {team.name}{assignee_info} with {priority.value} priority"
+                composio_manager.send_slack_message("#productivity", slack_message)
+            except Exception as e:
+                # Don't fail todo creation if Slack notification fails
+                logging.warning(f"⚠️ Failed to send Slack notification: {e}")
             
             # Build response
             result = f"✅ Team todo created successfully!\n\n"
