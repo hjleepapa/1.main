@@ -775,7 +775,8 @@ def init_socketio(socketio_instance: SocketIO, app):
                     elif buffer.startswith(b'ftyp'):
                         return '.m4a'
                     else:
-                        return '.wav'  # Default fallback
+                        # For WebRTC, try WebM first since that's what MediaRecorder produces
+                        return '.webm'  # Default to WebM for WebRTC
                 
                 # Detect the best format to try first
                 detected_format = detect_audio_format(audio_buffer)
