@@ -23,6 +23,25 @@ async def test_voice_commands():
         agent = get_agent()
         print(f"✅ Agent initialized with {len(agent.tools)} tools")
         
+        # Debug: Check what tools are available
+        if len(agent.tools) == 0:
+            print("⚠️ No tools loaded - this might be why tool calling isn't working")
+            print("🔍 Checking agent configuration...")
+            
+            # Check if tools are properly bound to LLM
+            if hasattr(agent.llm, 'bound') and agent.llm.bound:
+                print("✅ LLM has bound tools")
+            else:
+                print("❌ LLM does not have bound tools")
+                
+            # Check if tools list is empty
+            if not agent.tools:
+                print("❌ Agent tools list is empty")
+            else:
+                print(f"📋 Agent tools: {[tool.name for tool in agent.tools[:5]]}...")
+        else:
+            print(f"📋 Available tools: {[tool.name for tool in agent.tools[:5]]}...")
+        
         # Test commands that SHOULD use tools
         tool_commands = [
             "Create a todo for grocery shopping",
@@ -74,29 +93,50 @@ async def test_single_command(agent, command):
             user_name="Test User"
         )
         
-        # Get the assistant function
-        assistant_func = None
-        for node_name, node_func in agent.graph.nodes.items():
-            if node_name == "assistant":
-                assistant_func = node_func
-                break
-        
-        if not assistant_func:
-            print("❌ Could not find assistant function")
-            return
-        
-        # Run the assistant
-        result_state = await assistant_func(state)
-        last_message = result_state.messages[-1]
-        
-        print(f"📝 Response: {last_message.content[:100]}...")
-        
-        if hasattr(last_message, 'tool_calls') and last_message.tool_calls:
-            print(f"🔧 ✅ Tool calls made: {len(last_message.tool_calls)}")
-            for tool_call in last_message.tool_calls:
-                print(f"  - {tool_call['name']}: {tool_call.get('args', {})}")
-        else:
-            print("❌ No tool calls made")
+        # Use the agent's graph directly instead of trying to access individual nodes
+        try:
+            # Run the graph with the input state
+            result = agent.graph.invoke(state)
+            last_message = result.messages[-1]
+            
+            print(f"📝 Response: {last_message.content[:100]}...")
+            
+            if hasattr(last_message, 'tool_calls') and last_message.tool_calls:
+                print(f"🔧 ✅ Tool calls made: {len(last_message.tool_calls)}")
+                for tool_call in last_message.tool_calls:
+                    print(f"  - {tool_call['name']}: {tool_call.get('args', {})}")
+            else:
+                print("❌ No tool calls made")
+                
+        except Exception as graph_error:
+            print(f"❌ Graph execution error: {graph_error}")
+            # Try alternative approach - direct LLM call
+            try:
+                from langchain_core.messages import SystemMessage
+                
+                # Create system prompt
+                system_prompt = agent.system_prompt.format(
+                    todo_priorities="low, medium, high",
+                    reminder_importance="low, medium, high"
+                )
+                
+                # Call LLM directly
+                response = await agent.llm.ainvoke([
+                    SystemMessage(content=system_prompt),
+                    HumanMessage(content=command)
+                ])
+                
+                print(f"📝 Direct LLM Response: {response.content[:100]}...")
+                
+                if hasattr(response, 'tool_calls') and response.tool_calls:
+                    print(f"🔧 ✅ Tool calls made: {len(response.tool_calls)}")
+                    for tool_call in response.tool_calls:
+                        print(f"  - {tool_call['name']}: {tool_call.get('args', {})}")
+                else:
+                    print("❌ No tool calls made")
+                    
+            except Exception as llm_error:
+                print(f"❌ Direct LLM call error: {llm_error}")
             
     except Exception as e:
         print(f"❌ Error testing command '{command}': {e}")
