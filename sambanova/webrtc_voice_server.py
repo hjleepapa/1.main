@@ -816,36 +816,55 @@ def init_socketio(socketio_instance: SocketIO, app):
                 if not transcription:
                     # Try creating a proper WAV file from raw audio data
                     print("🔍 Debug: Trying to create WAV file from raw audio data")
-                    try:
-                        import wave
-                        import struct
-                        
-                        # Create a proper WAV file with WAV headers
-                        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_audio:
-                            temp_audio_path = temp_audio.name
-                        
-                        # Write WAV header and audio data
-                        with wave.open(temp_audio_path, 'wb') as wav_file:
-                            # Set WAV parameters (assuming 16-bit, 44.1kHz, mono)
-                            wav_file.setnchannels(1)  # Mono
-                            wav_file.setsampwidth(2)  # 16-bit
-                            wav_file.setframerate(44100)  # 44.1kHz
-                            wav_file.writeframes(audio_buffer)
-                        
-                        print(f"🔍 Debug: Created WAV file with proper headers")
-                        
-                        # Try transcription with the proper WAV file
-                        with open(temp_audio_path, 'rb') as audio_file:
-                            transcription = openai_client.audio.transcriptions.create(
-                                model="whisper-1",
-                                file=audio_file,
-                                language="en"
-                            )
-                        
-                        print(f"✅ Success with proper WAV format")
-                        
-                    except Exception as wav_error:
-                        print(f"❌ WAV creation failed: {wav_error}")
+                    
+                    # Try different audio parameters for raw PCM data
+                    audio_params = [
+                        {"channels": 1, "sample_width": 2, "framerate": 44100, "desc": "16-bit, 44.1kHz, mono"},
+                        {"channels": 1, "sample_width": 2, "framerate": 16000, "desc": "16-bit, 16kHz, mono"},
+                        {"channels": 1, "sample_width": 1, "framerate": 44100, "desc": "8-bit, 44.1kHz, mono"},
+                        {"channels": 2, "sample_width": 2, "framerate": 44100, "desc": "16-bit, 44.1kHz, stereo"},
+                    ]
+                    
+                    transcription = None
+                    for params in audio_params:
+                        try:
+                            import wave
+                            
+                            print(f"🔍 Debug: Trying WAV with {params['desc']}")
+                            
+                            # Create a proper WAV file with WAV headers
+                            with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_audio:
+                                temp_audio_path = temp_audio.name
+                            
+                            # Write WAV header and audio data
+                            with wave.open(temp_audio_path, 'wb') as wav_file:
+                                wav_file.setnchannels(params['channels'])
+                                wav_file.setsampwidth(params['sample_width'])
+                                wav_file.setframerate(params['framerate'])
+                                wav_file.writeframes(audio_buffer)
+                            
+                            print(f"🔍 Debug: Created WAV file with {params['desc']}")
+                            
+                            # Try transcription with the proper WAV file
+                            with open(temp_audio_path, 'rb') as audio_file:
+                                transcription = openai_client.audio.transcriptions.create(
+                                    model="whisper-1",
+                                    file=audio_file,
+                                    language="en"
+                                )
+                            
+                            print(f"✅ Success with WAV format: {params['desc']}")
+                            break  # Success, exit the loop
+                            
+                        except Exception as wav_error:
+                            print(f"❌ WAV creation failed with {params['desc']}: {wav_error}")
+                            # Clean up the failed temp file
+                            if temp_audio_path and os.path.exists(temp_audio_path):
+                                os.unlink(temp_audio_path)
+                            temp_audio_path = None
+                            continue
+                    
+                    if not transcription:
                         raise Exception("All audio formats failed. Audio data may be corrupted.")
                 
                 try:
