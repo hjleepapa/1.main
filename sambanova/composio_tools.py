@@ -59,9 +59,15 @@ class ComposioManager:
                 
                 if slack_app:
                     # Get actions for Slack app
-                    slack_actions = self.toolset.get_action_schemas(app=slack_app)
-                    logger.info(f"✅ Loaded {len(slack_actions)} Slack actions")
-                    return slack_actions
+                    try:
+                        slack_actions = self.toolset.get_action_schemas()
+                        # Filter for Slack actions
+                        slack_actions = [action for action in slack_actions if 'slack' in str(action).lower()]
+                        logger.info(f"✅ Loaded {len(slack_actions)} Slack actions")
+                        return slack_actions
+                    except Exception as e:
+                        logger.error(f"❌ Failed to get action schemas: {e}")
+                        return []
                 else:
                     logger.warning("⚠️ Slack app not found in available apps")
                     return []
@@ -237,7 +243,20 @@ class ComposioManager:
             
         except Exception as e:
             logger.error(f"❌ Failed to send Slack message: {e}")
-            return False
+            # Try alternative approach with different action name
+            try:
+                result = self.toolset.execute_action(
+                    action="slack_send_message",
+                    params={
+                        "channel": channel,
+                        "text": message
+                    }
+                )
+                logger.info(f"✅ Slack message sent to {channel} (alternative method): {message}")
+                return True
+            except Exception as e2:
+                logger.error(f"❌ Alternative Slack method also failed: {e2}")
+                return False
 
 
 # Global Composio manager instance

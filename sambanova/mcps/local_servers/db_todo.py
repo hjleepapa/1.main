@@ -736,7 +736,14 @@ async def create_todo(
             
             # Send Slack notification
             try:
-                from ..composio_tools import composio_manager
+                import sys
+                import os
+                # Add the sambanova directory to the path
+                sambanova_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+                if sambanova_path not in sys.path:
+                    sys.path.append(sambanova_path)
+                
+                from sambanova.composio_tools import composio_manager
                 slack_message = f"📝 New todo created: '{title}' with {priority.value} priority{due_str}"
                 composio_manager.send_slack_message("#productivity", slack_message)
             except Exception as e:
@@ -1984,7 +1991,14 @@ async def create_team_todo(
             
             # Send Slack notification for team todo
             try:
-                from ..composio_tools import composio_manager
+                import sys
+                import os
+                # Add the sambanova directory to the path
+                sambanova_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+                if sambanova_path not in sys.path:
+                    sys.path.append(sambanova_path)
+                
+                from sambanova.composio_tools import composio_manager
                 assignee_info = ""
                 if assignee_id:
                     assignee = session.query(User).filter(User.id == assignee_id).first()
