@@ -132,6 +132,10 @@ def create_app():
     from sambanova.webrtc_voice_server import webrtc_bp, init_socketio
     app.register_blueprint(webrtc_bp)
     
+    # Register audio player blueprint
+    from sambanova.audio_player_routes import audio_player_bp
+    app.register_blueprint(audio_player_bp)
+    
     # Initialize Socket.IO event handlers (pass app explicitly)
     init_socketio(socketio, app)
 
