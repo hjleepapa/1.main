@@ -337,7 +337,11 @@
                     
                     // Play audio response
                     if (data.audio) {
+                        console.log('🔊 Received audio response:', data.audio.length, 'chars');
+                        console.log('🔊 Audio preview:', data.audio.substring(0, 100) + '...');
                         playAudioResponse(data.audio);
+                    } else {
+                        console.log('❌ No audio data in response');
                     }
                     
                     resetMicButton();
@@ -536,10 +540,48 @@
         
         // Play audio response
         function playAudioResponse(base64Audio) {
-            const audio = new Audio('data:audio/mp3;base64,' + base64Audio);
-            audio.play().catch(error => {
-                console.error('Error playing audio:', error);
-            });
+            // Try different audio formats
+            const formats = [
+                'data:audio/mp3;base64,',
+                'data:audio/wav;base64,',
+                'data:audio/ogg;base64,',
+                'data:audio/webm;base64,',
+                'data:audio/mpeg;base64,'
+            ];
+            
+            let audioPlayed = false;
+            
+            for (const format of formats) {
+                try {
+                    const audio = new Audio(format + base64Audio);
+                    audio.oncanplaythrough = () => {
+                        if (!audioPlayed) {
+                            audioPlayed = true;
+                            audio.play().catch(error => {
+                                console.error('Error playing audio with format', format, error);
+                            });
+                        }
+                    };
+                    audio.onerror = () => {
+                        console.log('Failed to play audio with format', format);
+                    };
+                    audio.load();
+                } catch (error) {
+                    console.log('Error creating audio with format', format, error);
+                }
+            }
+            
+            // Fallback: try without specifying format
+            if (!audioPlayed) {
+                try {
+                    const audio = new Audio('data:audio/octet-stream;base64,' + base64Audio);
+                    audio.play().catch(error => {
+                        console.error('Error playing audio (fallback):', error);
+                    });
+                } catch (error) {
+                    console.error('All audio playback attempts failed:', error);
+                }
+            }
         }
         
         // Audio visualizer
