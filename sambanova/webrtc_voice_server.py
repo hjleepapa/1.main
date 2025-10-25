@@ -103,6 +103,70 @@ def voice_assistant():
     return render_template('webrtc_voice_assistant.html')
 
 
+@webrtc_bp.route('/debug-session/<session_id>')
+def debug_session(session_id):
+    """Debug endpoint to check Redis session data"""
+    try:
+        if redis_manager.is_available():
+            session_data = get_session(session_id)
+            if session_data:
+                # Convert bytes to strings for JSON serialization
+                debug_data = {}
+                for key, value in session_data.items():
+                    if isinstance(value, bytes):
+                        debug_data[key] = value.decode('utf-8', errors='ignore')
+                    else:
+                        debug_data[key] = str(value)
+                
+                # Add audio buffer info
+                audio_buffer = session_data.get('audio_buffer', '')
+                debug_data['audio_buffer_length'] = len(audio_buffer)
+                debug_data['audio_buffer_preview'] = audio_buffer[:100] + "..." if len(audio_buffer) > 100 else audio_buffer
+                
+                return jsonify({
+                    'success': True,
+                    'session_id': session_id,
+                    'data': debug_data,
+                    'storage': 'redis'
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'message': 'Session not found in Redis',
+                    'session_id': session_id
+                })
+        else:
+            # Check in-memory storage
+            if session_id in active_sessions:
+                session_data = active_sessions[session_id]
+                debug_data = {
+                    'authenticated': session_data.get('authenticated', False),
+                    'user_id': session_data.get('user_id'),
+                    'user_name': session_data.get('user_name'),
+                    'is_recording': session_data.get('is_recording', False),
+                    'audio_buffer_length': len(session_data.get('audio_buffer', b'')),
+                    'storage': 'memory'
+                }
+                return jsonify({
+                    'success': True,
+                    'session_id': session_id,
+                    'data': debug_data,
+                    'storage': 'memory'
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'message': 'Session not found in memory',
+                    'session_id': session_id
+                })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'session_id': session_id
+        })
+
+
 def init_socketio(socketio_instance: SocketIO, app):
     """Initialize Socket.IO event handlers"""
     
@@ -365,13 +429,35 @@ def init_socketio(socketio_instance: SocketIO, app):
                 current_buffer = session_data.get('audio_buffer', '')
                 new_chunk_b64 = base64.b64encode(audio_chunk).decode('utf-8')
                 updated_buffer = current_buffer + new_chunk_b64
-                success = update_session(session_id, {'audio_buffer': updated_buffer})
-                if success:
-                    print(f"🔍 Debug: updated Redis audio buffer: {len(updated_buffer)} chars")
-                    sentry_capture_redis_operation("update_audio_buffer", session_id, True)
-                else:
-                    print(f"❌ Failed to update Redis audio buffer")
-                    sentry_capture_redis_operation("update_audio_buffer", session_id, False, "Redis update_session returned False")
+                
+                # Use Redis append operation for better performance
+                try:
+                    # Get the Redis client directly for append operation
+                    redis_client = redis_manager.redis_client
+                    if redis_client:
+                        # Use Redis HSET to update the audio buffer
+                        redis_client.hset(f"session:{session_id}", "audio_buffer", updated_buffer)
+                        print(f"🔍 Debug: updated Redis audio buffer: {len(updated_buffer)} chars")
+                        sentry_capture_redis_operation("update_audio_buffer", session_id, True)
+                    else:
+                        # Fallback to update_session method
+                        success = update_session(session_id, {'audio_buffer': updated_buffer})
+                        if success:
+                            print(f"🔍 Debug: updated Redis audio buffer (fallback): {len(updated_buffer)} chars")
+                            sentry_capture_redis_operation("update_audio_buffer", session_id, True)
+                        else:
+                            print(f"❌ Failed to update Redis audio buffer")
+                            sentry_capture_redis_operation("update_audio_buffer", session_id, False, "Redis update_session returned False")
+                except Exception as redis_error:
+                    print(f"❌ Redis direct operation failed: {redis_error}")
+                    # Fallback to update_session method
+                    success = update_session(session_id, {'audio_buffer': updated_buffer})
+                    if success:
+                        print(f"🔍 Debug: updated Redis audio buffer (error fallback): {len(updated_buffer)} chars")
+                        sentry_capture_redis_operation("update_audio_buffer", session_id, True)
+                    else:
+                        print(f"❌ Failed to update Redis audio buffer (error fallback)")
+                        sentry_capture_redis_operation("update_audio_buffer", session_id, False, f"Redis error: {redis_error}")
             else:
                 # In-memory storage
                 active_sessions[session_id]['audio_buffer'] += audio_chunk
@@ -437,24 +523,38 @@ def init_socketio(socketio_instance: SocketIO, app):
                 # Decode base64 string back to binary
                 audio_buffer_b64 = session_data.get('audio_buffer', '')
                 print(f"🔍 Debug: audio_buffer_b64 length: {len(audio_buffer_b64)}")
+                print(f"🔍 Debug: audio_buffer_b64 preview: {audio_buffer_b64[:100]}..." if len(audio_buffer_b64) > 100 else f"🔍 Debug: audio_buffer_b64 full: {audio_buffer_b64}")
+                
                 if not audio_buffer_b64:
                     print("❌ No audio data in Redis session")
-                    sentry_capture_voice_event("no_audio_data", session_id, details={"storage": "redis"})
+                    print(f"🔍 Debug: Full session data: {session_data}")
+                    sentry_capture_voice_event("no_audio_data", session_id, details={"storage": "redis", "session_data": session_data})
                     emit('transcription', {
                         'success': False,
                         'message': 'No audio data received.'
                     })
                     return
-                audio_buffer = base64.b64decode(audio_buffer_b64)
-                print(f"🔍 Debug: decoded audio_buffer length: {len(audio_buffer)}")
-                sentry_capture_voice_event("audio_buffer_retrieved", session_id, details={"storage": "redis", "buffer_size": len(audio_buffer)})
+                
+                try:
+                    audio_buffer = base64.b64decode(audio_buffer_b64)
+                    print(f"🔍 Debug: decoded audio_buffer length: {len(audio_buffer)}")
+                    sentry_capture_voice_event("audio_buffer_retrieved", session_id, details={"storage": "redis", "buffer_size": len(audio_buffer)})
+                except Exception as decode_error:
+                    print(f"❌ Error decoding audio buffer: {decode_error}")
+                    sentry_capture_voice_event("audio_decode_error", session_id, details={"error": str(decode_error), "buffer_preview": audio_buffer_b64[:100]})
+                    emit('transcription', {
+                        'success': False,
+                        'message': 'Error decoding audio data.'
+                    })
+                    return
             else:
                 audio_buffer = session_data['audio_buffer']
                 print(f"🔍 Debug: in-memory audio_buffer length: {len(audio_buffer)}")
                 sentry_capture_voice_event("audio_buffer_retrieved", session_id, details={"storage": "memory", "buffer_size": len(audio_buffer)})
         except Exception as e:
             print(f"❌ Error retrieving audio buffer: {e}")
-            sentry_capture_voice_event("audio_buffer_error", session_id, details={"error": str(e)})
+            print(f"🔍 Debug: Session data keys: {list(session_data.keys()) if session_data else 'None'}")
+            sentry_capture_voice_event("audio_buffer_error", session_id, details={"error": str(e), "session_keys": list(session_data.keys()) if session_data else []})
             if SENTRY_AVAILABLE:
                 sentry_sdk.capture_exception(e)
             emit('error', {'message': 'Error retrieving audio data'})
