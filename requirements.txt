@@ -176,5 +176,9 @@ yarl==1.20.0
 zipp==3.21.0
 sentry-sdk[flask]>=2.0.0
 redis>=5.0.0
+# Audio processing libraries for audio stream player
+PyAudio>=0.2.11
+
+# Additional integrations
 composio-core>=0.3.0
 flask-limiter>=3.0.0
