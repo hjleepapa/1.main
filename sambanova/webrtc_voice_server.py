@@ -956,56 +956,19 @@ async def process_with_agent(text: str, user_id: str, user_name: str) -> str:
                     level="info"
                 )
         
-        # Import the routes module to use its agent graph initialization
-        from sambanova.routes import _get_agent_graph
+        # Use the same agent processing as Twilio for consistency
+        from sambanova.routes import _run_agent_async
         
-        # Get the agent graph with tools
-        graph = await _get_agent_graph()
-        
-        # Create initial state
-        initial_state = AgentState(
-            messages=[HumanMessage(content=text)],
-            customer_id="webrtc_user",
-            authenticated_user_id=user_id,
-            authenticated_user_name=user_name,
-            is_authenticated=True
+        # Use the same agent processing function as Twilio
+        result = await _run_agent_async(
+            prompt=text,
+            user_id=user_id,
+            user_name=user_name,
+            reset_thread=False
         )
         
-        # Create config with thread_id for checkpointer
-        config = {
-            "configurable": {
-                "thread_id": f"webrtc_{user_id}_{int(asyncio.get_event_loop().time())}"
-            }
-        }
-        
-        # Run agent with timeout
-        result = await asyncio.wait_for(
-            graph.ainvoke(initial_state, config),
-            timeout=30.0
-        )
-        
-        # Extract final message
-        if result.get('messages'):
-            last_message = result['messages'][-1]
-            if hasattr(last_message, 'content'):
-                response = last_message.content
-                # Capture successful agent processing in Sentry
-                if SENTRY_AVAILABLE:
-                    sentry_sdk.add_breadcrumb(
-                        message="Agent processing completed successfully",
-                        category="agent",
-                        level="info"
-                    )
-                return response
-        
-        # Capture fallback response in Sentry
-        if SENTRY_AVAILABLE:
-            sentry_sdk.add_breadcrumb(
-                message="Agent processing completed with fallback response",
-                category="agent",
-                level="warning"
-            )
-        return "I processed your request successfully."
+        # The _run_agent_async function returns a string directly
+        return result
     
     except asyncio.TimeoutError:
         # Capture timeout in Sentry
