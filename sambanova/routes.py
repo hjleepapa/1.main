@@ -801,7 +801,7 @@ async def _run_agent_async(prompt: str, user_id: Optional[str] = None, user_name
             last_message = final_state.values.get("messages")[-1]
             return getattr(last_message, 'content', "")
         
-        return await asyncio.wait_for(process_stream(), timeout=10.0)  # Reduced from 25 to 10 seconds
+        return await asyncio.wait_for(process_stream(), timeout=20.0)  # Increased to 20 seconds for multiple tool execution
     except asyncio.TimeoutError:
         # Return a special marker for timeout
         return "AGENT_TIMEOUT: Taking too long to process. Please try a simpler request."

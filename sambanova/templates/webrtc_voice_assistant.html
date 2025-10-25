@@ -540,13 +540,13 @@
         
         // Play audio response
         function playAudioResponse(base64Audio) {
-            // Try different audio formats
+            // Try different audio formats (MP3 first since TTS generates MP3)
             const formats = [
                 'data:audio/mp3;base64,',
+                'data:audio/mpeg;base64,',
                 'data:audio/wav;base64,',
                 'data:audio/ogg;base64,',
-                'data:audio/webm;base64,',
-                'data:audio/mpeg;base64,'
+                'data:audio/webm;base64,'
             ];
             
             let audioPlayed = false;

@@ -672,7 +672,8 @@ def init_socketio(socketio_instance: SocketIO, app):
                 speech_response = openai_client.audio.speech.create(
                     model="tts-1",
                     voice="nova",
-                    input=welcome_text
+                    input=welcome_text,
+                    response_format="mp3"  # Explicitly specify MP3 format
                 )
                 
                 # Convert to base64
@@ -898,7 +899,8 @@ def init_socketio(socketio_instance: SocketIO, app):
                     speech_response = openai_client.audio.speech.create(
                         model="tts-1",
                         voice="nova",  # Options: alloy, echo, fable, onyx, nova, shimmer
-                        input=agent_response
+                        input=agent_response,
+                        response_format="mp3"  # Explicitly specify MP3 format
                     )
                     
                     # Convert speech to base64 for transmission
