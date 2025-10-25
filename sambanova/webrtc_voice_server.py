@@ -426,15 +426,23 @@ def init_socketio(socketio_instance: SocketIO, app):
         
         print(f"🎤 Recording started: {session_id}")
         
-        # Update recording state
+        # Update recording state and clear audio buffer
         if redis_manager.is_available():
-            update_session(session_id, {
-                'is_recording': 'True',
-                'audio_buffer': ''  # Start with empty string for base64 concatenation
-            })
+            # Clear the audio buffer completely
+            redis_client = redis_manager.redis_client
+            if redis_client:
+                redis_client.hset(f"session:{session_id}", "audio_buffer", "")
+                redis_client.hset(f"session:{session_id}", "is_recording", "True")
+                print(f"🔍 Debug: cleared Redis audio buffer for session: {session_id}")
+            else:
+                update_session(session_id, {
+                    'is_recording': 'True',
+                    'audio_buffer': ''  # Start with empty string for base64 concatenation
+                })
         else:
             active_sessions[session_id]['is_recording'] = True
             active_sessions[session_id]['audio_buffer'] = b''  # Start with empty bytes for binary concatenation
+            print(f"🔍 Debug: cleared in-memory audio buffer for session: {session_id}")
         
         emit('recording_started', {'success': True})
     
@@ -472,29 +480,41 @@ def init_socketio(socketio_instance: SocketIO, app):
                 # For Redis, we need to handle binary data differently
                 # Store as base64 string in Redis
                 current_buffer = session_data.get('audio_buffer', '')
-                new_chunk_b64 = base64.b64encode(audio_chunk).decode('utf-8')
                 
-                # Validate current buffer is valid base64
+                # Decode current buffer to binary, append new chunk, then re-encode
                 if current_buffer:
                     try:
-                        # Test if current buffer is valid base64
-                        base64.b64decode(current_buffer)
-                        print(f"🔍 Debug: current buffer is valid base64, length: {len(current_buffer)}")
+                        # Decode current buffer to binary
+                        current_binary = base64.b64decode(current_buffer)
+                        print(f"🔍 Debug: current buffer decoded to binary, length: {len(current_binary)} bytes")
+                        
+                        # Append new chunk to binary data
+                        combined_binary = current_binary + audio_chunk
+                        print(f"🔍 Debug: combined binary length: {len(combined_binary)} bytes")
+                        
+                        # Re-encode to base64
+                        updated_buffer = base64.b64encode(combined_binary).decode('utf-8')
+                        print(f"🔍 Debug: re-encoded to base64, length: {len(updated_buffer)} chars")
+                        
                     except Exception as e:
-                        print(f"⚠️ Current buffer is not valid base64, resetting: {e}")
-                        current_buffer = ''  # Reset if corrupted
+                        print(f"⚠️ Error processing current buffer, using only new chunk: {e}")
+                        # If current buffer is corrupted, use only new chunk
+                        updated_buffer = base64.b64encode(audio_chunk).decode('utf-8')
+                        print(f"🔍 Debug: using only new chunk, base64 length: {len(updated_buffer)} chars")
+                else:
+                    # No current buffer, just encode new chunk
+                    updated_buffer = base64.b64encode(audio_chunk).decode('utf-8')
+                    print(f"🔍 Debug: new chunk encoded to base64, length: {len(updated_buffer)} chars")
                 
-                updated_buffer = current_buffer + new_chunk_b64
-                
-                # Validate the updated buffer
+                # Validate the final buffer
                 try:
                     test_decode = base64.b64decode(updated_buffer)
-                    print(f"🔍 Debug: updated buffer is valid base64, decoded length: {len(test_decode)}")
+                    print(f"🔍 Debug: final buffer validation - decoded length: {len(test_decode)} bytes")
                 except Exception as e:
-                    print(f"❌ Updated buffer is not valid base64: {e}")
-                    # Use only the new chunk if concatenation failed
-                    updated_buffer = new_chunk_b64
-                    print(f"🔍 Debug: using only new chunk, length: {len(updated_buffer)}")
+                    print(f"❌ Final buffer validation failed: {e}")
+                    # This should not happen, but if it does, use only new chunk
+                    updated_buffer = base64.b64encode(audio_chunk).decode('utf-8')
+                    print(f"🔍 Debug: fallback to new chunk only, length: {len(updated_buffer)} chars")
                 
                 # Use Redis append operation for better performance
                 try:
