@@ -15,10 +15,10 @@ import os
 # Add the project directory to the Python path
 sys.path.insert(0, os.path.dirname(__file__))
 
-# Import the create_app factory and socketio from your main app module (app.py)
-from app import create_app, socketio
+# Import the create_app factory and socketio from the memory-optimized app
+from app_memory_optimized import create_app, socketio
 
-print("✅ Imported create_app and socketio")
+print("✅ Imported create_app and socketio from memory-optimized app")
 
 # Create the application instance
 app = create_app()
@@ -27,7 +27,6 @@ print(f"✅ Flask app created: {app}")
 print(f"✅ SocketIO instance: {socketio}")
 
 # For Flask-SocketIO with eventlet, we need to expose the Flask app directly
-# Socket.IO middleware is already integrated via socketio.init_app()
 application = app
 
 print(f"✅ WSGI application exported: {application}")
