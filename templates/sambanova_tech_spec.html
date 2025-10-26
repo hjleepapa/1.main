@@ -7,7 +7,7 @@
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center">
                 <h1 class="text-4xl font-bold text-gray-800 mb-4">Sambanova Voice AI Productivity System</h1>
-                <p class="text-xl text-gray-600 mb-8">LangGraph + Twilio + MCP + Team Management + Call Transfer + Sentry Monitoring + Redis + Composio + Audio Stream Player</p>
+                <p class="text-xl text-gray-600 mb-8">LangGraph + Twilio + MCP + Team Management + Call Transfer + Sentry Monitoring + Redis + Composio + Audio Stream Player + WebRTC Voice Integration</p>
                 <div class="flex justify-center flex-wrap gap-2">
                     <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">Flask</span>
                     <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">LangGraph</span>
@@ -24,6 +24,7 @@
                     <span class="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-sm font-medium">Redis Cache</span>
                     <span class="bg-violet-100 text-violet-800 px-3 py-1 rounded-full text-sm font-medium">Composio Tools</span>
                     <span class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm font-medium">Audio Stream Player</span>
+                    <span class="bg-sky-100 text-sky-800 px-3 py-1 rounded-full text-sm font-medium">WebRTC Voice</span>
                 </div>
             </div>
         </div>
@@ -366,6 +367,98 @@
                         <div class="bg-white p-4 rounded text-center">
                             <div class="text-2xl font-bold text-rose-600">100%</div>
                             <div class="text-xs text-gray-600">Sentry Trace Rate</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WebRTC Voice Integration Architecture -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">WebRTC Voice Integration Architecture</h3>
+                <div class="bg-gradient-to-r from-sky-50 to-blue-50 p-6 rounded-lg border-2 border-sky-200">
+                    <div class="mb-8">
+                        <h4 class="text-lg font-semibold mb-4 text-gray-800">WebRTC Voice Assistant Architecture</h4>
+                        <div class="bg-white p-6 rounded-lg border-2 border-gray-200">
+                            <div class="flex justify-center">
+                                <img src="/sambanova_todo/static/assets/img/arch.png" 
+                                     alt="WebRTC Voice Integration Architecture" 
+                                     class="max-w-full h-auto rounded-lg shadow-lg"
+                                     style="max-width: 1000px; height: auto;">
+                            </div>
+                            
+                            <div class="mt-6 text-center">
+                                <p class="text-sm text-gray-600">
+                                    <strong>WebRTC Architecture:</strong> Browser-based voice assistant with Redis session management, real-time audio streaming, and Composio tool integration for external platform connectivity.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- WebRTC Voice Interface -->
+                        <div class="bg-white p-5 rounded-lg shadow-sm">
+                            <div class="flex items-center mb-3">
+                                <span class="bg-sky-100 p-2 rounded-full mr-3">
+                                    <svg class="w-5 h-5 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+                                    </svg>
+                                </span>
+                                <h4 class="text-lg font-semibold text-gray-800">WebRTC Voice Interface</h4>
+                            </div>
+                            <ul class="text-sm text-gray-600 space-y-1.5">
+                                <li>✓ Browser-based voice recording</li>
+                                <li>✓ Real-time audio streaming</li>
+                                <li>✓ WebSocket communication</li>
+                                <li>✓ Audio format detection (WebM)</li>
+                                <li>✓ Base64 audio encoding</li>
+                            </ul>
+                            <div class="mt-3 text-xs text-gray-500">
+                                <strong>Technology:</strong> WebRTC + Socket.IO
+                            </div>
+                        </div>
+
+                        <!-- Redis Session Management -->
+                        <div class="bg-white p-5 rounded-lg shadow-sm">
+                            <div class="flex items-center mb-3">
+                                <span class="bg-amber-100 p-2 rounded-full mr-3">
+                                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+                                    </svg>
+                                </span>
+                                <h4 class="text-lg font-semibold text-gray-800">Redis Session Management</h4>
+                            </div>
+                            <ul class="text-sm text-gray-600 space-y-1.5">
+                                <li>✓ Session storage & caching</li>
+                                <li>✓ Audio buffer management</li>
+                                <li>✓ Real-time notifications</li>
+                                <li>✓ User activity tracking</li>
+                                <li>✓ Session expiration handling</li>
+                            </ul>
+                            <div class="mt-3 text-xs text-gray-500">
+                                <strong>Integration:</strong> Redis Pub/Sub + Session Store
+                            </div>
+                        </div>
+
+                        <!-- Composio Tool Integration -->
+                        <div class="bg-white p-5 rounded-lg shadow-sm">
+                            <div class="flex items-center mb-3">
+                                <span class="bg-violet-100 p-2 rounded-full mr-3">
+                                    <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                    </svg>
+                                </span>
+                                <h4 class="text-lg font-semibold text-gray-800">Composio Integration</h4>
+                            </div>
+                            <ul class="text-sm text-gray-600 space-y-1.5">
+                                <li>✓ Slack workspace integration</li>
+                                <li>✓ GitHub repository management</li>
+                                <li>✓ Gmail email automation</li>
+                                <li>✓ Notion workspace sync</li>
+                                <li>✓ Jira project management</li>
+                            </ul>
+                            <div class="mt-3 text-xs text-gray-500">
+                                <strong>Platforms:</strong> Slack, GitHub, Gmail, Notion, Jira
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -978,6 +1071,104 @@
                 </div>
             </div>
 
+            <!-- Technical Integration Diagram -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">Technical Integration Overview</h3>
+                <div class="bg-gradient-to-r from-indigo-50 to-purple-50 p-6 rounded-lg border-2 border-indigo-200">
+                    <div class="mb-8">
+                        <h4 class="text-lg font-semibold mb-4 text-gray-800">Complete System Integration</h4>
+                        <div class="bg-white p-6 rounded-lg border-2 border-gray-200">
+                            <div class="flex justify-center">
+                                <img src="/sambanova_todo/static/assets/img/t_i.png" 
+                                     alt="Technical Integration Diagram" 
+                                     class="max-w-full h-auto rounded-lg shadow-lg"
+                                     style="max-width: 1000px; height: auto;">
+                            </div>
+                            
+                            <div class="mt-6 text-center">
+                                <p class="text-sm text-gray-600">
+                                    <strong>System Integration:</strong> Complete technical architecture showing WebRTC voice integration, Redis session management, Composio tool orchestration, and LangGraph AI agent processing.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- WebRTC Integration -->
+                        <div class="bg-white p-4 rounded-lg shadow-sm">
+                            <div class="flex items-center mb-3">
+                                <span class="bg-sky-100 p-2 rounded-full mr-3">
+                                    <svg class="w-5 h-5 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+                                    </svg>
+                                </span>
+                                <h4 class="text-lg font-semibold text-gray-800">WebRTC Voice</h4>
+                            </div>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Browser audio recording</li>
+                                <li>• Real-time streaming</li>
+                                <li>• WebSocket communication</li>
+                                <li>• Session management</li>
+                            </ul>
+                        </div>
+
+                        <!-- Redis Integration -->
+                        <div class="bg-white p-4 rounded-lg shadow-sm">
+                            <div class="flex items-center mb-3">
+                                <span class="bg-amber-100 p-2 rounded-full mr-3">
+                                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+                                    </svg>
+                                </span>
+                                <h4 class="text-lg font-semibold text-gray-800">Redis Cache</h4>
+                            </div>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Session storage</li>
+                                <li>• Audio buffer management</li>
+                                <li>• Real-time notifications</li>
+                                <li>• User activity tracking</li>
+                            </ul>
+                        </div>
+
+                        <!-- Composio Integration -->
+                        <div class="bg-white p-4 rounded-lg shadow-sm">
+                            <div class="flex items-center mb-3">
+                                <span class="bg-violet-100 p-2 rounded-full mr-3">
+                                    <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                    </svg>
+                                </span>
+                                <h4 class="text-lg font-semibold text-gray-800">Composio Tools</h4>
+                            </div>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Slack integration</li>
+                                <li>• GitHub automation</li>
+                                <li>• Gmail management</li>
+                                <li>• External platform sync</li>
+                            </ul>
+                        </div>
+
+                        <!-- LangGraph Agent -->
+                        <div class="bg-white p-4 rounded-lg shadow-sm">
+                            <div class="flex items-center mb-3">
+                                <span class="bg-purple-100 p-2 rounded-full mr-3">
+                                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                    </svg>
+                                </span>
+                                <h4 class="text-lg font-semibold text-gray-800">AI Agent</h4>
+                            </div>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• LangGraph orchestration</li>
+                                <li>• 38 MCP tools</li>
+                                <li>• Natural language processing</li>
+                                <li>• Tool calling automation</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- New Features Technical Details -->
             <div class="mb-12">
                 <h3 class="text-2xl font-semibold mb-6 text-gray-800">New Features Technical Details</h3>
@@ -1151,6 +1342,153 @@
                         <div class="mt-3 p-3 bg-gray-50 rounded">
                             <p class="text-xs text-gray-600 mb-2">Webhook URL:</p>
                             <pre class="text-xs"><code>https://hjlees.com/sambanova_todo/twilio/call</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WebRTC Voice Interface -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">WebRTC Voice Interface</h3>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <p class="text-gray-700 mb-4">
+                        The WebRTC Voice Interface provides browser-based voice interaction with real-time audio streaming, 
+                        Redis session management, and seamless integration with the LangGraph AI agent. Users can interact 
+                        with the assistant directly through their web browser without requiring phone calls.
+                    </p>
+                    
+                    <!-- WebRTC Voice Interface Screenshot -->
+                    <div class="mb-8">
+                        <h4 class="text-lg font-semibold mb-4 text-gray-800">WebRTC Voice Assistant Interface</h4>
+                        <div class="bg-white p-6 rounded-lg border-2 border-gray-200">
+                            <div class="flex justify-center">
+                                <img src="/sambanova_todo/static/assets/img/t_voice_i.png" 
+                                     alt="WebRTC Voice Interface" 
+                                     class="max-w-full h-auto rounded-lg shadow-lg"
+                                     style="max-width: 800px; height: auto;">
+                            </div>
+                            
+                            <div class="mt-6 text-center">
+                                <p class="text-sm text-gray-600">
+                                    <strong>WebRTC Interface:</strong> Browser-based voice assistant with real-time audio recording, session management, and AI-powered responses.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- WebRTC Processing Pipeline -->
+                    <div class="mb-8">
+                        <h4 class="text-lg font-semibold mb-4 text-gray-800">WebRTC Audio Processing Pipeline</h4>
+                        <div class="bg-white p-6 rounded-lg border-2 border-gray-200">
+                            <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+                                <!-- Browser Recording -->
+                                <div class="text-center">
+                                    <div class="w-16 h-16 bg-sky-100 border-2 border-sky-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <span class="text-sky-800 font-bold text-sm">🎤</span>
+                                    </div>
+                                    <div class="text-sm font-medium text-gray-800">Browser Recording</div>
+                                    <div class="text-xs text-gray-600">WebRTC API</div>
+                                </div>
+                                
+                                <!-- WebSocket Stream -->
+                                <div class="text-center">
+                                    <div class="w-16 h-16 bg-blue-100 border-2 border-blue-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <span class="text-blue-800 font-bold text-sm">📡</span>
+                                    </div>
+                                    <div class="text-sm font-medium text-gray-800">WebSocket Stream</div>
+                                    <div class="text-xs text-gray-600">Socket.IO</div>
+                                </div>
+                                
+                                <!-- Redis Buffer -->
+                                <div class="text-center">
+                                    <div class="w-16 h-16 bg-amber-100 border-2 border-amber-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <span class="text-amber-800 font-bold text-sm">💾</span>
+                                    </div>
+                                    <div class="text-sm font-medium text-gray-800">Redis Buffer</div>
+                                    <div class="text-xs text-gray-600">Session Storage</div>
+                                </div>
+                                
+                                <!-- Audio Processing -->
+                                <div class="text-center">
+                                    <div class="w-16 h-16 bg-green-100 border-2 border-green-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <span class="text-green-800 font-bold text-sm">🔊</span>
+                                    </div>
+                                    <div class="text-sm font-medium text-gray-800">Audio Processing</div>
+                                    <div class="text-xs text-gray-600">WebM/MP3</div>
+                                </div>
+                                
+                                <!-- LangGraph Agent -->
+                                <div class="text-center">
+                                    <div class="w-16 h-16 bg-purple-100 border-2 border-purple-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <span class="text-purple-800 font-bold text-sm">🧠</span>
+                                    </div>
+                                    <div class="text-sm font-medium text-gray-800">LangGraph Agent</div>
+                                    <div class="text-xs text-gray-600">AI Processing</div>
+                                </div>
+                                
+                                <!-- TTS Response -->
+                                <div class="text-center">
+                                    <div class="w-16 h-16 bg-orange-100 border-2 border-orange-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <span class="text-orange-800 font-bold text-sm">🗣️</span>
+                                    </div>
+                                    <div class="text-sm font-medium text-gray-800">TTS Response</div>
+                                    <div class="text-xs text-gray-600">OpenAI TTS</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Flow Arrows -->
+                            <div class="mt-6">
+                                <div class="flex justify-between items-center">
+                                    <div class="text-xs text-gray-600">Audio Capture</div>
+                                    <div class="flex-1 h-0.5 bg-sky-400 mx-4"></div>
+                                    <div class="text-xs text-gray-600">Stream</div>
+                                    <div class="flex-1 h-0.5 bg-blue-400 mx-4"></div>
+                                    <div class="text-xs text-gray-600">Buffer</div>
+                                    <div class="flex-1 h-0.5 bg-amber-400 mx-4"></div>
+                                    <div class="text-xs text-gray-600">Process</div>
+                                    <div class="flex-1 h-0.5 bg-green-400 mx-4"></div>
+                                    <div class="text-xs text-gray-600">AI</div>
+                                    <div class="flex-1 h-0.5 bg-purple-400 mx-4"></div>
+                                    <div class="text-xs text-gray-600">Response</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6 text-center">
+                                <p class="text-sm text-gray-600">
+                                    <strong>WebRTC Pipeline:</strong> Complete browser-based voice processing from audio capture to AI-generated responses with Redis session management.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white p-4 rounded border">
+                            <h4 class="font-semibold text-gray-800 mb-2">WebRTC Components</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• <strong>MediaRecorder API:</strong> Browser audio recording</li>
+                                <li>• <strong>WebSocket:</strong> Real-time communication</li>
+                                <li>• <strong>Redis Session:</strong> Audio buffer storage</li>
+                                <li>• <strong>Audio Format Detection:</strong> WebM/MP3 support</li>
+                                <li>• <strong>Base64 Encoding:</strong> Audio data transmission</li>
+                                <li>• <strong>Socket.IO:</strong> Bidirectional communication</li>
+                                <li>• <strong>Session Management:</strong> User state tracking</li>
+                                <li>• <strong>Real-time Streaming:</strong> Continuous audio flow</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-4 rounded border">
+                            <h4 class="font-semibold text-gray-800 mb-2">Processing Flow</h4>
+                            <ol class="text-sm text-gray-600 space-y-1">
+                                <li>1. User clicks record button in browser</li>
+                                <li>2. WebRTC MediaRecorder captures audio</li>
+                                <li>3. Audio chunks sent via WebSocket</li>
+                                <li>4. Server stores audio in Redis session</li>
+                                <li>5. User stops recording</li>
+                                <li>6. Audio buffer processed (WebM/MP3)</li>
+                                <li>7. OpenAI Whisper transcribes audio</li>
+                                <li>8. LangGraph agent processes request</li>
+                                <li>9. OpenAI TTS generates response</li>
+                                <li>10. Audio response played in browser</li>
+                            </ol>
                         </div>
                     </div>
                 </div>
