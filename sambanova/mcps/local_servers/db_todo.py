@@ -737,7 +737,6 @@ async def create_todo(
             # Send Slack notification
             try:
                 import sys
-                import os
                 # Add the sambanova directory to the path
                 sambanova_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
                 if sambanova_path not in sys.path:
@@ -1992,7 +1991,6 @@ async def create_team_todo(
             # Send Slack notification for team todo
             try:
                 import sys
-                import os
                 # Add the sambanova directory to the path
                 sambanova_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
                 if sambanova_path not in sys.path:
