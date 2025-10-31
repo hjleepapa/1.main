@@ -257,8 +257,11 @@ def transfer_to_agent():
         
         # Build SIP URI for FusionPBX extension
         # Flow: Voice AI (current call) → Transfer → FusionPBX extension
-        sip_uri = f"sip:{extension}@{freepbx_domain}"
+        # Try with transport=udp for better compatibility
+        sip_uri = f"sip:{extension}@{freepbx_domain};transport=udp"
         logger.info(f"Transferring to SIP URI: {sip_uri}")
+        logger.info(f"FusionPBX Domain: {freepbx_domain}, Extension: {extension}")
+        logger.info(f"Transfer Timeout: {transfer_timeout} seconds")
         
         # Create Dial verb with transfer settings
         dial = response.dial(
@@ -274,9 +277,11 @@ def transfer_to_agent():
             dial.sip(sip_uri, username=sip_username, password=sip_password)
             logger.info(f"Using SIP auth with username: {sip_username}")
         else:
-            # Use IP-based authentication (recommended)
+            # Use IP-based authentication (requires FusionPBX to whitelist Twilio IPs)
             dial.sip(sip_uri)
-            logger.info("Using IP-based SIP authentication")
+            logger.info("Using IP-based SIP authentication (FusionPBX must whitelist Twilio IPs)")
+            logger.warning("⚠️ If transfer fails, configure FusionPBX to accept SIP from Twilio IP ranges:")
+            logger.warning("   54.172.60.0/23, 54.244.51.0/24, 177.71.206.192/26, 54.252.254.64/26, 54.169.127.128/26")
         
         # If dial fails, provide fallback message
         response.say("I'm sorry, the transfer failed. Please try again later.", voice='Polly.Amy')
@@ -327,9 +332,23 @@ def transfer_callback():
             logger.warning(f"⚠️ Transfer failed - no answer: call {call_sid}")
             
         elif dial_call_status == 'failed' or dial_call_status == 'canceled':
+            # Get more details about the failure
+            dial_call_sid = request.form.get('DialCallSid', 'N/A')
+            dial_call_duration = request.form.get('DialCallDuration', 'N/A')
+            error_message = request.form.get('ErrorMessage', 'No error details')
+            
+            logger.error(f"❌ Transfer failed: call {call_sid}, status={dial_call_status}")
+            logger.error(f"   Dial Call SID: {dial_call_sid}")
+            logger.error(f"   Dial Duration: {dial_call_duration} seconds")
+            logger.error(f"   Error Message: {error_message}")
+            logger.error(f"   Possible causes:")
+            logger.error(f"   1. FusionPBX is not accepting SIP from Twilio IP ranges")
+            logger.error(f"   2. Firewall blocking SIP traffic on port 5060")
+            logger.error(f"   3. Extension {extension} does not exist or is not reachable")
+            logger.error(f"   4. FusionPBX requires SIP authentication (set FREEPBX_SIP_USERNAME and FREEPBX_SIP_PASSWORD)")
+            
             response.say("The transfer could not be completed. Please call back later.", voice='Polly.Amy')
             response.hangup()
-            logger.error(f"❌ Transfer failed: call {call_sid}, status={dial_call_status}")
             
         else:
             response.say("An unexpected error occurred. Please try again.", voice='Polly.Amy')
