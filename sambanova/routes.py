@@ -797,11 +797,28 @@ async def _run_agent_async(prompt: str, user_id: Optional[str] = None, user_name
         
         # Use wait_for to wrap the entire async for loop
         async def process_stream():
-            async for _ in stream:
-                pass
+            transfer_marker = None
+            
+            # Check each state update for transfer markers in tool results
+            async for state in stream:
+                if "messages" in state:
+                    for msg in state["messages"]:
+                        # Check for TRANSFER_INITIATED in tool message content
+                        if hasattr(msg, 'content') and isinstance(msg.content, str):
+                            if 'TRANSFER_INITIATED:' in msg.content:
+                                transfer_marker = msg.content
+                                print(f"🔄 Transfer marker detected in tool result: {transfer_marker}")
+            
+            # Get final state and last message
             final_state = agent_graph.get_state(config=config)
             last_message = final_state.values.get("messages")[-1]
-            return getattr(last_message, 'content', "")
+            final_response = getattr(last_message, 'content', "")
+            
+            # If transfer marker was found, return it (for WebRTC transfer detection)
+            # Otherwise return the final response
+            if transfer_marker:
+                return transfer_marker
+            return final_response
         
         return await asyncio.wait_for(process_stream(), timeout=20.0)  # Increased to 20 seconds for multiple tool execution
     except asyncio.TimeoutError:
