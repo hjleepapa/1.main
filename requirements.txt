@@ -182,3 +182,6 @@ redis>=5.0.0
 # Additional integrations
 composio-core>=0.3.0
 flask-limiter>=3.0.0
+
+# Deepgram SDK for WebRTC speech-to-text
+deepgram-sdk>=3.0.0
