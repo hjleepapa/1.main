@@ -239,7 +239,7 @@ def transfer_to_agent():
     - call_sid: The Twilio Call SID
     """
     try:
-        extension = request.form.get('extension') or request.args.get('extension', '2000')
+        extension = request.form.get('extension') or request.args.get('extension', '2001')
         call_sid = request.form.get('CallSid', '')
         caller_number = request.form.get('From', '')
         
@@ -305,7 +305,7 @@ def transfer_callback():
     try:
         dial_call_status = request.form.get('DialCallStatus', 'unknown')
         call_sid = request.form.get('CallSid', '')
-        extension = request.args.get('extension', '2000')
+        extension = request.args.get('extension', '2001')
         
         logger.info(f"Transfer callback for call {call_sid}: status={dial_call_status}, extension={extension}")
         
@@ -409,7 +409,7 @@ def process_audio_webhook():
                 # Redirect to transfer endpoint
                 webhook_base_url = get_webhook_base_url()
                 response = VoiceResponse()
-                response.redirect(f'{webhook_base_url}/sambanova_todo/twilio/transfer?extension=2000')
+                response.redirect(f'{webhook_base_url}/sambanova_todo/twilio/transfer?extension=2001')
                 logger.info(f"Redirecting call to transfer endpoint based on user request: {transcribed_text}")
                 return Response(str(response), mimetype='text/xml')
             
@@ -532,7 +532,7 @@ def process_audio_webhook():
                 # Parse transfer details
                 transfer_data = agent_response.replace("TRANSFER_INITIATED:", "")
                 parts = transfer_data.split("|")
-                target_extension = parts[0] if len(parts) > 0 else "2000"
+                target_extension = parts[0] if len(parts) > 0 else "2001"
                 
                 webhook_base_url = get_webhook_base_url()
                 response = VoiceResponse()
@@ -547,17 +547,19 @@ def process_audio_webhook():
             user_param = f'?user_id={user_id}' if user_id else ''
             auth_param = f'&authenticated=true' if user_id else ''
             
-            # Use Gather with speech input to enable barge-in functionality
+            # Enhanced Twilio speech recognition configuration
             gather = Gather(
                 input='speech',
                 action=f'/sambanova_todo/twilio/process_audio{user_param}',
                 method='POST',
                 speech_timeout='auto',
-                timeout=10,
-                barge_in=True,  # Enable barge-in to interrupt while speaking
-                speech_model='experimental_conversations',  # Better conversational recognition
-                enhanced=True,  # Use enhanced speech recognition
-                language='en-US'  # Explicitly set language
+                timeout=15,  # Increased from 10s
+                barge_in=True,
+                speech_model='experimental_conversations',
+                enhanced=True,
+                language='en-US',
+                # Add speech hints for better recognition
+                speech_hints='create todo reminder calendar team member assign task complete delete update schedule meeting appointment'
             )
         
             # Add the agent's response to the gather
@@ -895,3 +897,34 @@ def register_socketio_events(socketio):
         except Exception as e:
             logger.error(f"Error handling stop: {str(e)}", exc_info=True)
             emit('error', {'msg': str(e)})
+
+
+# Route to check Deepgram status
+@sambanova_todo_bp.route('/webrtc/whisper-status')
+def whisper_status():
+    """Check Deepgram status"""
+    try:
+        from deepgram_webrtc_integration import get_deepgram_webrtc_info
+        info = get_deepgram_webrtc_info()
+        return jsonify({
+            'success': True,
+            'transcriber': info.get('transcriber', 'deepgram'),
+            'model': info.get('model', 'nova-2'),
+            'accuracy': info.get('accuracy', '95%+'),
+            'cost_per_minute': info.get('cost_per_minute', 0.0043),
+            'privacy': info.get('privacy', 'processed on Deepgram servers'),
+            'latency': info.get('latency', '200-500ms'),
+            'webrtc_ready': info.get('webrtc_ready', True),
+            'production_ready': info.get('production_ready', True),
+            'api_key_configured': bool(os.getenv('DEEPGRAM_API_KEY')),
+            'streaming_optimized': info.get('streaming_optimized', True),
+            'webRTC_native': info.get('webRTC_native', True)
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'message': 'Failed to check Deepgram status',
+            'transcriber': 'deepgram',
+            'status': 'error'
+        })

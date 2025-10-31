@@ -355,6 +355,45 @@
                 showStatus(data.message, 'error');
                 resetMicButton();
             });
+            
+            socket.on('transfer_initiated', (data) => {
+                console.log('🔄 Transfer initiated:', data);
+                
+                if (data.success) {
+                    // Show transfer instructions
+                    const transferHtml = `
+                        <div class="transfer-instructions" style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 10px; padding: 20px; margin: 20px 0;">
+                            <h5 style="color: #856404; margin-bottom: 15px;">
+                                <i class="fas fa-phone-alt"></i> Transfer to ${data.department} (Extension ${data.extension})
+                            </h5>
+                            <p style="color: #856404; margin-bottom: 15px;">${data.message}</p>
+                            <div style="margin-top: 15px;">
+                                <h6 style="color: #856404; margin-bottom: 10px;">Transfer Options:</h6>
+                                <div style="margin-bottom: 15px;">
+                                    <strong>Option 1 - Call via Twilio:</strong><br>
+                                    <a href="tel:${data.instructions.twilio_number}" style="color: #0066cc; font-size: 18px; font-weight: bold;">
+                                        <i class="fas fa-phone"></i> ${data.instructions.twilio_number}
+                                    </a><br>
+                                    <small style="color: #856404;">Call this number and say "transfer me to extension ${data.extension}" or "transfer me to ${data.department}"</small>
+                                </div>
+                                <div>
+                                    <strong>Option 2 - Direct SIP:</strong><br>
+                                    <code style="background: white; padding: 5px 10px; border-radius: 5px; color: #856404;">
+                                        ${data.instructions.sip_uri}
+                                    </code><br>
+                                    <small style="color: #856404;">Use a SIP client (Zoiper, Linphone) to connect directly</small>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Add to transcript
+                    addTranscript('agent', transferHtml, true);
+                    
+                    // Show status
+                    showStatus(`Transfer initiated to ${data.department} (Extension ${data.extension})`, 'info');
+                }
+            });
         }
         
         // Authenticate user
@@ -419,21 +458,26 @@
                 mediaRecorder.ondataavailable = (event) => {
                     if (event.data.size > 0) {
                         audioChunks.push(event.data);
-                        
-                        // Send chunk to server
-                        const reader = new FileReader();
-                        reader.onload = () => {
-                            const base64 = reader.result.split(',')[1];
-                            socket.emit('audio_data', { audio: base64 });
-                        };
-                        reader.readAsDataURL(event.data);
+                        console.log(`📦 Audio chunk received: ${event.data.size} bytes`);
                     }
                 };
                 
                 mediaRecorder.onstop = () => {
                     stream.getTracks().forEach(track => track.stop());
                     stopVisualizer();
-                    socket.emit('stop_recording');
+                    
+                    // Create complete WebM blob from all chunks
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm;codecs=opus' });
+                    console.log(`🎵 Complete audio blob: ${audioBlob.size} bytes`);
+                    
+                    // Send complete blob to server
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const base64 = reader.result.split(',')[1];
+                        console.log(`📤 Sending complete audio: ${base64.length} chars`);
+                        socket.emit('stop_recording', { audio: base64 });
+                    };
+                    reader.readAsDataURL(audioBlob);
                 };
                 
                 // Start recording
@@ -512,7 +556,7 @@
         }
         
         // Add transcript item
-        function addTranscript(type, text) {
+        function addTranscript(type, text, isHtml = false) {
             const transcriptBox = document.getElementById('transcriptBox');
             
             // Clear placeholder
@@ -528,7 +572,11 @@
             label.textContent = type === 'user' ? '👤 You' : '🤖 Assistant';
             
             const content = document.createElement('div');
-            content.textContent = text;
+            if (isHtml) {
+                content.innerHTML = text;
+            } else {
+                content.textContent = text;
+            }
             
             item.appendChild(label);
             item.appendChild(content);

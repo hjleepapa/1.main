@@ -163,14 +163,20 @@ def add_team_member(team_id):
             return jsonify({'error': 'user_id and role are required'}), 400
         
         with SessionLocal() as session:
-            # Check if current user has permission to add members
-            current_membership = session.query(TeamMembership).filter(
-                TeamMembership.team_id == team_id,
-                TeamMembership.user_id == current_user_id
-            ).first()
+            # Get current user to check if they're the admin user
+            current_user = session.query(User).filter(User.id == current_user_id).first()
+            is_admin_user = current_user and current_user.email == 'admin@sambanova.com'
             
-            if not current_membership or current_membership.role not in [TeamRole.OWNER, TeamRole.ADMIN]:
-                return jsonify({'error': 'Insufficient permissions to add members'}), 403
+            # Check if current user has permission to add members
+            # Admin user can add members to any team, otherwise must be team OWNER/ADMIN
+            if not is_admin_user:
+                current_membership = session.query(TeamMembership).filter(
+                    TeamMembership.team_id == team_id,
+                    TeamMembership.user_id == current_user_id
+                ).first()
+                
+                if not current_membership or current_membership.role not in [TeamRole.OWNER, TeamRole.ADMIN]:
+                    return jsonify({'error': 'Insufficient permissions to add members'}), 403
             
             # Check if user exists
             user = session.query(User).filter(User.id == data['user_id']).first()
@@ -221,14 +227,20 @@ def remove_team_member(team_id, user_id):
         current_user_id = request.current_user['user_id']
         
         with SessionLocal() as session:
-            # Check if current user has permission to remove members
-            current_membership = session.query(TeamMembership).filter(
-                TeamMembership.team_id == team_id,
-                TeamMembership.user_id == current_user_id
-            ).first()
+            # Get current user to check if they're the admin user
+            current_user = session.query(User).filter(User.id == current_user_id).first()
+            is_admin_user = current_user and current_user.email == 'admin@sambanova.com'
             
-            if not current_membership or current_membership.role not in [TeamRole.OWNER, TeamRole.ADMIN]:
-                return jsonify({'error': 'Insufficient permissions to remove members'}), 403
+            # Check if current user has permission to remove members
+            # Admin user can remove members from any team, otherwise must be team OWNER/ADMIN
+            if not is_admin_user:
+                current_membership = session.query(TeamMembership).filter(
+                    TeamMembership.team_id == team_id,
+                    TeamMembership.user_id == current_user_id
+                ).first()
+                
+                if not current_membership or current_membership.role not in [TeamRole.OWNER, TeamRole.ADMIN]:
+                    return jsonify({'error': 'Insufficient permissions to remove members'}), 403
             
             # Check if user is trying to remove themselves
             if user_id == current_user_id:

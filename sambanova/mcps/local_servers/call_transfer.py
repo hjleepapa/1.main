@@ -15,10 +15,10 @@ FREEPBX_DOMAIN = os.getenv('FREEPBX_DOMAIN', '34.26.59.14')
 
 # Default extension mapping
 EXTENSION_MAP = {
-    'support': '2000',  # Support queue
-    'sales': '2000',    # Sales queue
-    'general': '2000',  # General queue
-    'operator': '2000', # Main operator
+    'support': '2001',  # Support queue
+    'sales': '2001',    # Sales queue
+    'general': '2001',  # General queue
+    'operator': '2001', # Main operator
 }
 
 @tool
@@ -54,7 +54,8 @@ def transfer_to_agent(
         if extension:
             target_extension = extension
         else:
-            target_extension = EXTENSION_MAP.get(department.lower(), EXTENSION_MAP['support'])
+            # Default to 2001 if department not found
+            target_extension = EXTENSION_MAP.get(department.lower(), '2001')
         
         # Log the transfer request
         log_message = f"TRANSFER_REQUEST: Extension={target_extension}, Department={department}"
@@ -81,10 +82,10 @@ def get_available_departments() -> str:
     """
     departments = """
     Available departments for transfer:
-    - support: Technical support queue (Extension 2000)
-    - sales: Sales team (Extension 2000)
-    - general: General inquiries (Extension 2000)
-    - operator: Main operator (Extension 2000)
+    - support: Technical support queue (Extension 2001)
+    - sales: Sales team (Extension 2001)
+    - general: General inquiries (Extension 2001)
+    - operator: Main operator (Extension 2001)
     """
     return departments.strip()
 

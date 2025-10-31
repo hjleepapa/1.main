@@ -18,7 +18,8 @@
                     <span class="bg-pink-100 text-pink-800 px-3 py-1 rounded-full text-sm font-medium">Twilio Voice</span>
                     <span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm font-medium">JWT Auth</span>
                     <span class="bg-cyan-100 text-cyan-800 px-3 py-1 rounded-full text-sm font-medium">Team Collaboration</span>
-                    <span class="bg-teal-100 text-teal-800 px-3 py-1 rounded-full text-sm font-medium">FreePBX Call Transfer</span>
+                    <span class="bg-teal-100 text-teal-800 px-3 py-1 rounded-full text-sm font-medium">FusionPBX Call Transfer</span>
+                    <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">Deepgram STT</span>
                     <span class="bg-rose-100 text-rose-800 px-3 py-1 rounded-full text-sm font-medium">Sentry Monitoring</span>
                     <span class="bg-lime-100 text-lime-800 px-3 py-1 rounded-full text-sm font-medium">WebRTC Call Center</span>
                     <span class="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-sm font-medium">Redis Cache</span>
@@ -55,6 +56,14 @@
                                             <div class="text-xs font-medium text-green-800">Voice Interface</div>
                                             <div class="text-xs text-green-600">Twilio Phone</div>
                                         </div>
+                                        <div class="bg-sky-100 border border-sky-300 rounded p-3 text-center">
+                                            <div class="text-xs font-medium text-sky-800">WebRTC Voice</div>
+                                            <div class="text-xs text-sky-600">Browser Recording</div>
+                                        </div>
+                                        <div class="bg-amber-100 border border-amber-300 rounded p-3 text-center">
+                                            <div class="text-xs font-medium text-amber-800">Redis Audio Buffer</div>
+                                            <div class="text-xs text-amber-600">Session Storage</div>
+                                        </div>
                                         <div class="bg-purple-100 border border-purple-300 rounded p-3 text-center">
                                             <div class="text-xs font-medium text-purple-800">Registration</div>
                                             <div class="text-xs text-purple-600">JWT Authentication</div>
@@ -76,7 +85,7 @@
                                         </div>
                                         <div class="bg-teal-100 border border-teal-300 rounded p-3 text-center">
                                             <div class="text-xs font-medium text-teal-800">Call Transfer</div>
-                                            <div class="text-xs text-teal-600">AI → FreePBX</div>
+                                            <div class="text-xs text-teal-600">AI → FusionPBX</div>
                                         </div>
                                         <div class="bg-rose-100 border border-rose-300 rounded p-3 text-center">
                                             <div class="text-xs font-medium text-rose-800">Sentry</div>
@@ -114,8 +123,12 @@
                                             <div class="text-xs text-cyan-600">Cloud Hosting</div>
                                         </div>
                                         <div class="bg-lime-100 border border-lime-300 rounded p-3 text-center">
-                                            <div class="text-xs font-medium text-lime-800">FreePBX</div>
+                                            <div class="text-xs font-medium text-lime-800">FusionPBX</div>
                                             <div class="text-xs text-lime-600">Call Center (GCP)</div>
+                                        </div>
+                                        <div class="bg-purple-100 border border-purple-300 rounded p-3 text-center">
+                                            <div class="text-xs font-medium text-purple-800">Deepgram</div>
+                                            <div class="text-xs text-purple-600">STT API</div>
                                         </div>
                                         <div class="bg-amber-100 border border-amber-300 rounded p-3 text-center">
                                             <div class="text-xs font-medium text-amber-800">WebRTC/JsSIP</div>
@@ -129,12 +142,17 @@
                             <div class="mt-6 space-y-2">
                                 <div class="flex justify-center">
                                     <div class="text-xs text-gray-600 bg-gray-100 px-3 py-1 rounded">
-                                        ← User (Voice/Web) → PIN Auth → LangGraph → MCP Tools (38) → Database/Calendar/FreePBX → Response
+                                        ← User (Voice/Web) → PIN Auth → LangGraph → MCP Tools (38) → Database/Calendar/FusionPBX → Response
                                     </div>
                                 </div>
                                 <div class="flex justify-center">
                                     <div class="text-xs text-gray-600 bg-blue-50 px-3 py-1 rounded">
-                                        ← Twilio Voice → Voice AI Chat → Transfer Request → FreePBX Extension 2000 → Human Agent
+                                        ← Twilio Voice → Voice AI Chat → Transfer Request → FusionPBX Extension 2001 → Human Agent
+                                    </div>
+                                </div>
+                                <div class="flex justify-center">
+                                    <div class="text-xs text-gray-600 bg-sky-50 px-3 py-1 rounded">
+                                        ← WebRTC Voice → Deepgram STT → LangGraph → Tools → Response → Redis Audio Buffer
                                     </div>
                                 </div>
                                 <div class="flex justify-center">
@@ -147,7 +165,7 @@
                             <div class="mt-6 text-center">
                                 <p class="text-sm text-gray-600">
                                     <strong>Architecture Flow:</strong> Enterprise voice AI system with PIN authentication, team collaboration, 
-                                    intelligent call transfer to FreePBX call center, and comprehensive Sentry error monitoring with 
+                                    intelligent call transfer to FusionPBX call center, WebRTC voice integration with Deepgram STT, and comprehensive Sentry error monitoring with 
                                     automatic thread reset recovery (8s/10s/12s timeout optimization).
                                 </p>
                             </div>
@@ -185,7 +203,9 @@
                                 <li>• OpenAI APIs (GPT-4 Turbo, Whisper STT)</li>
                                 <li>• Twilio Programmable Voice with Media Streams</li>
                                 <li>• Google Calendar OAuth2 integration (optimized)</li>
-                                <li>• FreePBX SIP integration for call transfer</li>
+                                <li>• FusionPBX SIP integration for call transfer</li>
+                                <li>• Deepgram Speech-to-Text API for WebRTC</li>
+                                <li>• WebRTC browser-based voice recording</li>
                                 <li>• Sentry.io error monitoring & performance tracking</li>
                                 <li>• JsSIP WebRTC for browser-based softphone</li>
                                 <li>• Render.com auto-deployment with gunicorn+eventlet</li>
@@ -196,7 +216,9 @@
                             <ul class="text-sm text-gray-600 space-y-1">
                                 <li>• Multi-tenant team collaboration with role hierarchy</li>
                                 <li>• PIN-based voice authentication (4-6 digits)</li>
-                                <li>• Intelligent call transfer: AI → FreePBX Extension 2000</li>
+                                <li>• Intelligent call transfer: AI → FusionPBX Extension 2001</li>
+                                <li>• WebRTC voice with Deepgram STT transcription</li>
+                                <li>• Redis audio buffer management for WebRTC</li>
                                 <li>• Sentry error monitoring & performance tracking</li>
                                 <li>• Optimized timeouts (8s/10s/12s) for Twilio compatibility</li>
                                 <li>• Automatic thread reset on timeout/error</li>
@@ -204,7 +226,7 @@
                                 <li>• WebRTC call center with JsSIP softphone</li>
                                 <li>• Real-time voice AI with barge-in capability</li>
                                 <li>• Google Calendar OAuth2 sync (background)</li>
-                                <li>• FreePBX integration on Google Cloud VM</li>
+                                <li>• FusionPBX integration on Google Cloud VM</li>
                                 <li>• Production deployment on Render with auto-scaling</li>
                             </ul>
                         </div>
@@ -225,17 +247,61 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
                                     </svg>
                                 </span>
-                                <h4 class="text-lg font-semibold text-gray-800">Call Transfer to FreePBX</h4>
+                                <h4 class="text-lg font-semibold text-gray-800">Call Transfer to FusionPBX</h4>
                             </div>
                             <ul class="text-sm text-gray-600 space-y-1.5">
                                 <li>✓ Seamless AI → Human agent transfer</li>
-                                <li>✓ FreePBX extension 2000 integration</li>
+                                <li>✓ FusionPBX extension 2001 integration</li>
                                 <li>✓ SIP/WSS connectivity (Google Cloud VM)</li>
                                 <li>✓ Transfer detection via phrases or tool</li>
                                 <li>✓ Department routing (support, sales, etc.)</li>
                             </ul>
                             <div class="mt-3 text-xs text-gray-500">
                                 <strong>Files:</strong> call_transfer.py, CALL_TRANSFER_GUIDE.md
+                            </div>
+                        </div>
+
+                        <!-- Deepgram WebRTC Integration -->
+                        <div class="bg-white p-5 rounded-lg shadow-sm">
+                            <div class="flex items-center mb-3">
+                                <span class="bg-purple-100 p-2 rounded-full mr-3">
+                                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+                                    </svg>
+                                </span>
+                                <h4 class="text-lg font-semibold text-gray-800">Deepgram WebRTC STT</h4>
+                            </div>
+                            <ul class="text-sm text-gray-600 space-y-1.5">
+                                <li>✓ Real-time speech-to-text transcription</li>
+                                <li>✓ WebRTC audio stream processing</li>
+                                <li>✓ WebM format detection & handling</li>
+                                <li>✓ High accuracy transcription (95%+)</li>
+                                <li>✓ Low latency (200-500ms)</li>
+                            </ul>
+                            <div class="mt-3 text-xs text-gray-500">
+                                <strong>Files:</strong> deepgram_service.py, deepgram_webrtc_integration.py
+                            </div>
+                        </div>
+
+                        <!-- Composio Integration -->
+                        <div class="bg-white p-5 rounded-lg shadow-sm">
+                            <div class="flex items-center mb-3">
+                                <span class="bg-violet-100 p-2 rounded-full mr-3">
+                                    <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                    </svg>
+                                </span>
+                                <h4 class="text-lg font-semibold text-gray-800">Composio Integration</h4>
+                            </div>
+                            <ul class="text-sm text-gray-600 space-y-1.5">
+                                <li>✓ Slack workspace integration</li>
+                                <li>✓ GitHub repository management</li>
+                                <li>✓ Gmail email automation</li>
+                                <li>✓ Notion workspace sync</li>
+                                <li>✓ External platform connectivity</li>
+                            </ul>
+                            <div class="mt-3 text-xs text-gray-500">
+                                <strong>Files:</strong> COMPOSIO_FEATURES_SUMMARY.md
                             </div>
                         </div>
 
@@ -301,7 +367,7 @@
                                 <li>✓ Google Cloud firewall configured</li>
                             </ul>
                             <div class="mt-3 text-xs text-gray-500">
-                                <strong>Platform:</strong> FreePBX 34.26.59.14 (GCP VM)
+                                <strong>Platform:</strong> FusionPBX 34.26.59.14 (GCP VM)
                             </div>
                         </div>
 
@@ -353,8 +419,12 @@
                     <!-- Quick Stats -->
                     <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div class="bg-white p-4 rounded text-center">
-                            <div class="text-2xl font-bold text-teal-600">2000</div>
-                            <div class="text-xs text-gray-600">FreePBX Extension</div>
+                            <div class="text-2xl font-bold text-teal-600">2001</div>
+                            <div class="text-xs text-gray-600">FusionPBX Extension</div>
+                        </div>
+                        <div class="bg-white p-4 rounded text-center">
+                            <div class="text-2xl font-bold text-purple-600">Deepgram</div>
+                            <div class="text-xs text-gray-600">STT API</div>
                         </div>
                         <div class="bg-white p-4 rounded text-center">
                             <div class="text-2xl font-bold text-purple-600">38</div>
@@ -379,16 +449,97 @@
                     <div class="mb-8">
                         <h4 class="text-lg font-semibold mb-4 text-gray-800">WebRTC Voice Assistant Architecture</h4>
                         <div class="bg-white p-6 rounded-lg border-2 border-gray-200">
-                            <div class="flex justify-center">
-                                <img src="/static/sambanova/arch.png" 
-                                     alt="WebRTC Voice Integration Architecture" 
-                                     class="max-w-full h-auto rounded-lg shadow-lg"
-                                     style="max-width: 1000px; height: auto;">
+                            <!-- WebRTC Speech-to-Deepgram Flow Diagram -->
+                            <div class="mb-8">
+                                <h5 class="text-lg font-semibold mb-4 text-gray-800">WebRTC Speech-to-Deepgram Processing Flow</h5>
+                                <div class="bg-gray-50 p-4 rounded-lg border">
+                                    <div class="flex justify-center items-center space-x-4">
+                                        <!-- Browser -->
+                                        <div class="text-center">
+                                            <div class="w-12 h-12 bg-blue-100 border-2 border-blue-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                                <span class="text-blue-800 font-bold text-xs">🌐</span>
+                                            </div>
+                                            <div class="text-xs font-medium text-gray-800">Browser</div>
+                                            <div class="text-xs text-gray-600">WebRTC</div>
+                                        </div>
+                                        
+                                        <!-- Arrow -->
+                                        <div class="flex items-center">
+                                            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                            </svg>
+                                        </div>
+                                        
+                                        <!-- Socket.IO -->
+                                        <div class="text-center">
+                                            <div class="w-12 h-12 bg-green-100 border-2 border-green-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                                <span class="text-green-800 font-bold text-xs">📡</span>
+                                            </div>
+                                            <div class="text-xs font-medium text-gray-800">Socket.IO</div>
+                                            <div class="text-xs text-gray-600">WebSocket</div>
+                                        </div>
+                                        
+                                        <!-- Arrow -->
+                                        <div class="flex items-center">
+                                            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                            </svg>
+                                        </div>
+                                        
+                                        <!-- Redis Buffer -->
+                                        <div class="text-center">
+                                            <div class="w-12 h-12 bg-amber-100 border-2 border-amber-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                                <span class="text-amber-800 font-bold text-xs">💾</span>
+                                            </div>
+                                            <div class="text-xs font-medium text-gray-800">Redis</div>
+                                            <div class="text-xs text-gray-600">Buffer</div>
+                                        </div>
+                                        
+                                        <!-- Arrow -->
+                                        <div class="flex items-center">
+                                            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                            </svg>
+                                        </div>
+                                        
+                                        <!-- Deepgram -->
+                                        <div class="text-center">
+                                            <div class="w-12 h-12 bg-purple-100 border-2 border-purple-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                                <span class="text-purple-800 font-bold text-xs">🎧</span>
+                                            </div>
+                                            <div class="text-xs font-medium text-gray-800">Deepgram</div>
+                                            <div class="text-xs text-gray-600">STT API</div>
+                                        </div>
+                                        
+                                        <!-- Arrow -->
+                                        <div class="flex items-center">
+                                            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                            </svg>
+                                        </div>
+                                        
+                                        <!-- LangGraph -->
+                                        <div class="text-center">
+                                            <div class="w-12 h-12 bg-indigo-100 border-2 border-indigo-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                                <span class="text-indigo-800 font-bold text-xs">🧠</span>
+                                            </div>
+                                            <div class="text-xs font-medium text-gray-800">LangGraph</div>
+                                            <div class="text-xs text-gray-600">AI Agent</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Flow Description -->
+                                    <div class="mt-4 text-center">
+                                        <p class="text-xs text-gray-600">
+                                            <strong>Flow:</strong> Your speech → WebRTC capture → Socket.IO streaming → Redis buffer → Deepgram transcription → LangGraph processing → Tool execution → Response
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                             
                             <div class="mt-6 text-center">
                                 <p class="text-sm text-gray-600">
-                                    <strong>WebRTC Architecture:</strong> Browser-based voice assistant with Redis session management, real-time audio streaming, and Composio tool integration for external platform connectivity.
+                                    <strong>WebRTC Architecture:</strong> Browser-based voice assistant with Redis session management, real-time audio streaming via Socket.IO, Deepgram STT transcription, and Composio tool integration for external platform connectivity.
                                 </p>
                             </div>
                         </div>
@@ -577,14 +728,16 @@
     │   ├── mcp_config.json       # MCP server configuration
     │   └── local_servers/
     │       ├── db_todo.py        # 36 database tools (optimized, no Google sync)
-    │       ├── call_transfer.py  # 2 call transfer tools (FreePBX integration)
+    │       ├── call_transfer.py  # 2 call transfer tools (FusionPBX integration)
+    │       ├── deepgram_service.py  # Deepgram STT service
+    │       └── deepgram_webrtc_integration.py  # WebRTC Deepgram integration
     │       └── google_calendar.py # Calendar operations
     └── Documentation/             # Comprehensive guides
         ├── CALL_TRANSFER_GUIDE.md        # Call transfer setup
         ├── SENTRY_INTEGRATION.md         # Error monitoring setup
         ├── TIMEOUT_ERROR_FIX.md          # Timeout optimization guide
-        ├── GOOGLE_CLOUD_FREEPBX_SETUP.md # FreePBX configuration
-        └── TWILIO_FREEPBX_SETUP.md       # Twilio-FreePBX integration</pre>
+        ├── GOOGLE_CLOUD_FREEPBX_SETUP.md # FusionPBX configuration
+        └── TWILIO_FREEPBX_SETUP.md       # Twilio-FusionPBX integration</pre>
                             </div>
                         </div>
                     </div>
@@ -831,7 +984,7 @@
                                 <li>• <strong>TodoAgent Class:</strong> Main agent orchestrator with lazy initialization</li>
                                 <li>• <strong>StateGraph:</strong> Manages conversation flow and state</li>
                                 <li>• <strong>Assistant Node:</strong> GPT-4 reasoning and response generation</li>
-                                <li>• <strong>Tool Node:</strong> Executes 35+ MCP tools</li>
+                                <li>• <strong>Tool Node:</strong> Executes 38 MCP tools</li>
                                 <li>• <strong>Conditional Edges:</strong> Routes between nodes based on tool calls</li>
                                 <li>• <strong>InMemorySaver:</strong> Checkpointer for state persistence</li>
                             </ul>
@@ -857,8 +1010,8 @@
                 <div class="bg-gray-50 p-6 rounded-lg">
                     <p class="text-gray-700 mb-4">
                         MCP provides a standardized way for AI agents to interact with external tools and services. 
-                        The Sambanova system uses MCP to expose 30+ tools for database operations, team management, 
-                        and Google Calendar integration.
+                        The Sambanova system uses MCP to expose 38 tools for database operations, team management, 
+                        call transfer to FusionPBX, Google Calendar integration, and WebRTC voice processing with Deepgram STT.
                     </p>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -883,7 +1036,7 @@
                             </div>
                         </div>
                         <div class="bg-white p-4 rounded border">
-                            <h4 class="font-semibold text-gray-800 mb-2">Available MCP Tools (35+)</h4>
+                            <h4 class="font-semibold text-gray-800 mb-2">Available MCP Tools (38)</h4>
                             <div class="grid grid-cols-2 gap-2">
                                 <div>
                                     <h5 class="font-semibold text-xs text-gray-700 mb-1">Todo Management (5)</h5>
@@ -926,6 +1079,13 @@
                                         <li>• delete_calendar_event</li>
                                         <li>• sync_google_calendar_events</li>
                                         <li>• test_google_calendar</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h5 class="font-semibold text-xs text-gray-700 mb-1">Call Transfer (2)</h5>
+                                    <ul class="text-xs text-gray-600 space-y-1">
+                                        <li>• transfer_to_agent</li>
+                                        <li>• get_available_departments</li>
                                     </ul>
                                 </div>
                             </div>
@@ -974,7 +1134,7 @@
                                         <li>• Database operations via MCP servers</li>
                                         <li>• Google Calendar synchronization</li>
                                         <li>• Team collaboration tools</li>
-                                        <li>• Real-time tool discovery (35+ tools)</li>
+                                        <li>• Real-time tool discovery (38 tools)</li>
                                         <li>• Secure tool communication via stdio</li>
                                         <li>• Lazy loading for performance</li>
                                     </ul>
@@ -1071,103 +1231,6 @@
                 </div>
             </div>
 
-            <!-- Technical Integration Diagram -->
-            <div class="mb-12">
-                <h3 class="text-2xl font-semibold mb-6 text-gray-800">Technical Integration Overview</h3>
-                <div class="bg-gradient-to-r from-indigo-50 to-purple-50 p-6 rounded-lg border-2 border-indigo-200">
-                    <div class="mb-8">
-                        <h4 class="text-lg font-semibold mb-4 text-gray-800">Complete System Integration</h4>
-                        <div class="bg-white p-6 rounded-lg border-2 border-gray-200">
-                            <div class="flex justify-center">
-                                <img src="/static/sambanova/t_i.png" 
-                                     alt="Technical Integration Diagram" 
-                                     class="max-w-full h-auto rounded-lg shadow-lg"
-                                     style="max-width: 1000px; height: auto;">
-                            </div>
-                            
-                            <div class="mt-6 text-center">
-                                <p class="text-sm text-gray-600">
-                                    <strong>System Integration:</strong> Complete technical architecture showing WebRTC voice integration, Redis session management, Composio tool orchestration, and LangGraph AI agent processing.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <!-- WebRTC Integration -->
-                        <div class="bg-white p-4 rounded-lg shadow-sm">
-                            <div class="flex items-center mb-3">
-                                <span class="bg-sky-100 p-2 rounded-full mr-3">
-                                    <svg class="w-5 h-5 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
-                                    </svg>
-                                </span>
-                                <h4 class="text-lg font-semibold text-gray-800">WebRTC Voice</h4>
-                            </div>
-                            <ul class="text-sm text-gray-600 space-y-1">
-                                <li>• Browser audio recording</li>
-                                <li>• Real-time streaming</li>
-                                <li>• WebSocket communication</li>
-                                <li>• Session management</li>
-                            </ul>
-                        </div>
-
-                        <!-- Redis Integration -->
-                        <div class="bg-white p-4 rounded-lg shadow-sm">
-                            <div class="flex items-center mb-3">
-                                <span class="bg-amber-100 p-2 rounded-full mr-3">
-                                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
-                                    </svg>
-                                </span>
-                                <h4 class="text-lg font-semibold text-gray-800">Redis Cache</h4>
-                            </div>
-                            <ul class="text-sm text-gray-600 space-y-1">
-                                <li>• Session storage</li>
-                                <li>• Audio buffer management</li>
-                                <li>• Real-time notifications</li>
-                                <li>• User activity tracking</li>
-                            </ul>
-                        </div>
-
-                        <!-- Composio Integration -->
-                        <div class="bg-white p-4 rounded-lg shadow-sm">
-                            <div class="flex items-center mb-3">
-                                <span class="bg-violet-100 p-2 rounded-full mr-3">
-                                    <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                                    </svg>
-                                </span>
-                                <h4 class="text-lg font-semibold text-gray-800">Composio Tools</h4>
-                            </div>
-                            <ul class="text-sm text-gray-600 space-y-1">
-                                <li>• Slack integration</li>
-                                <li>• GitHub automation</li>
-                                <li>• Gmail management</li>
-                                <li>• External platform sync</li>
-                            </ul>
-                        </div>
-
-                        <!-- LangGraph Agent -->
-                        <div class="bg-white p-4 rounded-lg shadow-sm">
-                            <div class="flex items-center mb-3">
-                                <span class="bg-purple-100 p-2 rounded-full mr-3">
-                                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-                                    </svg>
-                                </span>
-                                <h4 class="text-lg font-semibold text-gray-800">AI Agent</h4>
-                            </div>
-                            <ul class="text-sm text-gray-600 space-y-1">
-                                <li>• LangGraph orchestration</li>
-                                <li>• 38 MCP tools</li>
-                                <li>• Natural language processing</li>
-                                <li>• Tool calling automation</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <!-- New Features Technical Details -->
             <div class="mb-12">
@@ -1338,10 +1401,30 @@
                         <ul class="text-sm text-gray-600 space-y-2">
                             <li><code class="bg-gray-100 px-2 py-1 rounded text-xs">POST /sambanova_todo/twilio/call</code></li>
                             <li><code class="bg-gray-100 px-2 py-1 rounded text-xs">POST /sambanova_todo/twilio/process_audio</code></li>
+                            <li><code class="bg-gray-100 px-2 py-1 rounded text-xs">POST /sambanova_todo/twilio/transfer</code></li>
                         </ul>
                         <div class="mt-3 p-3 bg-gray-50 rounded">
                             <p class="text-xs text-gray-600 mb-2">Webhook URL:</p>
                             <pre class="text-xs"><code>https://hjlees.com/sambanova_todo/twilio/call</code></pre>
+                        </div>
+                    </div>
+                    
+                    <!-- WebRTC Endpoints -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h4 class="text-lg font-semibold mb-3 text-gray-800">WebRTC Voice</h4>
+                        <ul class="text-sm text-gray-600 space-y-2">
+                            <li><code class="bg-gray-100 px-2 py-1 rounded text-xs">GET /sambanova_todo/webrtc/voice-assistant</code></li>
+                            <li><code class="bg-gray-100 px-2 py-1 rounded text-xs">WebSocket /voice</code></li>
+                            <li><code class="bg-gray-100 px-2 py-1 rounded text-xs">GET /audio-player/</code></li>
+                        </ul>
+                        <div class="mt-3 p-3 bg-gray-50 rounded">
+                            <p class="text-xs text-gray-600 mb-2">WebRTC Voice Interface:</p>
+                            <pre class="text-xs"><code>https://hjlees.com/sambanova_todo/webrtc/voice-assistant</code></pre>
+                        </div>
+                        <div class="mt-2 p-3 bg-blue-50 rounded">
+                            <p class="text-xs text-blue-800">
+                                <strong>Features:</strong> Deepgram STT transcription, Redis audio buffer storage, Socket.IO real-time communication
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -1408,19 +1491,19 @@
                                     <div class="text-xs text-gray-600">Session Storage</div>
                                 </div>
                                 
-                                <!-- Audio Processing -->
+                                <!-- Deepgram STT -->
                                 <div class="text-center">
-                                    <div class="w-16 h-16 bg-green-100 border-2 border-green-300 rounded-full flex items-center justify-center mx-auto mb-2">
-                                        <span class="text-green-800 font-bold text-sm">🔊</span>
+                                    <div class="w-16 h-16 bg-purple-100 border-2 border-purple-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <span class="text-purple-800 font-bold text-sm">🎧</span>
                                     </div>
-                                    <div class="text-sm font-medium text-gray-800">Audio Processing</div>
-                                    <div class="text-xs text-gray-600">WebM/MP3</div>
+                                    <div class="text-sm font-medium text-gray-800">Deepgram STT</div>
+                                    <div class="text-xs text-gray-600">Transcription</div>
                                 </div>
                                 
                                 <!-- LangGraph Agent -->
                                 <div class="text-center">
-                                    <div class="w-16 h-16 bg-purple-100 border-2 border-purple-300 rounded-full flex items-center justify-center mx-auto mb-2">
-                                        <span class="text-purple-800 font-bold text-sm">🧠</span>
+                                    <div class="w-16 h-16 bg-indigo-100 border-2 border-indigo-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <span class="text-indigo-800 font-bold text-sm">🧠</span>
                                     </div>
                                     <div class="text-sm font-medium text-gray-800">LangGraph Agent</div>
                                     <div class="text-xs text-gray-600">AI Processing</div>
@@ -1445,17 +1528,17 @@
                                     <div class="flex-1 h-0.5 bg-blue-400 mx-4"></div>
                                     <div class="text-xs text-gray-600">Buffer</div>
                                     <div class="flex-1 h-0.5 bg-amber-400 mx-4"></div>
-                                    <div class="text-xs text-gray-600">Process</div>
-                                    <div class="flex-1 h-0.5 bg-green-400 mx-4"></div>
-                                    <div class="text-xs text-gray-600">AI</div>
+                                    <div class="text-xs text-gray-600">STT</div>
                                     <div class="flex-1 h-0.5 bg-purple-400 mx-4"></div>
+                                    <div class="text-xs text-gray-600">AI</div>
+                                    <div class="flex-1 h-0.5 bg-indigo-400 mx-4"></div>
                                     <div class="text-xs text-gray-600">Response</div>
                                 </div>
                             </div>
                             
                             <div class="mt-6 text-center">
                                 <p class="text-sm text-gray-600">
-                                    <strong>WebRTC Pipeline:</strong> Complete browser-based voice processing from audio capture to AI-generated responses with Redis session management.
+                                    <strong>WebRTC Pipeline:</strong> Complete browser-based voice processing from audio capture through Deepgram STT transcription to AI-generated responses with Redis session management.
                                 </p>
                             </div>
                         </div>
@@ -1466,13 +1549,13 @@
                             <h4 class="font-semibold text-gray-800 mb-2">WebRTC Components</h4>
                             <ul class="text-sm text-gray-600 space-y-1">
                                 <li>• <strong>MediaRecorder API:</strong> Browser audio recording</li>
-                                <li>• <strong>WebSocket:</strong> Real-time communication</li>
+                                <li>• <strong>WebSocket:</strong> Real-time communication via Socket.IO</li>
                                 <li>• <strong>Redis Session:</strong> Audio buffer storage</li>
-                                <li>• <strong>Audio Format Detection:</strong> WebM/MP3 support</li>
+                                <li>• <strong>WebM Format:</strong> Native browser audio format</li>
                                 <li>• <strong>Base64 Encoding:</strong> Audio data transmission</li>
-                                <li>• <strong>Socket.IO:</strong> Bidirectional communication</li>
+                                <li>• <strong>Deepgram STT:</strong> Real-time speech-to-text</li>
                                 <li>• <strong>Session Management:</strong> User state tracking</li>
-                                <li>• <strong>Real-time Streaming:</strong> Continuous audio flow</li>
+                                <li>• <strong>Audio Buffer:</strong> Redis storage for playback</li>
                             </ul>
                         </div>
                         <div class="bg-white p-4 rounded border">
@@ -1480,11 +1563,11 @@
                             <ol class="text-sm text-gray-600 space-y-1">
                                 <li>1. User clicks record button in browser</li>
                                 <li>2. WebRTC MediaRecorder captures audio</li>
-                                <li>3. Audio chunks sent via WebSocket</li>
-                                <li>4. Server stores audio in Redis session</li>
+                                <li>3. Audio chunks sent via Socket.IO WebSocket</li>
+                                <li>4. Server stores audio in Redis session buffer</li>
                                 <li>5. User stops recording</li>
-                                <li>6. Audio buffer processed (WebM/MP3)</li>
-                                <li>7. OpenAI Whisper transcribes audio</li>
+                                <li>6. Complete WebM blob sent to server</li>
+                                <li>7. Deepgram STT transcribes audio</li>
                                 <li>8. LangGraph agent processes request</li>
                                 <li>9. OpenAI TTS generates response</li>
                                 <li>10. Audio response played in browser</li>
@@ -1494,9 +1577,9 @@
                 </div>
             </div>
 
-            <!-- Voice Interface -->
+            <!-- Twilio Voice Interface -->
             <div class="mb-12">
-                <h3 class="text-2xl font-semibold mb-6 text-gray-800">Voice Interface</h3>
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">Twilio Voice Interface</h3>
                 <div class="bg-gray-50 p-6 rounded-lg">
                     <p class="text-gray-700 mb-4">
                         The Sambanova assistant provides complete voice interaction through Twilio integration, 
@@ -1688,7 +1771,7 @@
                                         <span class="text-purple-800 font-bold text-sm">🔌</span>
                                     </div>
                                     <div class="text-sm font-medium text-gray-800">MCP Client</div>
-                                    <div class="text-xs text-gray-600">35+ Tools</div>
+                                    <div class="text-xs text-gray-600">38 Tools</div>
                                 </div>
                                 
                                 <!-- Database -->
@@ -2165,6 +2248,119 @@ def process_audio_webhook():
     return Response(str(response), mimetype='text/xml')</code></pre>
                     </div>
 
+                    <!-- Deepgram WebRTC Integration Example -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h4 class="text-lg font-semibold mb-3 text-gray-800">Deepgram WebRTC Integration (deepgram_service.py)</h4>
+                        <pre class="bg-gray-100 p-4 rounded text-sm overflow-x-auto"><code>from deepgram import DeepgramClient
+import requests
+import os
+import tempfile
+
+class DeepgramService:
+    def __init__(self, api_key: Optional[str] = None):
+        self.api_key = api_key or os.getenv('DEEPGRAM_API_KEY')
+        self.client = DeepgramClient(api_key=self.api_key)
+    
+    def transcribe_audio_buffer(self, audio_buffer: bytes, language: str = "en") -> Optional[str]:
+        """Transcribe audio buffer using Deepgram's HTTP API"""
+        # Detect WebM/EBML header
+        is_webm = len(audio_buffer) >= 4 and audio_buffer[:4] == b"\x1a\x45\xdf\xa3"
+        
+        if is_webm:
+            # Send WebM directly to Deepgram
+            with tempfile.NamedTemporaryFile(suffix='.webm', delete=False) as temp_file:
+                temp_file.write(audio_buffer)
+                temp_file_path = temp_file.name
+            
+            try:
+                result = self._transcribe_file(temp_file_path, language)
+                return result
+            finally:
+                os.unlink(temp_file_path)
+        else:
+            # Create WAV from PCM
+            wav_file = self._create_wav_from_pcm(audio_buffer)
+            try:
+                result = self._transcribe_file(wav_file, language)
+                return result
+            finally:
+                os.unlink(wav_file)
+    
+    def _transcribe_file(self, file_path: str, language: str) -> Optional[str]:
+        """Transcribe file using Deepgram HTTP API"""
+        url = "https://api.deepgram.com/v1/listen"
+        
+        params = {
+            "model": "nova-2",
+            "language": language,
+            "smart_format": "true",
+            "punctuate": "true"
+        }
+        
+        headers = {
+            "Authorization": f"Token {self.api_key}",
+            "Content-Type": "audio/webm" if file_path.endswith('.webm') else "audio/wav"
+        }
+        
+        with open(file_path, 'rb') as audio_file:
+            response = requests.post(url, params=params, headers=headers, 
+                                    data=audio_file.read(), timeout=30)
+        
+        if response.status_code == 200:
+            result = response.json()
+            if result.get("results") and result["results"].get("channels"):
+                channel = result["results"]["channels"][0]
+                if channel.get("alternatives"):
+                    return channel["alternatives"][0].get("transcript", "").strip()
+        return None</code></pre>
+                    </div>
+
+                    <!-- WebRTC Voice Server Example -->
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h4 class="text-lg font-semibold mb-3 text-gray-800">WebRTC Voice Server (webrtc_voice_server.py)</h4>
+                        <pre class="bg-gray-100 p-4 rounded text-sm overflow-x-auto"><code>from flask_socketio import SocketIO, emit
+from deepgram_webrtc_integration import transcribe_audio_with_deepgram_webrtc
+import base64
+
+@socketio.on('stop_recording', namespace='/voice')
+def handle_stop_recording(data=None):
+    """Handle WebRTC recording stop and process audio"""
+    session_id = request.sid
+    
+    if data and 'audio' in data:
+        # Decode complete WebM blob from client
+        audio_buffer = base64.b64decode(data['audio'])
+        
+        # Store in Redis for audio player
+        update_session(session_id, {'audio_buffer': data['audio']})
+        
+        # Transcribe with Deepgram
+        transcribed_text = transcribe_audio_with_deepgram_webrtc(audio_buffer)
+        
+        if transcribed_text:
+            # Process with LangGraph agent
+            agent_response = asyncio.run(process_with_agent(
+                transcribed_text, user_id, user_name
+            ))
+            
+            # Generate TTS response
+            speech_response = openai_client.audio.speech.create(
+                model="tts-1",
+                voice="nova",
+                input=agent_response,
+                response_format="mp3"
+            )
+            
+            audio_base64 = base64.b64encode(speech_response.content).decode('utf-8')
+            
+            # Send to client
+            emit('agent_response', {
+                'success': True,
+                'text': agent_response,
+                'audio': audio_base64
+            }, namespace='/voice', room=session_id)</code></pre>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -2195,7 +2391,10 @@ export TWILIO_AUTH_TOKEN="your_twilio_token"
 export TWILIO_PHONE_NUMBER="+1234567890"
 export GOOGLE_OAUTH2_TOKEN_B64="base64_encoded_token"
 export GOOGLE_CLIENT_ID="your_client_id"
-export GOOGLE_CLIENT_SECRET="your_client_secret"</code></pre>
+export GOOGLE_CLIENT_SECRET="your_client_secret"
+export DEEPGRAM_API_KEY="your_deepgram_api_key"
+export FREEPBX_DOMAIN="34.26.59.14"
+export REDIS_URL="redis://localhost:6379"</code></pre>
                             </div>
                         </div>
                         
@@ -2215,7 +2414,19 @@ python run_migration.py
                         </div>
                         
                         <div>
-                            <h4 class="text-lg font-semibold mb-3 text-gray-800">3. Twilio Configuration</h4>
+                            <h4 class="text-lg font-semibold mb-3 text-gray-800">3. Deepgram Configuration</h4>
+                            <div class="bg-gray-50 p-4 rounded">
+                                <pre class="text-sm"><code># Get Deepgram API key from: https://console.deepgram.com
+export DEEPGRAM_API_KEY="your_deepgram_api_key"
+
+# Deepgram supports WebRTC audio formats:
+# - WebM (preferred for browser recording)
+# - WAV (fallback for PCM conversion)</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="text-lg font-semibold mb-3 text-gray-800">4. Twilio Configuration</h4>
                             <div class="bg-gray-50 p-4 rounded">
                                 <pre class="text-sm"><code># Configure Twilio phone number webhook:
 Webhook URL: https://hjlees.com/sambanova_todo/twilio/call
@@ -2228,7 +2439,7 @@ curl -X POST https://hjlees.com/sambanova_todo/twilio/call \
                         </div>
                         
                         <div>
-                            <h4 class="text-lg font-semibold mb-3 text-gray-800">4. Start Production Service</h4>
+                            <h4 class="text-lg font-semibold mb-3 text-gray-800">5. Start Production Service</h4>
                             <div class="bg-gray-50 p-4 rounded">
                                 <pre class="text-sm"><code># Local development:
 python app.py
@@ -2262,9 +2473,9 @@ curl https://hjlees.com/team-dashboard</code></pre>
                         </div>
                     </div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="bg-gray-50 p-4 rounded">
-                            <h5 class="font-semibold text-gray-800 mb-2">Voice Commands (Personal)</h5>
+                            <h5 class="font-semibold text-gray-800 mb-2">Twilio Voice Commands</h5>
                             <ul class="text-sm text-gray-600 space-y-1">
                                 <li>• "Create a high priority todo to review the quarterly report"</li>
                                 <li>• "Add a reminder to call mom tomorrow at 2 PM"</li>
@@ -2274,7 +2485,20 @@ curl https://hjlees.com/team-dashboard</code></pre>
                             </ul>
                         </div>
                         <div class="bg-gray-50 p-4 rounded">
-                            <h5 class="font-semibold text-gray-800 mb-2">Voice Commands (Team)</h5>
+                            <h5 class="font-semibold text-gray-800 mb-2">WebRTC Voice Commands</h5>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• "Create a todo task to buy groceries"</li>
+                                <li>• "Add a reminder for team meeting"</li>
+                                <li>• "Transfer me to an agent"</li>
+                                <li>• "Create a team called Engineering"</li>
+                                <li>• "Show my todos"</li>
+                            </ul>
+                            <p class="text-xs text-gray-500 mt-2">
+                                Access: <code>/sambanova_todo/webrtc/voice-assistant</code>
+                            </p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded">
+                            <h5 class="font-semibold text-gray-800 mb-2">Team Commands</h5>
                             <ul class="text-sm text-gray-600 space-y-1">
                                 <li>• "Create a high priority todo for the development team"</li>
                                 <li>• "What teams are available?"</li>
@@ -2363,9 +2587,18 @@ curl https://hjlees.com/team-dashboard</code></pre>
                         <h5 class="font-medium text-green-700 mb-2">AI Integration</h5>
                         <ul class="text-sm text-green-600 space-y-1">
                             <li>✅ Voice-enabled AI agent</li>
-                            <li>✅ 30+ MCP tools</li>
+                            <li>✅ 38 MCP tools</li>
                             <li>✅ Google Calendar sync</li>
                             <li>✅ Natural language processing</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h5 class="font-medium text-green-700 mb-2">Voice Processing</h5>
+                        <ul class="text-sm text-green-600 space-y-1">
+                            <li>✅ Twilio voice integration</li>
+                            <li>✅ WebRTC browser voice</li>
+                            <li>✅ Deepgram STT (95%+ accuracy)</li>
+                            <li>✅ Redis audio buffer</li>
                         </ul>
                     </div>
                 </div>
@@ -2508,7 +2741,7 @@ Response: {
             
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div class="bg-blue-50 p-6 rounded-lg text-center">
-                    <div class="text-3xl font-bold text-blue-600 mb-2">35+</div>
+                    <div class="text-3xl font-bold text-blue-600 mb-2">38</div>
                     <div class="text-sm text-blue-800 font-medium">MCP Tools</div>
                     <div class="text-xs text-gray-600 mt-1">Voice-enabled operations</div>
                 </div>

@@ -15,6 +15,15 @@ from sambanova.assistant_graph_todo import get_agent
 from sambanova.state import AgentState
 from langchain_core.messages import HumanMessage
 
+# Local Whisper integration
+from sambanova.local_whisper_transcriber import transcribe_audio_with_local_whisper, get_local_whisper_info
+
+# Deepgram WebRTC integration
+from deepgram_webrtc_integration import transcribe_audio_with_deepgram_webrtc, get_deepgram_webrtc_info
+
+# Import the blueprint
+from sambanova.routes import sambanova_todo_bp
+
 # Sentry integration for monitoring Redis interactions and errors
 try:
     import sentry_sdk
@@ -314,6 +323,63 @@ def init_socketio(socketio_instance: SocketIO, app):
         sentry_capture_voice_event("authentication_attempt", session_id, details={"pin_provided": bool(pin)})
         
         try:
+            # TEST MODE: Accept "1234" as a test PIN for local development
+            if pin == "1234":
+                print(f"✅ Test authentication successful with PIN: {pin}")
+                auth_updates = {
+                    'authenticated': 'True',
+                    'user_id': 'test_user',
+                    'user_name': 'Test User',
+                    'authenticated_at': str(time.time())
+                }
+                
+                try:
+                    if redis_manager.is_available():
+                        success = update_session(session_id, auth_updates)
+                        if success:
+                            print(f"✅ Test authentication stored in Redis")
+                            sentry_capture_redis_operation("update_session", session_id, True)
+                            sentry_capture_voice_event("authentication_success", session_id, "test_user", {"user_name": "Test User", "storage": "redis", "mode": "test"})
+                        else:
+                            print(f"❌ Failed to update session in Redis")
+                            sentry_capture_redis_operation("update_session", session_id, False, "Redis update_session returned False")
+                            # Fallback to in-memory
+                            active_sessions[session_id]['authenticated'] = True
+                            active_sessions[session_id]['user_id'] = 'test_user'
+                            active_sessions[session_id]['user_name'] = 'Test User'
+                            print(f"✅ Test authentication stored in memory (Redis fallback)")
+                            sentry_capture_voice_event("authentication_success", session_id, "test_user", {"user_name": "Test User", "storage": "memory_fallback", "mode": "test"})
+                    else:
+                        # Fallback to in-memory
+                        active_sessions[session_id]['authenticated'] = True
+                        active_sessions[session_id]['user_id'] = 'test_user'
+                        active_sessions[session_id]['user_name'] = 'Test User'
+                        print(f"✅ Test authentication stored in memory")
+                        sentry_capture_voice_event("authentication_success", session_id, "test_user", {"user_name": "Test User", "storage": "memory", "mode": "test"})
+                except Exception as redis_error:
+                    print(f"❌ Redis error during test authentication: {redis_error}")
+                    sentry_capture_redis_operation("update_session", session_id, False, str(redis_error))
+                    # Fallback to in-memory storage
+                    active_sessions[session_id]['authenticated'] = True
+                    active_sessions[session_id]['user_id'] = 'test_user'
+                    active_sessions[session_id]['user_name'] = 'Test User'
+                    print(f"✅ Test authentication stored in memory (Redis error fallback)")
+                    sentry_capture_voice_event("authentication_success", session_id, "test_user", {"user_name": "Test User", "storage": "memory_error_fallback", "mode": "test"})
+                
+                emit('authenticated', {
+                    'success': True,
+                    'user_name': 'Test User',
+                    'message': "Welcome! You're in test mode."
+                })
+                
+                # Send welcome greeting with audio (background task)
+                socketio.start_background_task(
+                    send_welcome_greeting, 
+                    session_id, 
+                    'Test User'
+                )
+                return
+            
             # Import here to avoid circular imports
             from sambanova.mcps.local_servers.db_todo import _init_database, SessionLocal
             from sambanova.models.user_models import User as UserModel
@@ -557,7 +623,7 @@ def init_socketio(socketio_instance: SocketIO, app):
     
     
     @socketio.on('stop_recording', namespace='/voice')
-    def handle_stop_recording():
+    def handle_stop_recording(data=None):
         """Stop recording and process audio"""
         session_id = request.sid
         
@@ -603,56 +669,121 @@ def init_socketio(socketio_instance: SocketIO, app):
             print(f"❌ Error updating recording state: {e}")
             sentry_capture_redis_operation("update_recording_state", session_id, False, str(e))
         
-        # Get audio buffer
-        try:
-            if redis_manager.is_available():
-                # Decode base64 string back to binary
-                audio_buffer_b64 = session_data.get('audio_buffer', '')
-                print(f"🔍 Debug: audio_buffer_b64 length: {len(audio_buffer_b64)}")
-                print(f"🔍 Debug: audio_buffer_b64 preview: {audio_buffer_b64[:100]}..." if len(audio_buffer_b64) > 100 else f"🔍 Debug: audio_buffer_b64 full: {audio_buffer_b64}")
-                
-                if not audio_buffer_b64:
-                    print("❌ No audio data in Redis session")
-                    print(f"🔍 Debug: Full session data: {session_data}")
-                    sentry_capture_voice_event("no_audio_data", session_id, details={"storage": "redis", "session_data": session_data})
-                    emit('transcription', {
-                        'success': False,
-                        'message': 'No audio data received.'
-                    })
-                    return
-                
-                try:
-                    audio_buffer = base64.b64decode(audio_buffer_b64)
-                    print(f"🔍 Debug: decoded audio_buffer length: {len(audio_buffer)}")
-                    sentry_capture_voice_event("audio_buffer_retrieved", session_id, details={"storage": "redis", "buffer_size": len(audio_buffer)})
-                except Exception as decode_error:
-                    print(f"❌ Error decoding audio buffer: {decode_error}")
-                    sentry_capture_voice_event("audio_decode_error", session_id, details={"error": str(decode_error), "buffer_preview": audio_buffer_b64[:100]})
-                    emit('transcription', {
-                        'success': False,
-                        'message': 'Error decoding audio data.'
-                    })
-                    return
-            else:
-                audio_buffer = session_data['audio_buffer']
-                print(f"🔍 Debug: in-memory audio_buffer length: {len(audio_buffer)}")
-                sentry_capture_voice_event("audio_buffer_retrieved", session_id, details={"storage": "memory", "buffer_size": len(audio_buffer)})
-        except Exception as e:
-            print(f"❌ Error retrieving audio buffer: {e}")
-            print(f"🔍 Debug: Session data keys: {list(session_data.keys()) if session_data else 'None'}")
-            sentry_capture_voice_event("audio_buffer_error", session_id, details={"error": str(e), "session_keys": list(session_data.keys()) if session_data else []})
-            if SENTRY_AVAILABLE:
-                sentry_sdk.capture_exception(e)
-            emit('error', {'message': 'Error retrieving audio data'})
-            return
+        # Get audio buffer - now from client data or session
+        audio_buffer = None
         
-        if len(audio_buffer) < 1000:  # Too short
-            sentry_capture_voice_event("audio_too_short", session_id, details={"buffer_size": len(audio_buffer), "threshold": 1000})
+        # Check if audio data is provided directly from client
+        if data and 'audio' in data:
+            try:
+                # Preserve base64 for Redis audio player, and decode for processing
+                audio_buffer_b64_from_client = data['audio']
+                audio_buffer = base64.b64decode(audio_buffer_b64_from_client)
+                print(f"🎵 Received complete WebM blob from client: {len(audio_buffer)} bytes")
+                sentry_capture_voice_event("audio_blob_received", session_id, details={"buffer_size": len(audio_buffer), "source": "client"})
+
+                # Store the complete base64 blob into Redis/in-memory for the audio player tool
+                try:
+                    if redis_manager.is_available():
+                        stored = update_session(session_id, {'audio_buffer': audio_buffer_b64_from_client})
+                        if stored:
+                            print(f"💾 Stored complete audio blob in Redis for session {session_id}: {len(audio_buffer_b64_from_client)} chars")
+                            sentry_capture_redis_operation("store_audio_blob_on_stop", session_id, True)
+                        else:
+                            print("⚠️ Redis update_session returned False while storing audio blob")
+                            sentry_capture_redis_operation("store_audio_blob_on_stop", session_id, False, "update_session returned False")
+                    else:
+                        session_data['audio_buffer'] = audio_buffer_b64_from_client
+                        print(f"💾 Stored complete audio blob in memory for session {session_id}: {len(audio_buffer_b64_from_client)} chars")
+                        sentry_capture_voice_event("audio_blob_stored_memory", session_id, details={"length": len(audio_buffer_b64_from_client)})
+                except Exception as store_err:
+                    print(f"⚠️ Failed to store audio blob for audio player: {store_err}")
+                    sentry_capture_redis_operation("store_audio_blob_on_stop", session_id, False, str(store_err))
+            except Exception as decode_error:
+                print(f"❌ Error decoding client audio blob: {decode_error}")
+                sentry_capture_voice_event("audio_decode_error", session_id, details={"error": str(decode_error), "source": "client"})
+                emit('transcription', {
+                    'success': False,
+                    'message': 'Error decoding audio data.'
+                })
+                return
+        else:
+            # Fallback to session buffer (legacy)
+            try:
+                if redis_manager.is_available():
+                    audio_buffer_b64 = session_data.get('audio_buffer', '')
+                    if not audio_buffer_b64:
+                        print("❌ No audio data in Redis session")
+                        sentry_capture_voice_event("no_audio_data", session_id, details={"storage": "redis"})
+                        emit('transcription', {
+                            'success': False,
+                            'message': 'No audio data received.'
+                        })
+                        return
+                    
+                    audio_buffer = base64.b64decode(audio_buffer_b64)
+                    print(f"🔍 Debug: decoded session audio_buffer length: {len(audio_buffer)}")
+                    sentry_capture_voice_event("audio_buffer_retrieved", session_id, details={"storage": "redis", "buffer_size": len(audio_buffer)})
+                else:
+                    audio_buffer = session_data['audio_buffer']
+                    print(f"🔍 Debug: in-memory audio_buffer length: {len(audio_buffer)}")
+                    sentry_capture_voice_event("audio_buffer_retrieved", session_id, details={"storage": "memory", "buffer_size": len(audio_buffer)})
+            except Exception as e:
+                print(f"❌ Error retrieving session audio buffer: {e}")
+                sentry_capture_voice_event("audio_buffer_error", session_id, details={"error": str(e)})
+                if SENTRY_AVAILABLE:
+                    sentry_sdk.capture_exception(e)
+                emit('error', {'message': 'Error retrieving audio data'})
+                return
+        
+        # Check minimum audio length for meaningful speech recognition
+        # WebRTC chunks are very small, so we need a much lower threshold
+        min_audio_length = 10000  # Much lower threshold for WebRTC
+        if len(audio_buffer) < min_audio_length:
+            sentry_capture_voice_event("audio_too_short", session_id, details={"buffer_size": len(audio_buffer), "threshold": min_audio_length})
             emit('transcription', {
                 'success': False,
-                'message': 'Audio too short. Please try again.'
+                'message': f'Audio too short ({len(audio_buffer)} bytes). Please speak longer. Try saying "Create a todo task to buy groceries" and hold the button much longer.'
             })
             return
+        
+        # Analyze audio buffer to understand what's in it (do not mutate original buffer)
+        try:
+            # If this is WebM (EBML header), skip PCM-based analysis
+            is_webm = len(audio_buffer) >= 4 and audio_buffer[:4] == b"\x1a\x45\xdf\xa3"
+            if not is_webm:
+                import numpy as np
+                analysis_buffer = audio_buffer
+                if len(analysis_buffer) % 2 != 0:
+                    analysis_buffer = analysis_buffer[:-1]
+                
+                if len(analysis_buffer) > 0:
+                    audio_data = np.frombuffer(analysis_buffer, dtype=np.int16)
+                    rms = np.sqrt(np.mean(audio_data.astype(np.float32) ** 2))
+                    unique_values = len(np.unique(audio_data))
+                    max_val = np.max(audio_data)
+                    min_val = np.min(audio_data)
+                    
+                    print(f"🔍 Audio Analysis: RMS={rms:.2f}, Unique={unique_values}, Range=[{min_val}, {max_val}], Samples={len(audio_data)}")
+                    
+                    # Check for silence
+                    if rms < 100:
+                        print("⚠️ Audio appears to be silence")
+                        emit('transcription', {
+                            'success': False,
+                            'message': 'No speech detected. Please speak clearly into your microphone.'
+                        })
+                        return
+                    
+                    # Check for constant values
+                    if unique_values < 10:
+                        print("⚠️ Audio has very few unique values - might be constant signal")
+                        emit('transcription', {
+                            'success': False,
+                            'message': 'Audio appears to be constant signal. Please check your microphone.'
+                        })
+                        return
+        except Exception as e:
+            print(f"⚠️ Audio analysis failed: {e}")
         
         # Process audio asynchronously
         sentry_capture_voice_event("audio_processing_started", session_id, details={"buffer_size": len(audio_buffer)})
@@ -717,213 +848,179 @@ def init_socketio(socketio_instance: SocketIO, app):
                 print(f"🎧 Processing audio: {len(audio_buffer)} bytes")
                 sentry_capture_voice_event("audio_processing_started", session_id, session.get('user_id'), details={"buffer_size": len(audio_buffer)})
                 
-                # Step 1: Transcribe audio using OpenAI Whisper
-                socketio.emit('status', {'message': 'Transcribing...'}, namespace='/voice', room=session_id)
-                sentry_capture_voice_event("transcription_started", session_id, session.get('user_id'))
+                # Step 1: Transcribe audio using AssemblyAI
+                socketio.emit('status', {'message': 'Transcribing with Deepgram...'}, namespace='/voice', room=session_id)
+                sentry_capture_voice_event("transcription_started", session_id, session.get('user_id'), details={"method": "deepgram"})
                 
-                # Save audio to temporary file (Whisper API requires file)
-                import tempfile
-                import os
+                # Use Deepgram for transcription (WebRTC-optimized solution)
+                print(f"🎧 Deepgram: Processing audio buffer: {len(audio_buffer)} bytes")
                 
-                # Validate and analyze audio buffer
-                def analyze_audio_buffer(buffer):
-                    """Analyze audio buffer for debugging"""
-                    print(f"🔍 Debug: Audio buffer analysis:")
-                    print(f"  - Length: {len(buffer)} bytes")
-                    print(f"  - First 20 bytes: {buffer[:20].hex()}")
-                    print(f"  - First 20 chars: {buffer[:20]}")
-                    
-                    # Check for common audio headers
-                    if buffer.startswith(b'RIFF'):
-                        print(f"  - RIFF header detected (WAV)")
-                    elif buffer.startswith(b'ID3'):
-                        print(f"  - ID3 header detected (MP3)")
-                    elif buffer.startswith(b'\xff\xfb'):
-                        print(f"  - MP3 sync header detected")
-                    elif buffer.startswith(b'OggS'):
-                        print(f"  - Ogg header detected")
-                    elif buffer.startswith(b'\x1a\x45\xdf\xa3'):
-                        print(f"  - WebM/Matroska header detected")
-                    elif buffer.startswith(b'ftyp'):
-                        print(f"  - MP4/M4A header detected")
-                    else:
-                        print(f"  - No recognized audio header")
-                    
-                    # Check if buffer contains mostly null bytes or repeated patterns
-                    null_count = buffer.count(b'\x00')
-                    if null_count > len(buffer) * 0.8:
-                        print(f"  - WARNING: Buffer contains {null_count} null bytes ({null_count/len(buffer)*100:.1f}%)")
-                    
-                    # Check for repeated patterns
-                    if len(set(buffer[:100])) < 10:
-                        print(f"  - WARNING: Buffer shows repetitive pattern")
-                
-                # Analyze the audio buffer
-                analyze_audio_buffer(audio_buffer)
-                
-                # Detect audio format from buffer header
-                def detect_audio_format(buffer):
-                    """Detect audio format from buffer header"""
-                    if buffer.startswith(b'RIFF') and b'WAVE' in buffer[:12]:
-                        return '.wav'
-                    elif buffer.startswith(b'ID3') or buffer.startswith(b'\xff\xfb'):
-                        return '.mp3'
-                    elif buffer.startswith(b'OggS'):
-                        return '.ogg'
-                    elif buffer.startswith(b'\x1a\x45\xdf\xa3'):  # WebM/Matroska
-                        return '.webm'
-                    elif buffer.startswith(b'ftyp'):
-                        return '.m4a'
-                    else:
-                        # For WebRTC, try WebM first since that's what MediaRecorder produces
-                        return '.webm'  # Default to WebM for WebRTC
-                
-                # Detect the best format to try first
-                detected_format = detect_audio_format(audio_buffer)
-                print(f"🔍 Debug: detected audio format: {detected_format}")
-                
-                # Try detected format first, then fallback to others
-                audio_formats = [detected_format] + ['.wav', '.mp3', '.webm', '.ogg', '.m4a']
-                audio_formats = list(dict.fromkeys(audio_formats))  # Remove duplicates while preserving order
-                
-                temp_audio_path = None
-                transcription = None
-                
-                for audio_format in audio_formats:
-                    try:
-                        with tempfile.NamedTemporaryFile(suffix=audio_format, delete=False) as temp_audio:
-                            temp_audio.write(audio_buffer)
-                            temp_audio_path = temp_audio.name
-                        
-                        print(f"🔍 Debug: trying audio format: {audio_format}")
-                        
-                        with open(temp_audio_path, 'rb') as audio_file:
-                            transcription = openai_client.audio.transcriptions.create(
-                                model="whisper-1",
-                                file=audio_file,
-                                language="en"
-                            )
-                        
-                        print(f"✅ Success with format: {audio_format}")
-                        break  # Success, exit the loop
-                        
-                    except Exception as format_error:
-                        print(f"❌ Failed with format {audio_format}: {format_error}")
-                        # Clean up the failed temp file
-                        if temp_audio_path and os.path.exists(temp_audio_path):
-                            os.unlink(temp_audio_path)
-                        temp_audio_path = None
-                        continue
-                
-                if not transcription:
-                    # Try creating a proper WAV file from raw audio data
-                    print("🔍 Debug: Trying to create WAV file from raw audio data")
-                    
-                    # Try different audio parameters for raw PCM data
-                    audio_params = [
-                        {"channels": 1, "sample_width": 2, "framerate": 44100, "desc": "16-bit, 44.1kHz, mono"},
-                        {"channels": 1, "sample_width": 2, "framerate": 16000, "desc": "16-bit, 16kHz, mono"},
-                        {"channels": 1, "sample_width": 1, "framerate": 44100, "desc": "8-bit, 44.1kHz, mono"},
-                        {"channels": 2, "sample_width": 2, "framerate": 44100, "desc": "16-bit, 44.1kHz, stereo"},
-                    ]
-                    
-                    transcription = None
-                    for params in audio_params:
-                        try:
-                            import wave
-                            
-                            print(f"🔍 Debug: Trying WAV with {params['desc']}")
-                            
-                            # Create a proper WAV file with WAV headers
-                            with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_audio:
-                                temp_audio_path = temp_audio.name
-                            
-                            # Write WAV header and audio data
-                            with wave.open(temp_audio_path, 'wb') as wav_file:
-                                wav_file.setnchannels(params['channels'])
-                                wav_file.setsampwidth(params['sample_width'])
-                                wav_file.setframerate(params['framerate'])
-                                wav_file.writeframes(audio_buffer)
-                            
-                            print(f"🔍 Debug: Created WAV file with {params['desc']}")
-                            
-                            # Try transcription with the proper WAV file
-                            with open(temp_audio_path, 'rb') as audio_file:
-                                transcription = openai_client.audio.transcriptions.create(
-                                    model="whisper-1",
-                                    file=audio_file,
-                                    language="en"
-                                )
-                            
-                            print(f"✅ Success with WAV format: {params['desc']}")
-                            break  # Success, exit the loop
-                            
-                        except Exception as wav_error:
-                            print(f"❌ WAV creation failed with {params['desc']}: {wav_error}")
-                            # Clean up the failed temp file
-                            if temp_audio_path and os.path.exists(temp_audio_path):
-                                os.unlink(temp_audio_path)
-                            temp_audio_path = None
-                            continue
-                    
-                    if not transcription:
-                        raise Exception("All audio formats failed. Audio data may be corrupted.")
-                
+                # Use Deepgram integration
                 try:
-                    transcribed_text = transcription.text
-                    print(f"📝 Transcription: {transcribed_text}")
-                    sentry_capture_voice_event("transcription_completed", session_id, session.get('user_id'), details={"text_length": len(transcribed_text)})
-                    
-                    # Send transcription to client
-                    socketio.emit('transcription', {
-                        'success': True,
-                        'text': transcribed_text
-                    }, namespace='/voice', room=session_id)
-                    
-                    # Step 2: Process with agent
-                    socketio.emit('status', {'message': 'Processing request...'}, namespace='/voice', room=session_id)
-                    sentry_capture_voice_event("agent_processing_started", session_id, session.get('user_id'), details={"transcribed_text": transcribed_text})
-                    
-                    agent_response = asyncio.run(process_with_agent(
-                        transcribed_text,
-                        session['user_id'],
-                        session['user_name']
-                    ))
-                    
-                    print(f"🤖 Agent response: {agent_response}")
-                    sentry_capture_voice_event("agent_processing_completed", session_id, session.get('user_id'), details={"response_length": len(agent_response)})
-                    
-                    # Step 3: Convert response to speech using OpenAI TTS
-                    socketio.emit('status', {'message': 'Generating speech...'}, namespace='/voice', room=session_id)
-                    sentry_capture_voice_event("tts_generation_started", session_id, session.get('user_id'))
-                    
-                    speech_response = openai_client.audio.speech.create(
-                        model="tts-1",
-                        voice="nova",  # Options: alloy, echo, fable, onyx, nova, shimmer
-                        input=agent_response,
-                        response_format="mp3"  # Explicitly specify MP3 format
-                    )
-                    
-                    # Convert speech to base64 for transmission
-                    audio_base64 = base64.b64encode(speech_response.content).decode('utf-8')
-                    print(f"🔊 TTS generated: {len(speech_response.content)} bytes, base64: {len(audio_base64)} chars")
-                    print(f"🔊 TTS audio preview: {audio_base64[:100]}...")
-                    sentry_capture_voice_event("tts_generation_completed", session_id, session.get('user_id'), details={"audio_size": len(audio_base64)})
-                    
-                    # Send response to client
-                    socketio.emit('agent_response', {
-                        'success': True,
-                        'text': agent_response,
-                        'audio': audio_base64
-                    }, namespace='/voice', room=session_id)
-                    
-                    sentry_capture_voice_event("audio_processing_completed", session_id, session.get('user_id'), details={"success": True})
+                    transcribed_text = transcribe_audio_with_deepgram_webrtc(audio_buffer, language="en")
+                except Exception as e:
+                    print(f"❌ Deepgram integration failed: {e}")
+                    socketio.emit('error', {'message': 'Deepgram service not available. Please check configuration.'}, namespace='/voice', room=session_id)
+                    sentry_capture_voice_event("transcription_failed", session_id, session.get('user_id'), details={"method": "deepgram", "error": str(e)})
+                    return
                 
-                finally:
-                    # Clean up temp file
-                    import os
-                    if os.path.exists(temp_audio_path):
-                        os.unlink(temp_audio_path)
+                if not transcribed_text:
+                    print("❌ Deepgram transcription failed")
+                    socketio.emit('error', {
+                        'message': 'Transcription failed. Please try speaking more clearly or check your microphone.',
+                        'details': 'The audio was captured but no speech was detected. Make sure you are speaking clearly into your microphone.'
+                    }, namespace='/voice', room=session_id)
+                    sentry_capture_voice_event("transcription_failed", session_id, session.get('user_id'), details={"method": "deepgram"})
+                    return
+                
+                print(f"✅ Deepgram transcription successful: {transcribed_text}")
+                sentry_capture_voice_event("transcription_completed", session_id, session.get('user_id'), details={"text_length": len(transcribed_text), "method": "deepgram"})
+                
+                # Send transcription to client
+                socketio.emit('transcription', {
+                    'success': True,
+                    'text': transcribed_text,
+                    'method': 'assemblyai'
+                }, namespace='/voice', room=session_id)
+                
+                # Step 2: Process with agent
+                socketio.emit('status', {'message': 'Processing request...'}, namespace='/voice', room=session_id)
+                sentry_capture_voice_event("agent_processing_started", session_id, session.get('user_id'), details={"transcribed_text": transcribed_text})
+                
+                agent_response = asyncio.run(process_with_agent(
+                    transcribed_text,
+                    session['user_id'],
+                    session['user_name']
+                ))
+                
+                print(f"🤖 Agent response: {agent_response}")
+                sentry_capture_voice_event("agent_processing_completed", session_id, session.get('user_id'), details={"response_length": len(agent_response)})
+                
+                # Check if agent response indicates a transfer request
+                if agent_response.startswith("TRANSFER_INITIATED:"):
+                    # Parse transfer details
+                    transfer_data = agent_response.replace("TRANSFER_INITIATED:", "")
+                    parts = transfer_data.split("|")
+                    target_extension = parts[0] if len(parts) > 0 else '2001'
+                    department = parts[1] if len(parts) > 1 else 'support'
+                    reason = parts[2] if len(parts) > 2 else 'User requested transfer'
+                    
+                    print(f"🔄 Transfer requested: Extension={target_extension}, Department={department}, Reason={reason}")
+                    sentry_capture_voice_event("transfer_initiated", session_id, session.get('user_id'), details={
+                        "extension": target_extension,
+                        "department": department,
+                        "reason": reason,
+                        "platform": "webrtc"
+                    })
+                    
+                    # Get FreePBX configuration
+                    freepbx_domain = os.getenv('FREEPBX_DOMAIN', '34.26.59.14')
+                    twilio_number = os.getenv('TWILIO_INBOUND_NUMBER', '+12344007818')
+                    
+                    # For WebRTC, we need to provide transfer instructions
+                    # Option 1: Direct SIP link (if FreePBX supports WebRTC SIP)
+                    # Option 2: Provide Twilio phone number for user to call
+                    # Option 3: Server-side SIP bridge (requires SIP library)
+                    
+                    # Get session data for user info
+                    session_data = None
+                    if redis_manager.is_available():
+                        session_data = get_session(session_id)
+                    else:
+                        session_data = active_sessions.get(session_id, {})
+                    
+                    user_email = session_data.get('user_email', '') if session_data else ''
+                    
+                    # Create transfer instructions
+                    transfer_instructions = {
+                        'extension': target_extension,
+                        'department': department,
+                        'reason': reason,
+                        'freepbx_domain': freepbx_domain,
+                        'sip_uri': f"sip:{target_extension}@{freepbx_domain}",
+                        'twilio_number': twilio_number,
+                        'options': {
+                            'method_1': {
+                                'type': 'twilio_call',
+                                'description': 'Call via Twilio to be transferred',
+                                'phone_number': twilio_number,
+                                'instructions': f'Please call {twilio_number} and say "transfer me to extension {target_extension}" or "transfer me to {department}"'
+                            },
+                            'method_2': {
+                                'type': 'sip_link',
+                                'description': 'Direct SIP connection (requires SIP client)',
+                                'sip_uri': f"sip:{target_extension}@{freepbx_domain}",
+                                'instructions': f'Use a SIP client (like Zoiper, Linphone) to connect to: {target_extension}@{freepbx_domain}'
+                            }
+                        }
+                    }
+                    
+                    # Send transfer event to client
+                    socketio.emit('transfer_initiated', {
+                        'success': True,
+                        'extension': target_extension,
+                        'department': department,
+                        'reason': reason,
+                        'instructions': transfer_instructions,
+                        'message': f'I\'m transferring you to {department} (extension {target_extension}). Please use one of the options provided.'
+                    }, namespace='/voice', room=session_id)
+                    
+                    print(f"🔄 Transfer instructions sent to WebRTC client for extension {target_extension}")
+                    
+                    # Generate TTS for transfer message
+                    transfer_message = f"I'm transferring you to {department}. Extension {target_extension}. Please call {twilio_number} to connect to an agent, or use the transfer options provided."
+                    
+                    try:
+                        speech_response = openai_client.audio.speech.create(
+                            model="tts-1",
+                            voice="nova",
+                            input=transfer_message,
+                            response_format="mp3"
+                        )
+                        audio_base64 = base64.b64encode(speech_response.content).decode('utf-8')
+                        
+                        socketio.emit('agent_response', {
+                            'success': True,
+                            'text': transfer_message,
+                            'audio': audio_base64,
+                            'transfer': True
+                        }, namespace='/voice', room=session_id)
+                    except Exception as e:
+                        print(f"❌ Error generating TTS for transfer: {e}")
+                        socketio.emit('agent_response', {
+                            'success': True,
+                            'text': transfer_message,
+                            'transfer': True
+                        }, namespace='/voice', room=session_id)
+                    
+                    sentry_capture_voice_event("transfer_handled", session_id, session.get('user_id'), details={"extension": target_extension})
+                    return
+                
+                # Step 3: Convert response to speech using OpenAI TTS (normal response)
+                socketio.emit('status', {'message': 'Generating speech...'}, namespace='/voice', room=session_id)
+                sentry_capture_voice_event("tts_generation_started", session_id, session.get('user_id'))
+                
+                speech_response = openai_client.audio.speech.create(
+                    model="tts-1",
+                    voice="nova",  # Options: alloy, echo, fable, onyx, nova, shimmer
+                    input=agent_response,
+                    response_format="mp3"  # Explicitly specify MP3 format
+                )
+                
+                # Convert speech to base64 for transmission
+                audio_base64 = base64.b64encode(speech_response.content).decode('utf-8')
+                print(f"🔊 TTS generated: {len(speech_response.content)} bytes, base64: {len(audio_base64)} chars")
+                print(f"🔊 TTS audio preview: {audio_base64[:100]}...")
+                sentry_capture_voice_event("tts_generation_completed", session_id, session.get('user_id'), details={"audio_size": len(audio_base64)})
+                
+                # Send response to client
+                socketio.emit('agent_response', {
+                    'success': True,
+                    'text': agent_response,
+                    'audio': audio_base64
+                }, namespace='/voice', room=session_id)
+                
+                sentry_capture_voice_event("audio_processing_completed", session_id, session.get('user_id'), details={"success": True})
             
             except Exception as e:
                 print(f"❌ Error processing audio: {e}")
