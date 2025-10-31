@@ -80,7 +80,7 @@ def create_app():
     # Initialize Socket.IO for WebRTC voice
     # Use 'eventlet' for production (Gunicorn compatibility)
     # Use 'threading' for local development
-    socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+    socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
     # --- Configure Login Manager ---
     # This must be done after initializing the extensions and before registering blueprints that use it.

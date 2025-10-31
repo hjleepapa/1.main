@@ -459,16 +459,30 @@ def _init_database():
     try:
         pass
         # print(...) # Removed to avoid MCP protocol issues
-        # Create engine with very aggressive timeout settings
-        engine = create_engine(
-            url=db_uri,
-            pool_pre_ping=False,  # Skip pre-ping to avoid hanging
-            pool_size=1,  # Minimal pool for MCP server
-            max_overflow=0,  # No overflow
-            pool_timeout=1,  # 1 second timeout
-            pool_recycle=1800,  # Recycle connections every 30 mins
-            connect_args={"connect_timeout": 1}  # 1 second connection timeout
-        )
+        
+        # Configure engine based on database type
+        if db_uri.startswith('sqlite'):
+            # SQLite configuration (no connect_timeout)
+            engine = create_engine(
+                url=db_uri,
+                pool_pre_ping=False,
+                pool_size=1,
+                max_overflow=0,
+                pool_timeout=1,
+                pool_recycle=1800
+            )
+        else:
+            # PostgreSQL configuration (with connect_timeout)
+            engine = create_engine(
+                url=db_uri,
+                pool_pre_ping=False,  # Skip pre-ping to avoid hanging
+                pool_size=1,  # Minimal pool for MCP server
+                max_overflow=0,  # No overflow
+                pool_timeout=1,  # 1 second timeout
+                pool_recycle=1800,  # Recycle connections every 30 mins
+                connect_args={"connect_timeout": 1}  # 1 second connection timeout
+            )
+        
         SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
         # Database connection configured successfully (no test)
     except Exception as e:
