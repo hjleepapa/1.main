@@ -910,8 +910,8 @@ def init_socketio(socketio_instance: SocketIO, app):
                         "platform": "webrtc"
                     })
                     
-                    # Get FreePBX configuration
-                    freepbx_domain = os.getenv('FREEPBX_DOMAIN', '34.26.59.14')
+                    # Get FusionPBX configuration
+                    freepbx_domain = os.getenv('FREEPBX_DOMAIN', '136.113.215.142')
                     twilio_number = os.getenv('TWILIO_INBOUND_NUMBER', '+12344007818')
                     
                     # For WebRTC, we need to provide transfer instructions

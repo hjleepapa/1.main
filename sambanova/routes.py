@@ -250,13 +250,13 @@ def transfer_to_agent():
         response.say("Transferring you to an agent. Please wait.", voice='Polly.Amy')
         
         # Get configuration
-        freepbx_domain = os.getenv('FREEPBX_DOMAIN', '34.26.59.14')
+        freepbx_domain = os.getenv('FREEPBX_DOMAIN', '136.113.215.142')
         transfer_timeout = int(os.getenv('TRANSFER_TIMEOUT', '30'))
         sip_username = os.getenv('FREEPBX_SIP_USERNAME', '')
         sip_password = os.getenv('FREEPBX_SIP_PASSWORD', '')
         
-        # Build SIP URI for FreePBX extension
-        # Flow: Voice AI (current call) → Transfer → FreePBX extension
+        # Build SIP URI for FusionPBX extension
+        # Flow: Voice AI (current call) → Transfer → FusionPBX extension
         sip_uri = f"sip:{extension}@{freepbx_domain}"
         logger.info(f"Transferring to SIP URI: {sip_uri}")
         

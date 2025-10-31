@@ -10,8 +10,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# FreePBX configuration
-FREEPBX_DOMAIN = os.getenv('FREEPBX_DOMAIN', '34.26.59.14')
+# FusionPBX configuration
+FREEPBX_DOMAIN = os.getenv('FREEPBX_DOMAIN', '136.113.215.142')
 
 # Default extension mapping
 EXTENSION_MAP = {
@@ -28,7 +28,7 @@ def transfer_to_agent(
     reason: Optional[str] = None
 ) -> str:
     """
-    Transfer the current call to a FreePBX call center agent or queue.
+    Transfer the current call to a FusionPBX call center agent or queue.
     
     Use this tool when:
     - User explicitly asks to speak with a human agent
@@ -38,7 +38,7 @@ def transfer_to_agent(
     
     Args:
         department: Department to transfer to (support, sales, general, operator). Default: support
-        extension: Specific FreePBX extension number (overrides department). Optional.
+        extension: Specific FusionPBX extension number (overrides department). Optional.
         reason: Reason for transfer (for logging). Optional.
     
     Returns:
