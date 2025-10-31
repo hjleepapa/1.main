@@ -15,9 +15,6 @@ from sambanova.assistant_graph_todo import get_agent
 from sambanova.state import AgentState
 from langchain_core.messages import HumanMessage
 
-# Local Whisper integration
-from sambanova.local_whisper_transcriber import transcribe_audio_with_local_whisper, get_local_whisper_info
-
 # Deepgram WebRTC integration
 from deepgram_webrtc_integration import transcribe_audio_with_deepgram_webrtc, get_deepgram_webrtc_info
 
