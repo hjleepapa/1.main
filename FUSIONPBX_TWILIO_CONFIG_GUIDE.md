@@ -9,132 +9,177 @@ This guide configures FusionPBX at **136.115.41.45** to accept SIP transfers fro
 Twilio Voice Call → AI Agent → Transfer to FusionPBX Extension 2001
 ```
 
-## Required Configuration
+## Required Configuration Steps
 
-### 1. Whitelist Twilio IP Ranges
+### Step 1: Create Access Control List (ACL) ✅ DONE
 
-Twilio uses these IP ranges for outbound SIP. Add them to FusionPBX firewall/ACL.
+You've already created the `Twilio-SIP` access list in FusionPBX:
 
-**Twilio IP Ranges:**
-```
-54.172.60.0/23
-54.244.51.0/24
-177.71.206.192/26
-54.252.254.64/26
-54.169.127.128/26
-```
+**Access Control Configuration:**
+- **Name**: `Twilio-SIP`
+- **Default**: `allow`
+- **IP Ranges (CIDR)**:
+  ```
+  54.172.60.0/23
+  54.244.51.0/24
+  177.71.206.192/26
+  54.252.254.64/26
+  54.169.127.128/26
+  ```
+- **Description**: `Twilio-SIP`
 
-### Configuration Method A: Via FusionPBX Web GUI
+This is **correctly configured**. ✅
+
+---
+
+### Step 2: Configure SIP Profile to Apply the ACL
+
+**This is the critical missing step!** You need to apply the `Twilio-SIP` ACL to your SIP profile.
+
+#### Option A: Via FusionPBX Web GUI (Recommended)
 
 1. **Login to FusionPBX:**
    ```
    https://136.115.41.45
    ```
 
-2. **Navigate to Access Lists:**
+2. **Navigate to SIP Profiles:**
    ```
-   Advanced → Firewall → Access Lists
-   ```
-
-3. **Create New Access List:**
-   - Name: `Twilio-SIP`
-   - Add each IP range one by one:
-     - `54.172.60.0/23`
-     - `54.244.51.0/24`
-     - `177.71.206.192/26`
-     - `54.252.254.64/26`
-     - `54.169.127.128/26`
-   - Click "Save"
-
-4. **Apply Access List to SIP Profile:**
-   ```
-   Advanced → SIP Profiles → [Your Profile]
-   ```
-   - Scroll to "Access Control"
-   - Add "Twilio-SIP" to "Permit" list
-   - Click "Save" and "Apply Config"
-
-### Configuration Method B: Via SSH/Asterisk Config
-
-1. **SSH into FusionPBX:**
-   ```bash
-   ssh root@136.115.41.45
+   Advanced → SIP Profiles → external
    ```
 
-2. **Edit PJSIP Config:**
-   ```bash
-   vi /etc/asterisk/pjsip.conf
-   ```
+3. **Find the `external` SIP Profile Settings**
 
-3. **Add Twilio Endpoint:**
-   ```ini
-   [twilio-endpoint]
-   type=endpoint
-   context=from-twilio
-   disallow=all
-   allow=ulaw
-   allow=alaw
-   direct_media=no
-   rtp_symmetric=yes
-   force_rport=yes
+4. **Locate "Settings" Section:**
+   Look for a setting called `apply-inbound-acl` in the Settings table.
 
-   [twilio-aor]
-   type=aor
-   contact=sip:twilio@127.0.0.1
+5. **Update the Setting:**
+   - Find the row: `apply-inbound-acl`
+   - Change its **Value** from whatever it currently is to: `Twilio-SIP`
+   - Make sure **Enabled** is set to `True`
+   - Keep **Description** empty or add "Allow Twilio SIP traffic"
 
-   [twilio-identify]
-   type=identify
-   endpoint=twilio-endpoint
-   match=54.172.60.0/23
-   match=54.244.51.0/24
-   match=177.71.206.192/26
-   match=54.252.254.64/26
-   match=54.169.127.128/26
-   ```
+6. **Also Check These Settings:**
+   - `apply-nat-acl`: Should be `nat.auto` or empty (Enabled: True)
+   - `local-network-acl`: Should be `localnet.auto` (Enabled: True)
+   - `ext-sip-ip`: Should be your public IP `136.115.41.45` (Enabled: True)
+   - `ext-rtp-ip`: Should be your public IP `136.115.41.45` (Enabled: True)
 
-4. **Create Dial Plan Context:**
-   ```bash
-   vi /etc/asterisk/extensions_custom.conf
-   ```
-   
-   Add:
-   ```ini
-   [from-twilio]
-   exten => _X.,1,NoOp(Incoming SIP call from Twilio to extension ${EXTEN})
-   exten => _X.,n,Set(CHANNEL(language)=en)
-   exten => _X.,n,Goto(from-internal,${EXTEN},1)
-   exten => _X.,n,Hangup()
-   ```
+7. **Save and Apply:**
+   - Click "Save" button at the bottom
+   - Go to: `Status → SIP Status`
+   - Find the "external" profile
+   - Click "Reload XML" button
+   - Click "Restart" button
 
-5. **Reload Asterisk:**
-   ```bash
-   asterisk -rx "core reload"
-   asterisk -rx "pjsip reload"
-   ```
+#### Option B: Via Database (If GUI Doesn't Work)
 
-### 2. Open Firewall Ports
+If the FusionPBX GUI doesn't allow you to modify the setting, update it via database:
 
-#### On the VM/Server Level
+**For PostgreSQL:**
+```bash
+# SSH into FusionPBX
+ssh root@136.115.41.45
 
-**Open UDP 5060 for SIP:**
+# Connect to PostgreSQL
+sudo -u postgres psql fusionpbx
+
+# Check current apply-inbound-acl setting
+SELECT 
+    sps.sip_profile_setting_name,
+    sps.sip_profile_setting_value,
+    sps.sip_profile_setting_enabled
+FROM v_sip_profile_settings sps
+JOIN v_sip_profiles sp ON sps.sip_profile_uuid = sp.sip_profile_uuid
+WHERE sp.sip_profile_name = 'external'
+AND sps.sip_profile_setting_name = 'apply-inbound-acl';
+
+# Update to use Twilio-SIP ACL
+UPDATE v_sip_profile_settings sps
+SET sip_profile_setting_value = 'Twilio-SIP'
+FROM v_sip_profiles sp
+WHERE sps.sip_profile_uuid = sp.sip_profile_uuid
+AND sp.sip_profile_name = 'external'
+AND sps.sip_profile_setting_name = 'apply-inbound-acl';
+
+# Make sure it's enabled
+UPDATE v_sip_profile_settings sps
+SET sip_profile_setting_enabled = true
+FROM v_sip_profiles sp
+WHERE sps.sip_profile_uuid = sp.sip_profile_uuid
+AND sp.sip_profile_name = 'external'
+AND sps.sip_profile_setting_name = 'apply-inbound-acl';
+
+# Verify the change
+SELECT 
+    sps.sip_profile_setting_name,
+    sps.sip_profile_setting_value,
+    sps.sip_profile_setting_enabled
+FROM v_sip_profile_settings sps
+JOIN v_sip_profiles sp ON sps.sip_profile_uuid = sp.sip_profile_uuid
+WHERE sp.sip_profile_name = 'external'
+AND sps.sip_profile_setting_name = 'apply-inbound-acl';
+
+# Exit PostgreSQL
+\q
+
+# Reload FreeSWITCH
+fs_cli -x "reload"
+fs_cli -x "reload mod_sofia"
+```
+
+**For MySQL/MariaDB:**
+```bash
+# Connect to MySQL
+mysql -u root -p fusionpbx
+
+# Update apply-inbound-acl setting
+UPDATE v_sip_profile_settings sps
+JOIN v_sip_profiles sp ON sps.sip_profile_uuid = sp.sip_profile_uuid
+SET sps.sip_profile_setting_value = 'Twilio-SIP',
+    sps.sip_profile_setting_enabled = true
+WHERE sp.sip_profile_name = 'external'
+AND sps.sip_profile_setting_name = 'apply-inbound-acl';
+
+# Verify
+SELECT 
+    sps.sip_profile_setting_name,
+    sps.sip_profile_setting_value,
+    sps.sip_profile_setting_enabled
+FROM v_sip_profile_settings sps
+JOIN v_sip_profiles sp ON sps.sip_profile_uuid = sp.sip_profile_uuid
+WHERE sp.sip_profile_name = 'external'
+AND sps.sip_profile_setting_name = 'apply-inbound-acl';
+
+# Exit MySQL
+EXIT;
+```
+
+---
+
+### Step 3: Open Firewall Ports
+
+#### On the Server/VPS Level
+
+**Open UDP Port 5060 for SIP:**
 ```bash
 # Using ufw
-ufw allow 5060/udp
+sudo ufw allow 5060/udp
 
 # Using iptables
-iptables -A INPUT -p udp --dport 5060 -j ACCEPT
-iptables -A INPUT -p udp --dport 10000:20000 -j ACCEPT
+sudo iptables -A INPUT -p udp --dport 5060 -j ACCEPT
+sudo iptables -A INPUT -p udp --dport 10000:20000 -j ACCEPT
 
-# Save iptables rules
-iptables-save > /etc/iptables/rules.v4
+# Save iptables rules (on Debian/Ubuntu)
+sudo iptables-save > /etc/iptables/rules.v4
 ```
 
 **Open RTP Ports 10000-20000:**
 ```bash
-ufw allow 10000:20000/udp
+sudo ufw allow 10000:20000/udp
 ```
 
-#### If Using Cloud Provider (Google Cloud, AWS, etc.)
+#### If Using Cloud Provider (Google Cloud, AWS, Azure, etc.)
 
 Create firewall rules to allow SIP traffic:
 
@@ -144,13 +189,15 @@ gcloud compute firewall-rules create allow-twilio-sip \
     --direction=INGRESS \
     --action=ALLOW \
     --rules=udp:5060 \
-    --source-ranges=54.172.60.0/23,54.244.51.0/24,177.71.206.192/26,54.252.254.64/26,54.169.127.128/26
+    --source-ranges=54.172.60.0/23,54.244.51.0/24,177.71.206.192/26,54.252.254.64/26,54.169.127.128/26 \
+    --target-tags=freepbx
 
 gcloud compute firewall-rules create allow-twilio-rtp \
     --direction=INGRESS \
     --action=ALLOW \
     --rules=udp:10000-20000 \
-    --source-ranges=54.172.60.0/23,54.244.51.0/24,177.71.206.192/26,54.252.254.64/26,54.169.127.128/26
+    --source-ranges=54.172.60.0/23,54.244.51.0/24,177.71.206.192/26,54.252.254.64/26,54.169.127.128/26 \
+    --target-tags=freepbx
 ```
 
 **AWS:**
@@ -160,26 +207,37 @@ aws ec2 authorize-security-group-ingress \
     --group-id sg-xxxxx \
     --protocol udp \
     --port 5060 \
-    --source-group sg-twilio
+    --source-group sg-twilio \
+    --cidr 54.172.60.0/23,54.244.51.0/24,177.71.206.192/26,54.252.254.64/26,54.169.127.128/26
 ```
 
-### 3. Verify Extension 2001 Exists
+---
+
+### Step 4: Verify Extension 2001 Exists
 
 **Via FusionPBX Web GUI:**
 1. Login to `https://136.115.41.45`
 2. Go to: `Accounts → Extensions`
 3. Search for extension `2001`
 4. Verify:
-   - Extension is active
-   - Has a valid device/endpoint
-   - Is assigned to a dial plan context
+   - Extension is **active**
+   - Has a valid **device/endpoint** assigned
+   - Is assigned to a valid **dial plan context**
 
 **Or check via SSH:**
 ```bash
+ssh root@136.115.41.45
+
+# Check FreeSWITCH endpoints
+fs_cli -x "sofia status profile external reg"
+
+# Or check via Asterisk (if using)
 asterisk -rx "pjsip list endpoints" | grep 2001
 ```
 
-### 4. Test Configuration
+---
+
+### Step 5: Test Configuration
 
 #### Test 1: Verify SIP Port is Open
 
@@ -190,142 +248,148 @@ nc -zuv 136.115.41.45 5060
 
 **Expected:** `Connection to 136.115.41.45 5060 port [udp/sip] succeeded!`
 
-#### Test 2: Check SIP Registration
+#### Test 2: Check FreeSWITCH SIP Profile
 
 ```bash
-asterisk -rx "pjsip show endpoints" | grep 2001
+ssh root@136.115.41.45
+fs_cli -x "sofia xmlstatus profile external"
 ```
 
-Should show extension 2001 as registered.
+Look for:
+- `<ext-sip-ip>136.115.41.45</ext-sip-ip>` ✅
+- `<apply-inbound-acl>Twilio-SIP</apply-inbound-acl>` ✅
 
-#### Test 3: Test Transfer from Twilio
-
-Make a test call and request transfer to agent. Check logs:
+#### Test 3: Monitor FreeSWITCH Logs in Real-Time
 
 ```bash
-# On FusionPBX
-tail -f /var/log/asterisk/full
+# SSH into FusionPBX
+ssh root@136.115.41.45
 
-# Look for:
-# - SIP INVITE from Twilio IP (54.172.x.x)
-# - Extension 2001 ringing
-# - Call connected
+# Watch FreeSWITCH logs
+tail -f /var/log/freeswitch/freeswitch.log | grep -i twilio
+
+# Or use FreeSWITCH CLI
+fs_cli -x "console loglevel 7"
 ```
 
-### 5. Monitor Transfer Logs
+#### Test 4: Make Test Transfer from Twilio
 
-**Check Asterisk CLI for incoming calls:**
+1. Make a test call to your Twilio number
+2. Say "transfer me to agent" or similar
+3. Watch the logs in real-time:
+
 ```bash
-asterisk -rvvvvv
+# On FusionPBX server
+fs_cli -x "console loglevel 9"
 ```
 
-**Watch for:**
+**Look for:**
+- SIP INVITE from Twilio IP (54.172.x.x or 54.244.x.x)
+- ACK from FusionPBX
+- Extension 2001 receiving the call
+- Call being bridged successfully
+
+---
+
+### Step 6: Monitor Transfer Logs
+
+**Watch FreeSWITCH CLI during transfer:**
+```bash
+ssh root@136.115.41.45
+fs_cli
 ```
--- Executing [2001@from-twilio:1] NoOp("SIP/twilio-...", "Incoming SIP call from Twilio to extension 2001") in new stack
--- Executing [2001@from-twilio:2] Goto("SIP/twilio-...", "from-internal,2001,1") in new stack
--- Executing [2001@from-internal:1] Macro("SIP/2001-...", "user-callerid|SKIPTTL|SKIP") in new stack
+
+In the FreeSWITCH CLI, you should see:
+```
+[SIP]
+[INVITE] from 54.172.x.x:5060
+[200 OK] sending to 54.172.x.x:5060
+[ACK] received
+Extension 2001 is ringing
+Call answered
+RTP media established
 ```
 
-### 6. Common Issues & Solutions
+---
 
-#### Issue: "SIP INVITE rejected" or "403 Forbidden"
+### Troubleshooting
 
-**Cause:** Twilio IP not whitelisted or ACL blocking
+#### Issue: "Transfer failed" - SIP INVITE Rejected
+
+**Symptoms:** Logs show `status=failed` in transfer callback
+
+**Causes & Solutions:**
+
+1. **Twilio IP not whitelisted**
+   - Verify `Twilio-SIP` ACL exists in `Advanced → Firewall → Access Lists`
+   - Verify `apply-inbound-acl` setting in SIP profile = `Twilio-SIP`
+
+2. **Firewall blocking SIP**
+   - Check UDP 5060 is open: `nc -zuv 136.115.41.45 5060`
+   - Check cloud provider firewall rules
+   - Check fail2ban isn't blocking: `sudo fail2ban-client status sshd`
+
+3. **Extension 2001 doesn't exist**
+   - Verify extension exists in `Accounts → Extensions`
+   - Check extension is active and has valid device
+   - Test extension from internal phone first
+
+4. **FreeSWITCH not reloaded**
+   - Go to `Status → SIP Status`
+   - Click "Reload XML"
+   - Click "Restart" for external profile
+
+#### Issue: "403 Forbidden" or "401 Unauthorized"
+
+**Cause:** SIP authentication required
 
 **Solution:**
-1. Verify Twilio IP ranges in ACL
-2. Check SIP profile configuration
-3. Reload Asterisk: `asterisk -rx "pjsip reload"`
-
-#### Issue: "Extension not found" or "408 Request Timeout"
-
-**Cause:** Extension 2001 doesn't exist or isn't registered
-
-**Solution:**
-1. Verify extension exists in FusionPBX
-2. Check extension is active
-3. Test from internal phone first
+1. Set SIP authentication in your app's `.env`:
+   ```
+   FREEPBX_SIP_USERNAME=twilio
+   FREEPBX_SIP_PASSWORD=your_secure_password
+   ```
+2. Create a SIP user in FusionPBX for Twilio
+3. Or configure the extension to allow anonymous calls
 
 #### Issue: "No audio" or "One-way audio"
 
 **Cause:** RTP/NAT issues
 
 **Solution:**
-1. Verify RTP ports 10000-20000 are open
-2. Enable `rtp_symmetric=yes` on endpoint
-3. Enable `force_rport=yes` on endpoint
-4. Check NAT settings in SIP profile
+1. Verify RTP ports 10000-20000 are open in firewall
+2. Check `ext-sip-ip` and `ext-rtp-ip` settings in SIP profile
+3. Enable `rtp-symmetric` in SIP profile
+4. Check NAT settings in cloud provider
 
-#### Issue: "454 Session Not Authorized"
+#### Issue: "Extension not found" or "408 Request Timeout"
 
-**Cause:** SIP authentication required
+**Cause:** Extension 2001 doesn't exist, isn't registered, or wrong context
 
 **Solution:**
-1. In your app's `.env` file, add:
-   ```
-   FREEPBX_SIP_USERNAME=twilio
-   FREEPBX_SIP_PASSWORD=your_password
-   ```
-2. Or disable authentication for Twilio endpoint
+1. Verify extension exists: `Accounts → Extensions → 2001`
+2. Check extension device is online: `Status → Registrations`
+3. Verify dial plan context is correct
+4. Test from internal phone first
 
-### 7. Complete PJSIP Configuration Example
+---
 
-For reference, here's a complete working PJSIP config:
+### Summary Checklist
 
-```ini
-[twilio-endpoint]
-type=endpoint
-context=from-twilio
-disallow=all
-allow=ulaw
-allow=alaw
-allow=opus
-transport=transport-udp
-direct_media=no
-rtp_symmetric=yes
-force_rport=yes
-rewrite_contact=yes
+- [x] ✅ **Step 1**: Access Control List `Twilio-SIP` created with 5 Twilio IP ranges
+- [ ] ⚠️ **Step 2**: SIP Profile `external` → `apply-inbound-acl` set to `Twilio-SIP` ← **CRITICAL MISSING STEP**
+- [ ] **Step 3**: UDP port 5060 open in server firewall
+- [ ] **Step 4**: UDP ports 10000-20000 open for RTP
+- [ ] **Step 5**: UDP ports open in cloud provider firewall (if applicable)
+- [ ] **Step 6**: Extension 2001 exists and is active
+- [ ] **Step 7**: FreeSWITCH reloaded after configuration changes
+- [ ] **Step 8**: Test transfer successful
 
-[twilio-aor]
-type=aor
-contact=sip:twilio@127.0.0.1
-max_contacts=10
-
-[twilio-identify]
-type=identify
-endpoint=twilio-endpoint
-match=54.172.60.0/23
-match=54.244.51.0/24
-match=177.71.206.192/26
-match=54.252.254.64/26
-match=54.169.127.128/26
-```
-
-### 8. Verification Checklist
-
-- [ ] Twilio IP ranges added to FusionPBX ACL
-- [ ] UDP port 5060 open in firewall
-- [ ] UDP ports 10000-20000 open in firewall
-- [ ] Extension 2001 exists and is active
-- [ ] SIP profile configured to allow Twilio
-- [ ] Dial plan context created for from-twilio
-- [ ] Asterisk reloaded after configuration changes
-- [ ] Test transfer successful
-
-## Summary
-
-**Minimum Required Configuration:**
-
-1. ✅ Add Twilio IP ranges to FusionPBX ACL/Access Lists
-2. ✅ Open UDP 5060 in firewall (server + cloud)
-3. ✅ Open UDP 10000-20000 for RTP
-4. ✅ Verify extension 2001 exists and is active
-5. ✅ Create dial plan context for Twilio calls
-6. ✅ Reload Asterisk
-
-**Current Configuration:**
+**Current Status:**
 - FusionPBX IP: `136.115.41.45`
 - Extension: `2001`
 - SIP URI: `sip:2001@136.115.41.45;transport=udp`
-- Twilio IP ranges: Whitelisted in FusionPBX
+- Access List: `Twilio-SIP` ✅ Created
+- Missing: SIP Profile ACL configuration ⚠️
 
+**Next Step:** Configure the `apply-inbound-acl` setting in your SIP profile (Step 2).
