@@ -11,7 +11,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # FusionPBX configuration
-FREEPBX_DOMAIN = os.getenv('FREEPBX_DOMAIN', '136.113.215.142')
+FREEPBX_DOMAIN = os.getenv('FREEPBX_DOMAIN', '136.115.41.45')
 
 # Default extension mapping
 EXTENSION_MAP = {

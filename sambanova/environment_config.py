@@ -51,7 +51,7 @@ class EnvironmentConfig:
     GOOGLE_OAUTH2_TOKEN_B64: str = os.getenv('GOOGLE_OAUTH2_TOKEN_B64', '')
     
     # FusionPBX Configuration
-    FREEPBX_DOMAIN: str = os.getenv('FREEPBX_DOMAIN', '136.113.215.142')
+    FREEPBX_DOMAIN: str = os.getenv('FREEPBX_DOMAIN', '136.115.41.45')
     FREEPBX_SIP_USERNAME: Optional[str] = os.getenv('FREEPBX_SIP_USERNAME')
     FREEPBX_SIP_PASSWORD: Optional[str] = os.getenv('FREEPBX_SIP_PASSWORD')
     TRANSFER_TIMEOUT: int = safe_int(os.getenv('TRANSFER_TIMEOUT', '30'), 30)

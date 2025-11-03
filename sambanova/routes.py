@@ -250,7 +250,7 @@ def transfer_to_agent():
         response.say("Transferring you to an agent. Please wait.", voice='Polly.Amy')
         
         # Get configuration
-        freepbx_domain = os.getenv('FREEPBX_DOMAIN', '136.113.215.142')
+        freepbx_domain = os.getenv('FREEPBX_DOMAIN', '136.115.41.45')
         transfer_timeout = int(os.getenv('TRANSFER_TIMEOUT', '30'))
         sip_username = os.getenv('FREEPBX_SIP_USERNAME', '')
         sip_password = os.getenv('FREEPBX_SIP_PASSWORD', '')

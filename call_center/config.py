@@ -5,7 +5,7 @@ Copy this file to config.py and update with your settings
 
 # SIP Server Configuration
 SIP_CONFIG = {
-    'domain': '34.26.59.14',  # Your SIP server domain or IP
+    'domain': '136.115.41.45',  # Your SIP server domain or IP
     'wss_port': 7443,         # WebSocket Secure port
                               # Common ports:
                               #   7443 - Asterisk/FreePBX default WSS port
