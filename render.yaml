@@ -49,7 +49,7 @@ services:
         sync: false
       # FreePBX Configuration
       - key: FREEPBX_DOMAIN
-        value: 34.26.59.14
+        value: 136.115.41.45
       - key: TRANSFER_TIMEOUT
         value: 30
       - key: SUPPORT_EXTENSION
