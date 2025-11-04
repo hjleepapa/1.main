@@ -218,16 +218,23 @@ class CallCenterAgent {
         // Initialize JsSIP User Agent
         console.log(`Initializing SIP client for ${username}@${domain}`);
         
+        // Clean domain - remove any existing protocol or port
+        let cleanDomain = domain.trim();
+        // Remove wss:// or ws:// if present
+        cleanDomain = cleanDomain.replace(/^wss?:\/\//, '');
+        // Remove port if present (e.g., :7443)
+        cleanDomain = cleanDomain.split(':')[0];
+        
         // Get port from config (default to 7443 if not set)
         const wssPort = window.SIP_CONFIG ? window.SIP_CONFIG.wss_port : 7443;
-        const wsUrl = `wss://${domain}:${wssPort}`;
+        const wsUrl = `wss://${cleanDomain}:${wssPort}`;
         console.log(`Connecting to WebSocket: ${wsUrl}`);
         
         const socket = new JsSIP.WebSocketInterface(wsUrl);
         
         const configuration = {
             sockets: [socket],
-            uri: `sip:${username}@${domain}`,
+            uri: `sip:${username}@${cleanDomain}`,
             password: password,
             display_name: username,
             register: true
@@ -435,47 +442,60 @@ class CallCenterAgent {
     
     async makeCall() {
         const number = this.dialInput.value;
-        if (!number) return;
+        if (!number || !this.sipUser) {
+            console.error('Cannot make call: number missing or SIP user not initialized');
+            return;
+        }
         
         try {
-            const target = SIP.UserAgent.makeURI(`sip:${number}@${this.agent.sip_domain}`);
-            const inviter = new SIP.Inviter(this.sipUser, target);
+            // Clean domain - remove any existing protocol or port
+            let cleanDomain = this.agent.sip_domain.trim();
+            cleanDomain = cleanDomain.replace(/^wss?:\/\//, '');
+            cleanDomain = cleanDomain.split(':')[0];
             
-            this.currentSession = inviter;
-            
-            const options = {
+            // Use JsSIP API (not SIP.js)
+            const target = JsSIP.URI.parse(`sip:${number}@${cleanDomain}`);
+            const inviter = new JsSIP.Inviter(this.sipUser, target, {
                 sessionDescriptionHandlerOptions: {
                     constraints: {
                         audio: true,
                         video: false
                     }
                 }
-            };
+            });
             
-            await inviter.invite(options);
+            this.currentSession = inviter;
             
             // Setup session state listeners
-            inviter.stateChange.addListener((state) => {
-                console.log('Call state:', state);
-                
-                switch (state) {
-                    case SIP.SessionState.Establishing:
-                        this.showOutgoingCall(number);
-                        break;
-                    case SIP.SessionState.Established:
-                        this.onCallEstablished();
-                        break;
-                    case SIP.SessionState.Terminated:
-                        this.onCallEnded();
-                        break;
-                }
+            inviter.on('progress', () => {
+                console.log('Call progressing...');
+                this.showOutgoingCall(number);
             });
+            
+            inviter.on('accepted', () => {
+                console.log('Call accepted');
+                this.onCallEstablished();
+            });
+            
+            inviter.on('ended', () => {
+                console.log('Call ended');
+                this.onCallEnded();
+            });
+            
+            inviter.on('failed', (e) => {
+                console.error('Call failed:', e);
+                alert('Call failed: ' + (e.message || 'Unknown error'));
+                this.onCallEnded();
+            });
+            
+            // Send INVITE
+            await inviter.invite();
             
             this.dialInput.value = '';
             this.updateDialCallButton();
         } catch (error) {
             console.error('Make call error:', error);
-            alert('Failed to make call');
+            alert('Failed to make call: ' + (error.message || 'Unknown error'));
         }
     }
     

@@ -28,6 +28,10 @@
     <param name="outbound-codec-prefs" value="PCMU,PCMA"/>
     <param name="dtmf-mode" value="rfc2833"/>
     <param name="session-timeout" value="3600"/>
+    
+    <!-- Media settings - disable media bypass for proper RTP handling -->
+    <param name="bypass-media" value="false"/>
+    <param name="media-bypass" value="false"/>
   </settings>
 </profile>
 
