@@ -10,6 +10,8 @@ class CallCenterAgent {
         this.currentCall = null;
         this.currentSession = null;
         this.pendingDialNumber = null;
+        this.localStream = null;
+        this.audioAccessDenied = false;
         this.statusTimer = null;
         this.statusStartTime = null;
         this.callDurationTimer = null;
@@ -384,6 +386,29 @@ class CallCenterAgent {
         }
     }
     
+    async ensureLocalAudioStream() {
+        if (this.audioAccessDenied) {
+            throw new Error('Microphone access previously denied');
+        }
+        
+        if (this.localStream && this.localStream.active) {
+            return this.localStream;
+        }
+        
+        try {
+            this.localStream = await navigator.mediaDevices.getUserMedia({
+                audio: true,
+                video: false
+            });
+            this.audioAccessDenied = false;
+            return this.localStream;
+        } catch (error) {
+            this.audioAccessDenied = true;
+            console.error('Microphone access denied:', error);
+            throw error;
+        }
+    }
+    
     handleIncomingCall(session) {
         console.log('Incoming call:', session);
         
@@ -428,16 +453,17 @@ class CallCenterAgent {
         if (!this.currentSession) return;
         
         try {
-            const options = {
+            const stream = await this.ensureLocalAudioStream();
+            
+            this.currentSession.answer({
+                mediaStream: stream,
                 sessionDescriptionHandlerOptions: {
                     constraints: {
                         audio: true,
                         video: false
                     }
                 }
-            };
-            
-            this.currentSession.answer(options);
+            });
             
             // Notify backend
             await fetch('/call-center/api/call/answer', {
@@ -449,6 +475,9 @@ class CallCenterAgent {
             this.ringTone.pause();
             this.ringTone.currentTime = 0;
         } catch (error) {
+            if (error && error.name === 'NotAllowedError') {
+                alert('Microphone access is required to answer calls. Please allow microphone permissions in your browser.');
+            }
             console.error('Answer call error:', error);
         }
     }
@@ -520,7 +549,9 @@ class CallCenterAgent {
         try {
             const cleanDomain = this.sanitizeDomain(this.agent.sip_domain);
             const target = `sip:${number}@${cleanDomain}`;
+            const stream = await this.ensureLocalAudioStream();
             const options = {
+                mediaStream: stream,
                 sessionDescriptionHandlerOptions: {
                     constraints: {
                         audio: true,
@@ -536,8 +567,12 @@ class CallCenterAgent {
             this.dialInput.value = '';
             this.updateDialCallButton();
         } catch (error) {
+            let message = 'Failed to make call: ' + (error && error.message ? error.message : 'Unknown error');
+            if (error && error.name === 'NotAllowedError') {
+                message = 'Microphone access is required to make calls. Please allow microphone permissions in your browser.';
+            }
             console.error('Make call error:', error);
-            alert('Failed to make call: ' + (error.message || 'Unknown error'));
+            alert(message);
         }
     }
     
