@@ -12,6 +12,10 @@ class CallCenterAgent {
         this.pendingDialNumber = null;
         this.localStream = null;
         this.audioAccessDenied = false;
+        this.iceServers = [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' }
+        ];
         this.statusTimer = null;
         this.statusStartTime = null;
         this.callDurationTimer = null;
@@ -243,7 +247,15 @@ class CallCenterAgent {
             uri: `sip:${username}@${cleanDomain}`,
             password: password,
             display_name: username,
-            register: true
+            register: true,
+            sessionDescriptionHandlerFactoryOptions: {
+                peerConnectionOptions: {
+                    rtcConfiguration: {
+                        iceServers: this.iceServers,
+                        iceTransportPolicy: 'all'
+                    }
+                }
+            }
         };
         
         this.sipUser = new JsSIP.UA(configuration);
@@ -462,6 +474,14 @@ class CallCenterAgent {
                         audio: true,
                         video: false
                     }
+                },
+                sessionDescriptionHandlerFactoryOptions: {
+                    peerConnectionOptions: {
+                        rtcConfiguration: {
+                            iceServers: this.iceServers,
+                            iceTransportPolicy: 'all'
+                        }
+                    }
                 }
             });
             
@@ -556,6 +576,14 @@ class CallCenterAgent {
                     constraints: {
                         audio: true,
                         video: false
+                    }
+                },
+                sessionDescriptionHandlerFactoryOptions: {
+                    peerConnectionOptions: {
+                        rtcConfiguration: {
+                            iceServers: this.iceServers,
+                            iceTransportPolicy: 'all'
+                        }
                     }
                 }
             };
