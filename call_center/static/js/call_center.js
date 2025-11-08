@@ -9,6 +9,7 @@ class CallCenterAgent {
         this.sipUser = null;
         this.currentCall = null;
         this.currentSession = null;
+        this.pendingDialNumber = null;
         this.statusTimer = null;
         this.statusStartTime = null;
         this.callDurationTimer = null;
@@ -214,16 +215,19 @@ class CallCenterAgent {
         }
     }
     
+    sanitizeDomain(domain) {
+        let cleanDomain = (domain || '').trim();
+        cleanDomain = cleanDomain.replace(/^wss?:\/\//, '');
+        cleanDomain = cleanDomain.replace(/^s(?=\d)/, '');
+        cleanDomain = cleanDomain.split(':')[0];
+        cleanDomain = cleanDomain.replace(/^[^0-9a-zA-Z.]+/, '');
+        return cleanDomain;
+    }
+    
     initSIPClient(username, password, domain) {
-        // Initialize JsSIP User Agent
         console.log(`Initializing SIP client for ${username}@${domain}`);
         
-        // Clean domain - remove any existing protocol or port
-        let cleanDomain = domain.trim();
-        // Remove wss:// or ws:// if present
-        cleanDomain = cleanDomain.replace(/^wss?:\/\//, '');
-        // Remove port if present (e.g., :7443)
-        cleanDomain = cleanDomain.split(':')[0];
+        const cleanDomain = this.sanitizeDomain(domain);
         
         // Get port from config (default to 7443 if not set)
         const wssPort = window.SIP_CONFIG ? window.SIP_CONFIG.wss_port : 7443;
@@ -268,9 +272,25 @@ class CallCenterAgent {
             alert('Failed to register with SIP server. Please check your credentials.');
         });
         
-        this.sipUser.on('newRTCSession', (e) => {
+        this.sipUser.on('newRTCSession', (event) => {
             console.log('New RTC session');
-            this.handleIncomingCall(e.session);
+            const session = event.session;
+            
+            if (session.direction === 'incoming') {
+                this.handleIncomingCall(session);
+            } else {
+                const dialedNumber = this.pendingDialNumber || (session.remote_identity && session.remote_identity.uri ? session.remote_identity.uri.user : null);
+                if (dialedNumber) {
+                    this.currentCall = {
+                        call_id: session.id,
+                        caller_number: dialedNumber,
+                        caller_name: dialedNumber,
+                        direction: 'outbound'
+                    };
+                }
+                this.attachSessionEventHandlers(session, 'outbound', dialedNumber);
+                this.pendingDialNumber = null;
+            }
         });
         
         // Start the User Agent
@@ -284,12 +304,89 @@ class CallCenterAgent {
         }
     }
     
+    attachSessionEventHandlers(session, direction = 'inbound', dialedNumber = null) {
+        this.currentSession = session;
+        this.setupRemoteAudio(session);
+        
+        session.on('progress', () => {
+            console.log('Call progressing...');
+            if (direction === 'outbound' && dialedNumber) {
+                this.showOutgoingCall(dialedNumber);
+            }
+        });
+        
+        session.on('accepted', () => {
+            console.log('Call accepted');
+            this.ringTone.pause();
+            this.ringTone.currentTime = 0;
+        });
+        
+        session.on('confirmed', () => {
+            console.log('Call confirmed');
+            this.onCallEstablished();
+        });
+        
+        session.on('ended', () => {
+            console.log('Call ended');
+            this.ringTone.pause();
+            this.ringTone.currentTime = 0;
+            this.onCallEnded();
+        });
+        
+        session.on('failed', (e) => {
+            console.error('Call failed:', e);
+            this.ringTone.pause();
+            this.ringTone.currentTime = 0;
+            alert('Call failed: ' + (e && e.cause ? e.cause : 'Unknown error'));
+            this.onCallEnded();
+        });
+        
+        session.on('peerconnection', (data) => {
+            this.setupRemoteAudio(session, data.peerconnection);
+        });
+    }
+    
+    setupRemoteAudio(session, peerConnectionOverride = null) {
+        const applyRemoteTracks = (pc) => {
+            if (!pc) return;
+            
+            const remoteStream = new MediaStream();
+            
+            pc.addEventListener('track', (event) => {
+                event.streams.forEach((stream) => {
+                    stream.getTracks().forEach((track) => {
+                        const alreadyAdded = remoteStream.getTracks().some((existingTrack) => existingTrack.id === track.id);
+                        if (!alreadyAdded) {
+                            remoteStream.addTrack(track);
+                        }
+                    });
+                });
+                this.remoteAudio.srcObject = remoteStream;
+                this.remoteAudio.play().catch(() => {});
+            });
+            
+            pc.getReceivers().forEach((receiver) => {
+                if (receiver.track) {
+                    const alreadyAdded = remoteStream.getTracks().some((existingTrack) => existingTrack.id === receiver.track.id);
+                    if (!alreadyAdded) {
+                        remoteStream.addTrack(receiver.track);
+                    }
+                }
+            });
+            
+            this.remoteAudio.srcObject = remoteStream;
+            this.remoteAudio.play().catch(() => {});
+        };
+        
+        const pc = peerConnectionOverride || session.connection;
+        if (pc) {
+            applyRemoteTracks(pc);
+        }
+    }
+    
     handleIncomingCall(session) {
         console.log('Incoming call:', session);
         
-        this.currentSession = session;
-        
-        // Extract caller information (JsSIP API)
         const remoteIdentity = session.remote_identity;
         const callerNumber = remoteIdentity.uri.user;
         const callerName = remoteIdentity.display_name || callerNumber;
@@ -324,34 +421,7 @@ class CallCenterAgent {
         // Play ringtone
         this.ringTone.play();
         
-        // Setup session state listeners
-        invitation.stateChange.addListener((state) => {
-            console.log('Call state changed:', state);
-            
-            switch (state) {
-                case SIP.SessionState.Establishing:
-                    console.log('Call establishing...');
-                    break;
-                case SIP.SessionState.Established:
-                    this.ringTone.pause();
-                    this.ringTone.currentTime = 0;
-                    this.onCallEstablished();
-                    break;
-                case SIP.SessionState.Terminated:
-                    this.onCallEnded();
-                    break;
-            }
-        });
-        
-        // Setup remote media
-        const remoteStream = new MediaStream();
-        invitation.sessionDescriptionHandler.peerConnection.getReceivers().forEach((receiver) => {
-            if (receiver.track) {
-                remoteStream.addTrack(receiver.track);
-            }
-        });
-        this.remoteAudio.srcObject = remoteStream;
-        this.remoteAudio.play();
+        this.attachSessionEventHandlers(session, 'inbound');
     }
     
     async answerCall() {
@@ -367,7 +437,7 @@ class CallCenterAgent {
                 }
             };
             
-            await this.currentSession.accept(options);
+            this.currentSession.answer(options);
             
             // Notify backend
             await fetch('/call-center/api/call/answer', {
@@ -387,7 +457,7 @@ class CallCenterAgent {
         if (!this.currentSession) return;
         
         try {
-            await this.currentSession.bye();
+            this.currentSession.terminate();
             
             // Notify backend
             await fetch('/call-center/api/call/drop', {
@@ -404,7 +474,7 @@ class CallCenterAgent {
         if (!this.currentSession) return;
         
         try {
-            await this.currentSession.sessionDescriptionHandler.hold();
+            this.currentSession.hold();
             
             // Notify backend
             await fetch('/call-center/api/call/hold', {
@@ -424,7 +494,7 @@ class CallCenterAgent {
         if (!this.currentSession) return;
         
         try {
-            await this.currentSession.sessionDescriptionHandler.unhold();
+            this.currentSession.unhold();
             
             // Notify backend
             await fetch('/call-center/api/call/unhold', {
@@ -448,48 +518,20 @@ class CallCenterAgent {
         }
         
         try {
-            // Clean domain - remove any existing protocol or port
-            let cleanDomain = this.agent.sip_domain.trim();
-            cleanDomain = cleanDomain.replace(/^wss?:\/\//, '');
-            cleanDomain = cleanDomain.split(':')[0];
-            
-            // Use JsSIP API (not SIP.js)
-            const target = JsSIP.URI.parse(`sip:${number}@${cleanDomain}`);
-            const inviter = new JsSIP.Inviter(this.sipUser, target, {
+            const cleanDomain = this.sanitizeDomain(this.agent.sip_domain);
+            const target = `sip:${number}@${cleanDomain}`;
+            const options = {
                 sessionDescriptionHandlerOptions: {
                     constraints: {
                         audio: true,
                         video: false
                     }
                 }
-            });
+            };
+            this.pendingDialNumber = number;
             
-            this.currentSession = inviter;
-            
-            // Setup session state listeners
-            inviter.on('progress', () => {
-                console.log('Call progressing...');
-                this.showOutgoingCall(number);
-            });
-            
-            inviter.on('accepted', () => {
-                console.log('Call accepted');
-                this.onCallEstablished();
-            });
-            
-            inviter.on('ended', () => {
-                console.log('Call ended');
-                this.onCallEnded();
-            });
-            
-            inviter.on('failed', (e) => {
-                console.error('Call failed:', e);
-                alert('Call failed: ' + (e.message || 'Unknown error'));
-                this.onCallEnded();
-            });
-            
-            // Send INVITE
-            await inviter.invite();
+            const session = this.sipUser.call(target, options);
+            this.currentSession = session;
             
             this.dialInput.value = '';
             this.updateDialCallButton();
@@ -529,8 +571,9 @@ class CallCenterAgent {
             
             // Perform SIP REFER for blind transfer
             if (type === 'blind' && this.currentSession) {
-                const referTo = `sip:${transferTo}@${this.agent.sip_domain}`;
-                await this.currentSession.refer(SIP.UserAgent.makeURI(referTo));
+                const cleanDomain = this.sanitizeDomain(this.agent.sip_domain);
+                const referTo = `sip:${transferTo}@${cleanDomain}`;
+                this.currentSession.refer(referTo);
             }
             
             this.hideTransferPanel();
@@ -700,6 +743,7 @@ class CallCenterAgent {
         
         this.currentCall = null;
         this.currentSession = null;
+        this.pendingDialNumber = null;
         
         this.setReady();
     }
