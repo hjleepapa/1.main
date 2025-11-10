@@ -17,6 +17,16 @@ class CallCenterAgent {
             { urls: 'turns:turn.pbx.hjlees.com:5349?transport=tcp', username: 'agent', credential: 'P@ssw0rd' },
             { urls: 'turn:turn.pbx.hjlees.com:3478?transport=udp', username: 'agent', credential: 'P@ssw0rd' }
         ];
+        this.rtcConfiguration = {
+            iceServers: this.iceServers,
+            iceTransportPolicy: 'all'
+        };
+        this.sessionDescriptionHandlerFactoryOptions = {
+            peerConnectionOptions: {
+                rtcConfiguration: this.rtcConfiguration
+            },
+            peerConnectionConfiguration: this.rtcConfiguration
+        };
         this.statusTimer = null;
         this.statusStartTime = null;
         this.callDurationTimer = null;
@@ -249,15 +259,11 @@ class CallCenterAgent {
             password: password,
             display_name: username,
             register: true,
-            sessionDescriptionHandlerFactoryOptions: {
-                peerConnectionOptions: {
-                    rtcConfiguration: {
-                        iceServers: this.iceServers,
-                        iceTransportPolicy: 'all'
-                    }
-                }
-            }
+            sessionDescriptionHandlerFactoryOptions: this.sessionDescriptionHandlerFactoryOptions
         };
+        
+        console.log('Using ICE servers:', this.iceServers);
+        console.log('SIP UA configuration rtcConfiguration:', configuration.sessionDescriptionHandlerFactoryOptions);
         
         this.sipUser = new JsSIP.UA(configuration);
         
@@ -476,14 +482,7 @@ class CallCenterAgent {
                         video: false
                     }
                 },
-                sessionDescriptionHandlerFactoryOptions: {
-                    peerConnectionOptions: {
-                        rtcConfiguration: {
-                            iceServers: this.iceServers,
-                            iceTransportPolicy: 'all'
-                        }
-                    }
-                }
+                sessionDescriptionHandlerFactoryOptions: this.sessionDescriptionHandlerFactoryOptions
             });
             
             // Notify backend
@@ -579,14 +578,7 @@ class CallCenterAgent {
                         video: false
                     }
                 },
-                sessionDescriptionHandlerFactoryOptions: {
-                    peerConnectionOptions: {
-                        rtcConfiguration: {
-                            iceServers: this.iceServers,
-                            iceTransportPolicy: 'all'
-                        }
-                    }
-                }
+                sessionDescriptionHandlerFactoryOptions: this.sessionDescriptionHandlerFactoryOptions
             };
             this.pendingDialNumber = number;
             
@@ -939,6 +931,6 @@ class CallCenterAgent {
 
 // Initialize the call center agent dashboard
 document.addEventListener('DOMContentLoaded', () => {
-    new CallCenterAgent();
+    window.callCenterAgent = new CallCenterAgent();
 });
 
