@@ -40,7 +40,9 @@ class CallCenterAgent {
             peerConnectionOptions: {
                 rtcConfiguration: this.rtcConfiguration
             },
-            peerConnectionConfiguration: this.rtcConfiguration
+            peerConnectionConfiguration: this.rtcConfiguration,
+            disableTrickleIce: true,
+            iceGatheringTimeout: 2000
         };
         this.statusTimer = null;
         this.statusStartTime = null;
@@ -587,7 +589,8 @@ class CallCenterAgent {
                     constraints: {
                         audio: true,
                         video: false
-                    }
+                    },
+                    disableTrickleIce: true
                 },
                 sessionDescriptionHandlerFactoryOptions: this.sessionDescriptionHandlerFactoryOptions
             });
@@ -685,11 +688,13 @@ class CallCenterAgent {
             const stream = await this.ensureLocalAudioStream();
             const options = {
                 mediaStream: stream,
+                pcConfig: this.rtcConfiguration,
                 sessionDescriptionHandlerOptions: {
                     constraints: {
                         audio: true,
                         video: false
-                    }
+                    },
+                    disableTrickleIce: true
                 },
                 sessionDescriptionHandlerFactoryOptions: this.sessionDescriptionHandlerFactoryOptions
             };
