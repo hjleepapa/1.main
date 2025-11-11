@@ -444,7 +444,9 @@ class CallCenterAgent {
                     audio: true,
                     video: false
                 },
-                peerConnectionConfiguration: this.rtcConfiguration
+                peerConnectionConfiguration: this.rtcConfiguration,
+                trickle: false,
+                disableTrickleIce: true
             },
             sessionDescriptionHandlerFactoryOptions: this.sessionDescriptionHandlerFactoryOptions
         };
@@ -600,7 +602,7 @@ class CallCenterAgent {
             console.log('Attempting to answer call', { sessionId: session.id, status });
             const stream = await this.ensureLocalAudioStream();
             
-            session.answer(this.buildSessionOptions(stream));
+            await session.answer(this.buildSessionOptions(stream));
             console.log('Answer sent for session', session.id);
             
             // Notify backend
