@@ -38,10 +38,13 @@ class CallCenterAgent {
         };
         this.sessionDescriptionHandlerFactoryOptions = {
             peerConnectionOptions: {
-                rtcConfiguration: this.rtcConfiguration
+                rtcConfiguration: this.rtcConfiguration,
+                disableTrickleIce: true,
+                iceGatheringTimeout: 8000
             },
             peerConnectionConfiguration: this.rtcConfiguration,
-            iceGatheringTimeout: 2000
+            disableTrickleIce: true,
+            iceGatheringTimeout: 8000
         };
         this.statusTimer = null;
         this.statusStartTime = null;
