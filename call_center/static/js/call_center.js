@@ -424,11 +424,23 @@ class CallCenterAgent {
     observePeerConnection(pc) {
         if (!pc) return;
 
+        let currentConfig = {};
         if (typeof pc.getConfiguration === 'function') {
             try {
-                console.log('RTCPeerConnection configuration:', pc.getConfiguration());
+                currentConfig = pc.getConfiguration() || {};
+                console.log('RTCPeerConnection configuration:', currentConfig);
             } catch (error) {
                 console.warn('Unable to read RTCPeerConnection configuration:', error);
+            }
+        }
+
+        if (!currentConfig.iceServers || currentConfig.iceServers.length === 0) {
+            const updatedConfig = Object.assign({}, currentConfig, { iceServers: this.iceServers });
+            try {
+                pc.setConfiguration(updatedConfig);
+                console.log('Applied ICE servers to RTCPeerConnection:', updatedConfig);
+            } catch (error) {
+                console.error('Failed to apply ICE servers to RTCPeerConnection:', error);
             }
         }
 
