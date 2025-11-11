@@ -391,7 +391,30 @@
                     addTranscript('agent', transferHtml, true);
                     
                     // Show status
-                    showStatus(`Transfer initiated to ${data.department} (Extension ${data.extension})`, 'info');
+                    if (data.call_started) {
+                        showStatus(`Connecting you to ${data.department}. Extension ${data.extension} is being dialed now.`, 'success');
+                    } else if (data.call_details && data.call_details.error) {
+                        showStatus(`Transfer requested but call could not be started: ${data.call_details.error}`, 'error');
+                    } else {
+                        showStatus(`Transfer initiated to ${data.department} (Extension ${data.extension}).`, 'info');
+                    }
+                }
+            });
+
+            socket.on('transfer_status', (data) => {
+                console.log('🔄 Transfer status update:', data);
+                if (!data) return;
+                if (data.success) {
+                    const details = data.details || {};
+                    if (details.user_call_sid) {
+                        showStatus('An agent and your phone are being connected. Please answer when it rings.', 'success');
+                    } else if (details.agent_call_sid) {
+                        showStatus('Agent leg is ringing. Please use one of the call options to join.', 'info');
+                    } else {
+                        showStatus('Transfer bridge created.', 'info');
+                    }
+                } else if (data.details && data.details.error) {
+                    showStatus(`Transfer failed: ${data.details.error}`, 'error');
                 }
             });
         }

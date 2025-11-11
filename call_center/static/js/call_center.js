@@ -351,16 +351,7 @@ class CallCenterAgent {
     attachSessionEventHandlers(session, direction = 'inbound', dialedNumber = null) {
         this.currentSession = session;
 
-        // Force JsSIP/SIP.js to run in non-trickle mode before any answer/offer is generated.
-        session.sessionDescriptionHandlerOptions = Object.assign(
-            {},
-            session.sessionDescriptionHandlerOptions,
-            {
-                disableTrickleIce: true,
-                iceGatheringTimeout: 8000,
-                peerConnectionConfiguration: this.rtcConfiguration
-            }
-        );
+        this.enforceNonTrickle(session);
 
         this.setupRemoteAudio(session);
         this.observePeerConnection(session.connection);
@@ -408,6 +399,64 @@ class CallCenterAgent {
         });
     }
     
+    enforceNonTrickle(session) {
+        if (!session) {
+            return;
+        }
+
+        const applyHandlerPreferences = () => {
+            const handler = session.sessionDescriptionHandler;
+            if (!handler) {
+                return;
+            }
+
+            handler.options = Object.assign({}, handler.options, {
+                disableTrickleIce: true,
+                iceGatheringTimeout: 8000,
+                peerConnectionConfiguration: this.rtcConfiguration
+            });
+
+            if (handler.peerConnection) {
+                try {
+                    const currentConfig = handler.peerConnection.getConfiguration?.() || {};
+                    const mergedConfig = Object.assign({}, currentConfig, {
+                        iceServers: this.iceServers,
+                        iceTransportPolicy: currentConfig.iceTransportPolicy || this.rtcConfiguration.iceTransportPolicy
+                    });
+                    handler.peerConnection.setConfiguration(mergedConfig);
+                } catch (error) {
+                    console.warn('Unable to apply ICE configuration to session peerConnection', error);
+                }
+            }
+        };
+
+        applyHandlerPreferences();
+        session.on('peerconnection', () => applyHandlerPreferences());
+
+        session.sessionDescriptionHandlerOptions = Object.assign(
+            {},
+            session.sessionDescriptionHandlerOptions,
+            {
+                disableTrickleIce: true,
+                trickle: false,
+                iceGatheringTimeout: 8000,
+                peerConnectionConfiguration: this.rtcConfiguration
+            }
+        );
+
+        session.on('sdp', (event) => {
+            if (!event || event.originator !== 'local' || typeof event.sdp !== 'string') {
+                return;
+            }
+
+            const sanitized = event.sdp.replace(/a=ice-options:trickle\r\n/gi, '');
+            if (sanitized !== event.sdp) {
+                console.log('Removed ice-options:trickle from local SDP answer');
+                event.sdp = sanitized;
+            }
+        });
+    }
+
     setupRemoteAudio(session, peerConnectionOverride = null) {
         const applyRemoteTracks = (pc) => {
             if (!pc) return;

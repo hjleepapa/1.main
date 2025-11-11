@@ -8,12 +8,15 @@ import json
 import os
 import base64
 import time
+import re
+from urllib.parse import quote
 from flask import Blueprint, render_template, request, jsonify
 from flask_socketio import SocketIO, emit, join_room, leave_room
 import openai
 from sambanova.assistant_graph_todo import get_agent
 from sambanova.state import AgentState
 from langchain_core.messages import HumanMessage
+from twilio.rest import Client
 
 # Deepgram WebRTC integration
 from deepgram_webrtc_integration import transcribe_audio_with_deepgram_webrtc, get_deepgram_webrtc_info
@@ -61,6 +64,96 @@ active_sessions = {}
 # Global references for background tasks
 socketio = None
 flask_app = None
+
+
+def initiate_agent_transfer(session_id: str, extension: str, department: str, reason: str, session_data: dict | None):
+    """
+    Use Twilio Programmable Voice to originate a real call path to the target agent (and optionally the user).
+
+    Returns:
+        (success: bool, details: dict)
+    """
+    account_sid = os.getenv('TWILIO_ACCOUNT_SID')
+    auth_token = os.getenv('TWILIO_AUTH_TOKEN')
+    caller_id = (
+        os.getenv('TWILIO_TRANSFER_CALLER_ID')
+        or os.getenv('TWILIO_CALLER_ID')
+        or os.getenv('TWILIO_NUMBER')
+    )
+    base_url = os.getenv('VOICE_ASSISTANT_TRANSFER_BASE_URL') or os.getenv('PUBLIC_BASE_URL')
+    freepbx_domain = os.getenv('FREEPBX_DOMAIN', '136.115.41.45')
+
+    if not (account_sid and auth_token and caller_id and base_url):
+        missing = []
+        if not account_sid:
+            missing.append('TWILIO_ACCOUNT_SID')
+        if not auth_token:
+            missing.append('TWILIO_AUTH_TOKEN')
+        if not caller_id:
+            missing.append('TWILIO_TRANSFER_CALLER_ID / TWILIO_CALLER_ID / TWILIO_NUMBER')
+        if not base_url:
+            missing.append('VOICE_ASSISTANT_TRANSFER_BASE_URL / PUBLIC_BASE_URL')
+        message = f"Transfer aborted: missing configuration values: {', '.join(missing)}"
+        print(f"⚠️ {message}")
+        return False, {'error': message}
+
+    conference_name = re.sub(r'[^a-zA-Z0-9_-]', '', f"va-transfer-{session_id or 'anon'}")
+    conference_url = f"{base_url.rstrip('/')}/sambanova_todo/twilio/voice_assistant/transfer_bridge?conference={quote(conference_name)}"
+
+    client = Client(account_sid, auth_token)
+    response_details = {
+        'conference': conference_name,
+        'conference_url': conference_url,
+        'agent_call_sid': None,
+        'user_call_sid': None
+    }
+
+    try:
+        sip_target = f"sip:{extension}@{freepbx_domain};transport=udp"
+        agent_call = client.calls.create(
+            to=sip_target,
+            from_=caller_id,
+            url=conference_url
+        )
+        response_details['agent_call_sid'] = agent_call.sid
+        print(f"📞 Initiated agent call via Twilio (Call SID: {agent_call.sid}) to {sip_target}")
+    except Exception as agent_error:
+        message = f"Failed to originate agent call: {agent_error}"
+        print(f"❌ {message}")
+        response_details['error'] = message
+        return False, response_details
+
+    user_number = None
+    if session_data:
+        for key in ('user_phone', 'contact_phone', 'phone_number', 'transfer_phone'):
+            if session_data.get(key):
+                user_number = session_data[key]
+                break
+    if not user_number:
+        user_number = os.getenv('VOICE_ASSISTANT_TRANSFER_USER_NUMBER')
+
+    if not user_number:
+        print("ℹ️ No user phone number available. Agent leg will ring but user must join manually.")
+        return True, response_details
+
+    if isinstance(user_number, bytes):
+        user_number = user_number.decode('utf-8', errors='ignore')
+
+    try:
+        user_call = client.calls.create(
+            to=user_number,
+            from_=caller_id,
+            url=conference_url
+        )
+        response_details['user_call_sid'] = user_call.sid
+        print(f"📞 Initiated user call via Twilio (Call SID: {user_call.sid}) to {user_number}")
+    except Exception as user_error:
+        message = f"Agent call started but failed to call user number {user_number}: {user_error}"
+        print(f"⚠️ {message}")
+        response_details['user_error'] = message
+        return True, response_details
+
+    return True, response_details
 
 # Sentry helper functions
 def sentry_capture_redis_operation(operation: str, session_id: str, success: bool, error: str = None):
@@ -953,17 +1046,32 @@ def init_socketio(socketio_instance: SocketIO, app):
                     }
                     
                     # Send transfer event to client
+                    transfer_success, transfer_details = initiate_agent_transfer(
+                        session_id=session_id,
+                        extension=target_extension,
+                        department=department,
+                        reason=reason,
+                        session_data=session_data
+                    )
+
                     socketio.emit('transfer_initiated', {
                         'success': True,
                         'extension': target_extension,
                         'department': department,
                         'reason': reason,
                         'instructions': transfer_instructions,
-                        'message': f'I\'m transferring you to {department} (extension {target_extension}). Please use one of the options provided.'
+                        'message': f'I\'m transferring you to {department} (extension {target_extension}). Please use one of the options provided.',
+                        'call_started': transfer_success,
+                        'call_details': transfer_details
                     }, namespace='/voice', room=session_id)
-                    
+
+                    socketio.emit('transfer_status', {
+                        'success': transfer_success,
+                        'details': transfer_details
+                    }, namespace='/voice', room=session_id)
+
                     print(f"🔄 Transfer instructions sent to WebRTC client for extension {target_extension}")
-                    
+
                     # Generate TTS for transfer message
                     transfer_message = f"I'm transferring you to {department}. Extension {target_extension}. Please call {twilio_number} to connect to an agent, or use the transfer options provided."
                     
@@ -989,8 +1097,8 @@ def init_socketio(socketio_instance: SocketIO, app):
                             'text': transfer_message,
                             'transfer': True
                         }, namespace='/voice', room=session_id)
-                    
-                    sentry_capture_voice_event("transfer_handled", session_id, session.get('user_id'), details={"extension": target_extension})
+
+                    sentry_capture_voice_event("transfer_handled", session_id, session.get('user_id'), details={"extension": target_extension, "bridge_success": transfer_success})
                     return
                 
                 # Step 3: Convert response to speech using OpenAI TTS (normal response)

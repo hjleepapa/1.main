@@ -367,6 +367,22 @@ def transfer_callback():
         response.hangup()
         return Response(str(response), mimetype='text/xml')
 
+
+@sambanova_todo_bp.route('/twilio/voice_assistant/transfer_bridge', methods=['POST'])
+def voice_assistant_transfer_bridge():
+    """
+    TwiML endpoint used by the WebRTC voice assistant to bridge Twilio call legs into a conference.
+    """
+    conference_name = request.args.get('conference', 'va-transfer')
+    response = VoiceResponse()
+    dial = response.dial()
+    dial.conference(
+        conference_name,
+        start_conference_on_enter=True,
+        end_conference_on_exit=True
+    )
+    return Response(str(response), mimetype='text/xml')
+
 @sambanova_todo_bp.route('/twilio/process_audio', methods=['POST'])
 def process_audio_webhook():
     """
@@ -788,6 +804,22 @@ async def _run_agent_async(prompt: str, user_id: Optional[str] = None, user_name
         agent_graph = await _get_agent_graph()
     except Exception as e:
         print(f"❌ Failed to initialize agent: {e}")
+        lower_prompt = prompt.lower()
+        fallback_extension = os.getenv('VOICE_AGENT_FALLBACK_EXTENSION', '2001')
+        fallback_department = os.getenv('VOICE_AGENT_FALLBACK_DEPARTMENT', 'support')
+        transfer_keywords = [
+            "transfer",
+            "speak to a human",
+            "human agent",
+            "talk to an agent",
+            "representative",
+            "customer service",
+            "live agent"
+        ]
+        if any(keyword in lower_prompt for keyword in transfer_keywords):
+            reason = "Automated transfer triggered due to assistant service interruption"
+            print(f"🔄 Fallback transfer to extension {fallback_extension} ({fallback_department}) because agent initialization failed.")
+            return f"TRANSFER_INITIATED:{fallback_extension}|{fallback_department}|{reason}"
         return "I'm sorry, there's a temporary system issue. Please try again in a moment."
 
     input_state = AgentState(
