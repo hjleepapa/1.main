@@ -41,7 +41,6 @@ class CallCenterAgent {
                 rtcConfiguration: this.rtcConfiguration
             },
             peerConnectionConfiguration: this.rtcConfiguration,
-            disableTrickleIce: true,
             iceGatheringTimeout: 2000
         };
         this.statusTimer = null;
@@ -432,6 +431,22 @@ class CallCenterAgent {
         }
     }
 
+    buildSessionOptions(stream) {
+        return {
+            mediaStream: stream,
+            pcConfig: this.rtcConfiguration,
+            trickle: false,
+            sessionDescriptionHandlerOptions: {
+                constraints: {
+                    audio: true,
+                    video: false
+                },
+                peerConnectionConfiguration: this.rtcConfiguration
+            },
+            sessionDescriptionHandlerFactoryOptions: this.sessionDescriptionHandlerFactoryOptions
+        };
+    }
+
     observePeerConnection(pc) {
         if (!pc) return;
 
@@ -582,18 +597,7 @@ class CallCenterAgent {
             console.log('Attempting to answer call', { sessionId: session.id, status });
             const stream = await this.ensureLocalAudioStream();
             
-            session.answer({
-                mediaStream: stream,
-                pcConfig: this.rtcConfiguration,
-                sessionDescriptionHandlerOptions: {
-                    constraints: {
-                        audio: true,
-                        video: false
-                    },
-                    disableTrickleIce: true
-                },
-                sessionDescriptionHandlerFactoryOptions: this.sessionDescriptionHandlerFactoryOptions
-            });
+            session.answer(this.buildSessionOptions(stream));
             console.log('Answer sent for session', session.id);
             
             // Notify backend
@@ -686,18 +690,7 @@ class CallCenterAgent {
             const cleanDomain = this.sanitizeDomain(this.agent.sip_domain);
             const target = `sip:${number}@${cleanDomain}`;
             const stream = await this.ensureLocalAudioStream();
-            const options = {
-                mediaStream: stream,
-                pcConfig: this.rtcConfiguration,
-                sessionDescriptionHandlerOptions: {
-                    constraints: {
-                        audio: true,
-                        video: false
-                    },
-                    disableTrickleIce: true
-                },
-                sessionDescriptionHandlerFactoryOptions: this.sessionDescriptionHandlerFactoryOptions
-            };
+            const options = this.buildSessionOptions(stream);
             this.pendingDialNumber = number;
             
             const session = this.sipUser.call(target, options);
