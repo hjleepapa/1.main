@@ -342,6 +342,7 @@ class CallCenterAgent {
     attachSessionEventHandlers(session, direction = 'inbound', dialedNumber = null) {
         this.currentSession = session;
         this.setupRemoteAudio(session);
+        this.observePeerConnection(session.connection);
         
         session.on('progress', () => {
             console.log('Call progressing...');
@@ -378,6 +379,7 @@ class CallCenterAgent {
         
         session.on('peerconnection', (data) => {
             this.setupRemoteAudio(session, data.peerconnection);
+            this.observePeerConnection(data.peerconnection);
         });
     }
     
@@ -417,6 +419,37 @@ class CallCenterAgent {
         if (pc) {
             applyRemoteTracks(pc);
         }
+    }
+
+    observePeerConnection(pc) {
+        if (!pc) return;
+
+        if (typeof pc.getConfiguration === 'function') {
+            try {
+                console.log('RTCPeerConnection configuration:', pc.getConfiguration());
+            } catch (error) {
+                console.warn('Unable to read RTCPeerConnection configuration:', error);
+            }
+        }
+
+        pc.addEventListener('icecandidateerror', (event) => {
+            console.warn('ICE candidate error:', {
+                errorCode: event.errorCode,
+                errorText: event.errorText,
+                hostCandidate: event.hostCandidate,
+                url: event.url,
+                address: event.address,
+                port: event.port
+            });
+        });
+
+        pc.addEventListener('iceconnectionstatechange', () => {
+            console.log('ICE connection state changed:', pc.iceConnectionState);
+        });
+
+        pc.addEventListener('connectionstatechange', () => {
+            console.log('Peer connection state changed:', pc.connectionState);
+        });
     }
     
     async ensureLocalAudioStream() {
