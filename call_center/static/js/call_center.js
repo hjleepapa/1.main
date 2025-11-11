@@ -12,6 +12,7 @@ class CallCenterAgent {
         this.pendingDialNumber = null;
         this.localStream = null;
         this.audioAccessDenied = false;
+        this.answerInProgress = false;
         this.iceServers = [
             { urls: 'stun:stun.l.google.com:19302' },
             {
@@ -266,6 +267,10 @@ class CallCenterAgent {
         console.log(`Connecting to WebSocket: ${wsUrl}`);
         
         const socket = new JsSIP.WebSocketInterface(wsUrl);
+
+        if (JsSIP && JsSIP.debug && typeof JsSIP.debug.enable === 'function') {
+            JsSIP.debug.enable('JsSIP:*');
+        }
         
         const configuration = {
             sockets: [socket],
@@ -355,10 +360,12 @@ class CallCenterAgent {
             console.log('Call accepted');
             this.ringTone.pause();
             this.ringTone.currentTime = 0;
+            this.answerInProgress = false;
         });
         
         session.on('confirmed', () => {
             console.log('Call confirmed');
+            this.answerInProgress = false;
             this.onCallEstablished();
         });
         
@@ -366,6 +373,7 @@ class CallCenterAgent {
             console.log('Call ended');
             this.ringTone.pause();
             this.ringTone.currentTime = 0;
+            this.answerInProgress = false;
             this.onCallEnded();
         });
         
@@ -374,6 +382,7 @@ class CallCenterAgent {
             this.ringTone.pause();
             this.ringTone.currentTime = 0;
             alert('Call failed: ' + (e && e.cause ? e.cause : 'Unknown error'));
+            this.answerInProgress = false;
             this.onCallEnded();
         });
         
@@ -528,13 +537,52 @@ class CallCenterAgent {
     }
     
     async answerCall() {
-        if (!this.currentSession) return;
-        
+        const session = this.currentSession;
+        if (!session) {
+            console.warn('No active session to answer');
+            return;
+        }
+
+        if (typeof session.isEnded === 'function' && session.isEnded()) {
+            console.warn('Cannot answer: session already ended');
+            return;
+        }
+
+        const status = session.status;
+        const allowedStatuses = [];
+        if (typeof JsSIP !== 'undefined' && JsSIP.RTCSession && JsSIP.RTCSession.C) {
+            const C = JsSIP.RTCSession.C;
+            allowedStatuses.push(
+                C.STATUS_NULL,
+                C.STATUS_INVITE_RECEIVED,
+                C.STATUS_1XX_RECEIVED,
+                C.STATUS_WAITING_FOR_ANSWER
+            );
+        }
+
+        if (allowedStatuses.length && !allowedStatuses.includes(status)) {
+            console.warn('Skipping answer; session status not answerable', { status });
+            return;
+        }
+
+        if (this.answerInProgress) {
+            console.warn('Answer already in progress for current session');
+            return;
+        }
+
+        this.answerInProgress = true;
+        this.answerBtn.disabled = true;
+        if (this.acceptCallFromPopup) {
+            this.acceptCallFromPopup.disabled = true;
+        }
+
         try {
+            console.log('Attempting to answer call', { sessionId: session.id, status });
             const stream = await this.ensureLocalAudioStream();
             
-            this.currentSession.answer({
+            session.answer({
                 mediaStream: stream,
+                pcConfig: this.rtcConfiguration,
                 sessionDescriptionHandlerOptions: {
                     constraints: {
                         audio: true,
@@ -543,6 +591,7 @@ class CallCenterAgent {
                 },
                 sessionDescriptionHandlerFactoryOptions: this.sessionDescriptionHandlerFactoryOptions
             });
+            console.log('Answer sent for session', session.id);
             
             // Notify backend
             await fetch('/call-center/api/call/answer', {
@@ -558,6 +607,11 @@ class CallCenterAgent {
                 alert('Microphone access is required to answer calls. Please allow microphone permissions in your browser.');
             }
             console.error('Answer call error:', error);
+            this.answerInProgress = false;
+            this.answerBtn.disabled = false;
+            if (this.acceptCallFromPopup) {
+                this.acceptCallFromPopup.disabled = false;
+            }
         }
     }
     
@@ -787,6 +841,10 @@ class CallCenterAgent {
         
         this.answerBtn.disabled = false;
         this.hangupBtn.disabled = false;
+        this.answerInProgress = false;
+        if (this.acceptCallFromPopup) {
+            this.acceptCallFromPopup.disabled = false;
+        }
     }
     
     showOutgoingCall(number) {
@@ -855,10 +913,14 @@ class CallCenterAgent {
         this.unholdBtn.disabled = true;
         this.transferBtn.disabled = true;
         this.hangupBtn.disabled = true;
+        if (this.acceptCallFromPopup) {
+            this.acceptCallFromPopup.disabled = false;
+        }
         
         this.currentCall = null;
         this.currentSession = null;
         this.pendingDialNumber = null;
+        this.answerInProgress = false;
         
         this.setReady();
     }
