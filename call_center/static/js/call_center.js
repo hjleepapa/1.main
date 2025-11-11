@@ -14,8 +14,22 @@ class CallCenterAgent {
         this.audioAccessDenied = false;
         this.iceServers = [
             { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'turns:turn.pbx.hjlees.com:5349?transport=tcp', username: 'agent', credential: 'P@ssw0rd' },
-            { urls: 'turn:turn.pbx.hjlees.com:3478?transport=udp', username: 'agent', credential: 'P@ssw0rd' }
+            {
+                urls: [
+                    'turn:pbx.hjlees.com:3478?transport=udp',
+                    'turn:pbx.hjlees.com:3478?transport=tcp'
+                ],
+                username: 'agent',
+                credential: 'P@ssw0rd'
+            },
+            {
+                urls: [
+                    'turns:pbx.hjlees.com:5349?transport=tcp',
+                    'turns:pbx.hjlees.com:5350?transport=tcp'
+                ],
+                username: 'agent',
+                credential: 'P@ssw0rd'
+            }
         ];
         this.rtcConfiguration = {
             iceServers: this.iceServers,
