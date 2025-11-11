@@ -350,6 +350,18 @@ class CallCenterAgent {
     
     attachSessionEventHandlers(session, direction = 'inbound', dialedNumber = null) {
         this.currentSession = session;
+
+        // Force JsSIP/SIP.js to run in non-trickle mode before any answer/offer is generated.
+        session.sessionDescriptionHandlerOptions = Object.assign(
+            {},
+            session.sessionDescriptionHandlerOptions,
+            {
+                disableTrickleIce: true,
+                iceGatheringTimeout: 8000,
+                peerConnectionConfiguration: this.rtcConfiguration
+            }
+        );
+
         this.setupRemoteAudio(session);
         this.observePeerConnection(session.connection);
         
