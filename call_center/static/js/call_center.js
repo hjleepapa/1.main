@@ -17,16 +17,7 @@ class CallCenterAgent {
             { urls: 'stun:stun.l.google.com:19302' },
             {
                 urls: [
-                    'turn:pbx.hjlees.com:3478?transport=udp',
-                    'turn:pbx.hjlees.com:3478?transport=tcp'
-                ],
-                username: 'agent',
-                credential: 'P@ssw0rd'
-            },
-            {
-                urls: [
-                    'turns:pbx.hjlees.com:5349?transport=tcp',
-                    'turns:pbx.hjlees.com:5350?transport=tcp'
+                    'turn:pbx.hjlees.com:3478?transport=udp'
                 ],
                 username: 'agent',
                 credential: 'P@ssw0rd'
@@ -449,7 +440,7 @@ class CallCenterAgent {
                 return;
             }
 
-            const sanitized = event.sdp.replace(/a=ice-options:trickle\r\n/gi, '');
+            const sanitized = event.sdp.replace(/^a=ice-options:trickle\r?\n/gim, '');
             if (sanitized !== event.sdp) {
                 console.log('Removed ice-options:trickle from local SDP answer');
                 event.sdp = sanitized;
