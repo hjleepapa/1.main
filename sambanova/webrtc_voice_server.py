@@ -1021,12 +1021,12 @@ def init_socketio(socketio_instance: SocketIO, app):
                     
                     user_email = session_data.get('user_email', '') if session_data else ''
                     
-        # Instructions now simplified for direct bridge messaging only
-        transfer_instructions = {
-            'extension': target_extension,
-            'department': department,
-            'reason': reason
-        }
+                    # Instructions now simplified for direct bridge messaging only
+                    transfer_instructions = {
+                        'extension': target_extension,
+                        'department': department,
+                        'reason': reason
+                    }
                     
                     # Send transfer event to client
                     transfer_success, transfer_details = initiate_agent_transfer(
@@ -1037,13 +1037,15 @@ def init_socketio(socketio_instance: SocketIO, app):
                         session_data=session_data
                     )
 
+                    transfer_message_text = f"I'm transferring you to {department} (extension {target_extension})."
+
                     socketio.emit('transfer_initiated', {
                         'success': True,
                         'extension': target_extension,
                         'department': department,
                         'reason': reason,
                         'instructions': transfer_instructions,
-                        'message': f'I\'m transferring you to {department} (extension {target_extension}). Please use one of the options provided.',
+                        'message': transfer_message_text,
                         'call_started': transfer_success,
                         'call_details': transfer_details
                     }, namespace='/voice', room=session_id)
@@ -1056,7 +1058,7 @@ def init_socketio(socketio_instance: SocketIO, app):
                     print(f"🔄 Transfer instructions sent to WebRTC client for extension {target_extension}")
 
                     # Generate TTS for transfer message
-                    transfer_message = f"I'm transferring you to {department}. Extension {target_extension}. Please call {twilio_number} to connect to an agent, or use the transfer options provided."
+                    transfer_message = f"I'm transferring you to {department}. Extension {target_extension}."
                     
                     try:
                         speech_response = openai_client.audio.speech.create(
