@@ -26,7 +26,7 @@
 **Solution**:
 1. **Clear browser cookies/cache**
 2. **Re-login** with admin credentials:
-   - Email: `admin@sambanova.com`
+   - Email: `admin@convonet.com`
    - Password: `admin123`
 
 #### **Issue B: User Not Member of Teams**
@@ -74,18 +74,18 @@ If the script doesn't work, manually fix the database:
 
 ```sql
 -- 1. Check existing data
-SELECT * FROM users_sambanova WHERE email = 'admin@sambanova.com';
-SELECT * FROM teams_sambanova;
-SELECT * FROM team_memberships_sambanova;
+SELECT * FROM users_convonet WHERE email = 'admin@convonet.com';
+SELECT * FROM teams_convonet;
+SELECT * FROM team_memberships_convonet;
 
 -- 2. Add admin to all teams
-INSERT INTO team_memberships_sambanova (team_id, user_id, role, joined_at)
+INSERT INTO team_memberships_convonet (team_id, user_id, role, joined_at)
 SELECT t.id, u.id, 'owner', NOW()
-FROM teams_sambanova t
-CROSS JOIN users_sambanova u
-WHERE u.email = 'admin@sambanova.com'
+FROM teams_convonet t
+CROSS JOIN users_convonet u
+WHERE u.email = 'admin@convonet.com'
 AND NOT EXISTS (
-    SELECT 1 FROM team_memberships_sambanova tm
+    SELECT 1 FROM team_memberships_convonet tm
     WHERE tm.team_id = t.id AND tm.user_id = u.id
 );
 ```
@@ -110,7 +110,7 @@ If nothing works, create a new team via API:
 # Login and get token
 curl -X POST https://hjlees.com/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email": "admin@sambanova.com", "password": "admin123"}'
+  -d '{"email": "admin@convonet.com", "password": "admin123"}'
 
 # Create team (replace YOUR_TOKEN)
 curl -X POST https://hjlees.com/api/teams/ \
@@ -124,8 +124,8 @@ curl -X POST https://hjlees.com/api/teams/ \
 - [ ] **Authentication**: User logged in successfully
 - [ ] **Token**: Access token present in localStorage
 - [ ] **API**: `/api/teams/` endpoint returns 200
-- [ ] **Database**: Teams exist in `teams_sambanova` table
-- [ ] **Memberships**: User has memberships in `team_memberships_sambanova`
+- [ ] **Database**: Teams exist in `teams_convonet` table
+- [ ] **Memberships**: User has memberships in `team_memberships_convonet`
 - [ ] **JavaScript**: Console shows debug messages
 - [ ] **UI**: Team dropdown populated with teams
 

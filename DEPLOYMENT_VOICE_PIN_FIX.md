@@ -3,7 +3,7 @@
 ## 🚨 Issue
 
 ```
-psycopg2.errors.UndefinedColumn: column users_sambanova.voice_pin does not exist
+psycopg2.errors.UndefinedColumn: column users_convonet.voice_pin does not exist
 ```
 
 The production database doesn't have the `voice_pin` column yet.
@@ -62,17 +62,17 @@ It will:
 
 ```sql
 -- Add voice_pin column
-ALTER TABLE users_sambanova 
+ALTER TABLE users_convonet 
 ADD COLUMN voice_pin VARCHAR(10) UNIQUE;
 
 -- Create index for performance
 CREATE INDEX IF NOT EXISTS idx_users_voice_pin 
-ON users_sambanova(voice_pin);
+ON users_convonet(voice_pin);
 
 -- Set admin user's PIN
-UPDATE users_sambanova 
+UPDATE users_convonet 
 SET voice_pin = '1234' 
-WHERE email = 'admin@sambanova.com';
+WHERE email = 'admin@convonet.com';
 ```
 
 ---
@@ -85,7 +85,7 @@ Run this SQL query:
 ```sql
 SELECT column_name, data_type 
 FROM information_schema.columns 
-WHERE table_name = 'users_sambanova' 
+WHERE table_name = 'users_convonet' 
 AND column_name = 'voice_pin';
 ```
 
@@ -100,22 +100,22 @@ voice_pin   | character varying
 
 ```sql
 SELECT email, voice_pin 
-FROM users_sambanova 
-WHERE email = 'admin@sambanova.com';
+FROM users_convonet 
+WHERE email = 'admin@convonet.com';
 ```
 
 Expected result:
 ```
 email                    | voice_pin
 ------------------------|----------
-admin@sambanova.com     | 1234
+admin@convonet.com     | 1234
 ```
 
 ### **Check 3: Web Login Works**
 
 1. Go to https://hjlees.com/team-dashboard
 2. Login with:
-   - Email: `admin@sambanova.com`
+   - Email: `admin@convonet.com`
    - Password: `admin123`
 3. Should login successfully ✅
 
@@ -131,7 +131,7 @@ admin@sambanova.com     | 1234
 ## 📁 Migration Files
 
 ### **Created:**
-- ✅ `sambanova/migrations/add_voice_pin.py` - Main migration
+- ✅ `convonet/migrations/add_voice_pin.py` - Main migration
 - ✅ `run_voice_pin_migration.py` - Standalone runner
 - ✅ `check_admin_user.py` - Updated with auto-column-add
 
@@ -158,7 +158,7 @@ admin@sambanova.com     | 1234
    - Say "one two three four"
    - Should authenticate successfully
 4. **Test web dashboard:**
-   - Login with admin@sambanova.com / admin123
+   - Login with admin@convonet.com / admin123
    - Should work
 
 ---
@@ -198,7 +198,7 @@ This will:
 You'll know it worked when:
 
 1. ✅ Deployment logs show: "Voice PIN authentication migration completed"
-2. ✅ Web dashboard login works with admin@sambanova.com / admin123
+2. ✅ Web dashboard login works with admin@convonet.com / admin123
 3. ✅ Voice call accepts PIN "one two three four" (or 1234#)
 4. ✅ Agent says "Welcome back, Admin!"
 5. ✅ No more database errors in logs
@@ -209,7 +209,7 @@ You'll know it worked when:
 
 **Web Login:**
 - URL: https://hjlees.com/team-dashboard
-- Email: admin@sambanova.com
+- Email: admin@convonet.com
 - Password: admin123
 
 **Voice Authentication:**

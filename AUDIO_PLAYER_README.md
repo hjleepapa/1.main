@@ -1,6 +1,6 @@
 # Audio Stream Player
 
-A web application to play audio streams from Redis audio buffers stored in the Sambanova project.
+A web application to play audio streams from Redis audio buffers stored in the Convonet project.
 
 ## Features
 
@@ -34,7 +34,7 @@ Make sure your Redis server is running and accessible:
 
 ```bash
 # Check Redis connection
-python -c "from sambanova.redis_manager import redis_manager; print('Redis available:', redis_manager.is_available())"
+python -c "from convonet.redis_manager import redis_manager; print('Redis available:', redis_manager.is_available())"
 ```
 
 ## Usage
@@ -207,7 +207,7 @@ You can modify the audio player behavior by editing:
 
 ```bash
 # Test Redis connection
-python -c "from sambanova.redis_manager import redis_manager; print(redis_manager.is_available())"
+python -c "from convonet.redis_manager import redis_manager; print(redis_manager.is_available())"
 
 # Test audio playback
 python -c "import pyaudio; print('PyAudio available')"
@@ -218,7 +218,7 @@ python audio_stream_player.py
 
 ## License
 
-This project is part of the Sambanova Hackathon project.
+This project is part of the Convonet Hackathon project.
 
 ## Support
 

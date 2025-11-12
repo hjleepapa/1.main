@@ -18,7 +18,7 @@ def run_team_migration():
         print("🔄 Running team collaboration migration...")
         
         # Import and run the migration
-        from sambanova.migrations.add_team_collaboration import run_migration
+        from convonet.migrations.add_team_collaboration import run_migration
         
         success = run_migration()
         

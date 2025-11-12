@@ -22,7 +22,7 @@ The audio stream player has been fully integrated into your main Flask applicati
 - **NumPy>=2.2.4**: Already present for audio data processing
 
 ### **3. Main Application Integration**
-- **Blueprint**: `sambanova.audio_player_routes.audio_player_bp`
+- **Blueprint**: `convonet.audio_player_routes.audio_player_bp`
 - **Template**: `templates/audio_player_dashboard.html`
 - **Navigation**: Added to main homepage projects section
 - **Routes**: All audio player functionality accessible via `/audio-player/`
@@ -135,4 +135,4 @@ open http://localhost:10000/audio-player/
 - **Redis Data Guide**: `REDIS_DATA_GUIDE.md`
 - **Integration**: Fully integrated into main Flask app
 
-The audio player is now a permanent part of your Sambanova project and will be available whenever your main application is running! 🎵🚀
+The audio player is now a permanent part of your Convonet project and will be available whenever your main application is running! 🎵🚀

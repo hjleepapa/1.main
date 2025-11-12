@@ -8,7 +8,7 @@
    - Lines 10-14: Import Sentry modules
    - Lines 38-60: Initialize Sentry with Flask, SQLAlchemy, and Logging integrations
 
-2. **`sambanova/routes.py`** - Voice call monitoring
+2. **`convonet/routes.py`** - Voice call monitoring
    - Line 11: Import sentry_sdk
    - Lines 363-376: Transaction tracking for voice calls
    - Lines 437-441: Thread reset tracking
@@ -23,7 +23,7 @@
 4. **Documentation**
    - `SENTRY_SETUP.md` - Setup guide
    - `SENTRY_INTEGRATION_SUMMARY.md` - This file
-   - `sambanova/SENTRY_INTEGRATION.md` - Detailed integration docs
+   - `convonet/SENTRY_INTEGRATION.md` - Detailed integration docs
 
 ---
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Audio Stream Player for Sambanova Project
+Audio Stream Player for Convonet Project
 Plays audio streams from Redis audio buffers
 """
 
@@ -17,7 +17,7 @@ import queue
 
 # Redis imports
 try:
-    from sambanova.redis_manager import redis_manager, get_session
+    from convonet.redis_manager import redis_manager, get_session
     REDIS_AVAILABLE = True
 except ImportError:
     REDIS_AVAILABLE = False
@@ -372,7 +372,7 @@ def handle_disconnect():
     print(f"❌ Audio player client disconnected: {request.sid}")
 
 if __name__ == '__main__':
-    print("🎵 Audio Stream Player for Sambanova Project")
+    print("🎵 Audio Stream Player for Convonet Project")
     print(f"Redis Available: {REDIS_AVAILABLE}")
     print(f"Audio Available: {AUDIO_AVAILABLE}")
     

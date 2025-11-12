@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: sambanova-memory-optimized
+    name: convonet-memory-optimized
     env: python
     plan: free
     buildCommand: |

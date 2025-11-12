@@ -6,26 +6,26 @@ You have local fixes that solve the timeout and cascading error issues, but they
 
 ## 📝 **Files That Need to Be Deployed:**
 
-### 1. **`sambanova/routes.py`**
+### 1. **`convonet/routes.py`**
 - ✅ Reduced timeouts (12s/10s/8s)
 - ✅ Thread reset detection
 - ✅ Error marker handling (AGENT_ERROR, AGENT_TIMEOUT)
 - ✅ Better error messages
 - ✅ Thread_id debug logging
 
-### 2. **`sambanova/assistant_graph_todo.py`**
+### 2. **`convonet/assistant_graph_todo.py`**
 - ✅ Reduced tool timeout (20s → 8s)
 - ✅ BrokenResourceError handling
 - ✅ Empty error message handling
 - ✅ **Updated date: 2025-10-17** (was 2025-10-10)
 
-### 3. **`sambanova/mcps/local_servers/db_todo.py`**
+### 3. **`convonet/mcps/local_servers/db_todo.py`**
 - ✅ Added `import json`
 - ✅ Simplified create_calendar_event response
 - ✅ Prevents BrokenResourceError
 
 ### 4. **Call Transfer Files** (Optional - if you want transfer feature)
-- `sambanova/mcps/local_servers/call_transfer.py`
+- `convonet/mcps/local_servers/call_transfer.py`
 - Transfer endpoint changes in routes.py (already included)
 
 ---
@@ -40,26 +40,26 @@ git status
 ```
 
 **Shows:**
-- Modified: `sambanova/assistant_graph_todo.py`
+- Modified: `convonet/assistant_graph_todo.py`
 
 ### Step 2: Stage All Changes
 
 ```bash
 # Add the date fix
-git add sambanova/assistant_graph_todo.py
+git add convonet/assistant_graph_todo.py
 
 # Check if routes.py and db_todo.py have uncommitted changes
-git add sambanova/routes.py
-git add sambanova/mcps/local_servers/db_todo.py
+git add convonet/routes.py
+git add convonet/mcps/local_servers/db_todo.py
 
 # Stage new files (transfer feature, documentation)
-git add sambanova/mcps/local_servers/call_transfer.py
-git add sambanova/CALL_TRANSFER_*.md
-git add sambanova/TWILIO_*.md
-git add sambanova/TIMEOUT_*.md
-git add sambanova/CORRECT_*.md
-git add sambanova/GOOGLE_CLOUD_*.md
-git add sambanova/call_transfer_config.example.env
+git add convonet/mcps/local_servers/call_transfer.py
+git add convonet/CALL_TRANSFER_*.md
+git add convonet/TWILIO_*.md
+git add convonet/TIMEOUT_*.md
+git add convonet/CORRECT_*.md
+git add convonet/GOOGLE_CLOUD_*.md
+git add convonet/call_transfer_config.example.env
 git add call_center/generate_tables.sql
 git add call_center/models.py
 
@@ -203,7 +203,7 @@ ngrok http 10000
 ```bash
 # Full deployment
 cd "/Users/hj/Web Development Projects/1. Main"
-git add sambanova/assistant_graph_todo.py sambanova/routes.py sambanova/mcps/local_servers/db_todo.py
+git add convonet/assistant_graph_todo.py convonet/routes.py convonet/mcps/local_servers/db_todo.py
 git commit -m "Fix timeouts and add thread reset for voice calls"
 git push origin main
 

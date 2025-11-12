@@ -112,13 +112,13 @@ def create_app():
     from lgch_todo import lgch_todo_bp
     app.register_blueprint(lgch_todo_bp)
 
-    from sambanova.routes import sambanova_todo_bp
-    app.register_blueprint(sambanova_todo_bp)
+    from convonet.routes import convonet_todo_bp
+    app.register_blueprint(convonet_todo_bp)
     
     # Register new authentication and team collaboration blueprints
-    from sambanova.api_routes.auth_routes import auth_bp
-    from sambanova.api_routes.team_routes import team_bp
-    from sambanova.api_routes.team_todo_routes import team_todo_bp
+    from convonet.api_routes.auth_routes import auth_bp
+    from convonet.api_routes.team_routes import team_bp
+    from convonet.api_routes.team_todo_routes import team_todo_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(team_bp)
@@ -129,11 +129,11 @@ def create_app():
     app.register_blueprint(call_center_bp)
     
     # Register WebRTC voice assistant blueprint
-    from sambanova.webrtc_voice_server import webrtc_bp, init_socketio
+    from convonet.webrtc_voice_server import webrtc_bp, init_socketio
     app.register_blueprint(webrtc_bp)
     
     # Register audio player blueprint
-    from sambanova.audio_player_routes import audio_player_bp
+    from convonet.audio_player_routes import audio_player_bp
     app.register_blueprint(audio_player_bp)
     
     # Initialize Socket.IO event handlers (pass app explicitly)
@@ -213,10 +213,10 @@ def create_app():
         """Renders the technical specification page for the LangGraph + MCP + Langflow todo project."""
         return render_template('lgch_tech_spec.html')
 
-    @app.route('/sambanova-tech-spec')
-    def sambanova_tech_spec():
-        """Renders the technical specification page for the Sambanova todo project."""
-        return render_template('sambanova_tech_spec.html')
+    @app.route('/convonet-tech-spec')
+    def convonet_tech_spec():
+        """Renders the technical specification page for the Convonet todo project."""
+        return render_template('convonet_tech_spec.html')
     
     @app.route('/team-dashboard')
     def team_dashboard():

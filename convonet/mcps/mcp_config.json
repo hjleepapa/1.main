@@ -1,0 +1,26 @@
+{
+    "mcpServers": {
+        "db": {
+            "command": "python",
+            "args": [
+                "convonet/mcps/local_servers/db_todo.py"
+            ],
+            "transport": "stdio",
+            "env": {
+                "PYTHONPATH": ".",
+                "DB_URI": "${DB_URI}",
+                "GOOGLE_OAUTH2_TOKEN_B64": "${GOOGLE_OAUTH2_TOKEN_B64}",
+                "GOOGLE_CREDENTIALS_B64": "${GOOGLE_CREDENTIALS_B64}",
+                "GOOGLE_TOKEN_B64": "${GOOGLE_TOKEN_B64}",
+                "GOOGLE_CLIENT_ID": "${GOOGLE_CLIENT_ID}",
+                "GOOGLE_CLIENT_SECRET": "${GOOGLE_CLIENT_SECRET}",
+                "COMPOSIO_API_KEY": "${COMPOSIO_API_KEY}",
+                "COMPOSIO_PROJECT_ID": "${COMPOSIO_PROJECT_ID}",
+                "REDIS_HOST": "${REDIS_HOST}",
+                "REDIS_PORT": "${REDIS_PORT}",
+                "REDIS_PASSWORD": "${REDIS_PASSWORD}",
+                "REDIS_DB": "${REDIS_DB}"
+            }
+        }
+    }
+}

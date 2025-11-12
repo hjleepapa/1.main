@@ -2,7 +2,7 @@
 
 ## ✅ Sentry Integration Complete!
 
-I've integrated Sentry error monitoring into your Sambanova project.
+I've integrated Sentry error monitoring into your Convonet project.
 
 ---
 
@@ -15,7 +15,7 @@ I've integrated Sentry error monitoring into your Sambanova project.
 3. **Create New Project**:
    - Platform: Python
    - Framework: Flask
-   - Project Name: sambanova-voice-ai
+   - Project Name: convonet-voice-ai
 4. **Copy your DSN** (looks like: `https://xxxxx@o123456.ingest.us.sentry.io/456789`)
 
 ### Step 2: Add to .env File
@@ -44,7 +44,7 @@ Save Changes
 ```bash
 cd "/Users/hj/Web Development Projects/1. Main"
 
-git add app.py requirements.txt sambanova/routes.py
+git add app.py requirements.txt convonet/routes.py
 git commit -m "Add Sentry error monitoring"
 git push origin main
 ```

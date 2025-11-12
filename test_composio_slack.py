@@ -11,7 +11,7 @@ import asyncio
 # Add the project root to the path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from sambanova.composio_tools import ComposioManager
+from convonet.composio_tools import ComposioManager
 
 async def test_composio_slack():
     """Test Composio Slack integration"""

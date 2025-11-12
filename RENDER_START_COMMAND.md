@@ -62,7 +62,7 @@ Eventlet is a concurrent networking library that:
 
 #### 1. **Regular HTTP (Twilio webhooks):**
 ```
-Twilio → POST /sambanova_todo/twilio/process_audio
+Twilio → POST /convonet_todo/twilio/process_audio
     ↓
 Gunicorn (eventlet worker) → Flask route
     ↓ (green thread)
@@ -93,7 +93,7 @@ Bidirectional communication ✅
 **Call your Twilio number:**
 ```
 Phone → Twilio → Your server
-POST /sambanova_todo/twilio/call
+POST /convonet_todo/twilio/call
 ```
 
 **Expected:**
@@ -105,7 +105,7 @@ POST /sambanova_todo/twilio/call
 
 **Open browser:**
 ```
-https://your-app.onrender.com/sambanova_todo/webrtc/voice-assistant
+https://your-app.onrender.com/convonet_todo/webrtc/voice-assistant
 ```
 
 **Expected:**

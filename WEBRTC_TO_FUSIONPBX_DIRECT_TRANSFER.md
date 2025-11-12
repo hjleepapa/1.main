@@ -2,7 +2,7 @@
 
 ## Current Status
 
-**Question:** Can the WebRTC call on https://hjlees.com/sambanova_todo/webrtc/voice-assistant be transferred directly to extension 2001@136.115.41.45 in FusionPBX?
+**Question:** Can the WebRTC call on https://hjlees.com/convonet_todo/webrtc/voice-assistant be transferred directly to extension 2001@136.115.41.45 in FusionPBX?
 
 **Answer:** **Currently NO** - Direct transfer is not implemented. Additional components/implementation are required.
 

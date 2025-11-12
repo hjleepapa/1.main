@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 def test_slack_tools():
     """Test what Slack tools are available"""
     try:
-        from sambanova.composio_tools import ComposioManager
+        from convonet.composio_tools import ComposioManager
         
         print("🔧 Testing Slack Integration with Composio...")
         print("=" * 60)
@@ -70,7 +70,7 @@ def test_slack_tools():
 def test_specific_slack_tool(tool_name):
     """Test a specific Slack tool"""
     try:
-        from sambanova.composio_tools import ComposioManager
+        from convonet.composio_tools import ComposioManager
         
         manager = ComposioManager()
         if not manager.is_available():

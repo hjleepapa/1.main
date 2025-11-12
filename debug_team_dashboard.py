@@ -4,7 +4,7 @@ Debug team dashboard - check teams and memberships
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sambanova.models.user_models import User, Team, TeamMembership
+from convonet.models.user_models import User, Team, TeamMembership
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -69,7 +69,7 @@ with SessionLocal() as session:
     print(f"\n{'='*60}")
     print(f"ADMIN USER CHECK:")
     print(f"{'='*60}")
-    admin = session.query(User).filter(User.email == 'admin@sambanova.com').first()
+    admin = session.query(User).filter(User.email == 'admin@convonet.com').first()
     if admin:
         print(f"✅ Admin user found: {admin.full_name}")
         print(f"   ID: {admin.id}")

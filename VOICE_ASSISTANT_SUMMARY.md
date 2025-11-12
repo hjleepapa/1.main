@@ -173,14 +173,14 @@ A **dual-interface voice assistant** for the SambaNova AI productivity platform:
 ## 📁 Files Created
 
 ### Core Implementation
-1. **`sambanova/webrtc_voice_server.py`** (400 lines)
+1. **`convonet/webrtc_voice_server.py`** (400 lines)
    - Socket.IO event handlers
    - Audio streaming pipeline
    - Background task processing
    - PIN authentication
    - Whisper + Agent + TTS integration
 
-2. **`sambanova/templates/webrtc_voice_assistant.html`** (600 lines)
+2. **`convonet/templates/webrtc_voice_assistant.html`** (600 lines)
    - Voice UI with microphone controls
    - Real-time audio visualizer
    - Transcript display
@@ -217,7 +217,7 @@ A **dual-interface voice assistant** for the SambaNova AI productivity platform:
    - Exposed socketio.wsgi_app for production
    - WebSocket upgrade handling
 
-8. **`sambanova/routes.py`**
+8. **`convonet/routes.py`**
    - Enhanced Twilio speech recognition
    - Added speech_model='experimental_conversations'
    - Improved PIN verification (direct DB query)
@@ -230,7 +230,7 @@ A **dual-interface voice assistant** for the SambaNova AI productivity platform:
 
 #### WebRTC Voice (Primary)
 ```
-https://hjlees.com/sambanova_todo/webrtc/voice-assistant
+https://hjlees.com/convonet_todo/webrtc/voice-assistant
 ```
 - No phone number needed
 - Works in any modern browser
@@ -398,7 +398,7 @@ Call: +1 (XXX) XXX-XXXX
 ## 📞 Quick Start
 
 ### For Users
-1. Go to: `https://hjlees.com/sambanova_todo/webrtc/voice-assistant`
+1. Go to: `https://hjlees.com/convonet_todo/webrtc/voice-assistant`
 2. Enter PIN: `1234` (or your registered PIN)
 3. Click microphone
 4. Say: "Create a todo: Test the voice assistant"
@@ -422,7 +422,7 @@ export DB_URI=postgresql://...
 python app.py
 
 # Open browser
-open http://localhost:10000/sambanova_todo/webrtc/voice-assistant
+open http://localhost:10000/convonet_todo/webrtc/voice-assistant
 ```
 
 ---
@@ -443,8 +443,8 @@ open http://localhost:10000/sambanova_todo/webrtc/voice-assistant
    - `TEAM_MANAGEMENT_GUIDE.md` - Team collaboration features
 
 4. **Technical Specifications**
-   - `templates/sambanova_tech_spec.html` - Complete API docs
-   - `README_sambanova.md` - SambaNova integration details
+   - `templates/convonet_tech_spec.html` - Complete API docs
+   - `README_convonet.md` - SambaNova integration details
 
 ---
 
@@ -503,5 +503,5 @@ Questions? Check the docs:
 - Troubleshooting: Section 8 of `WEBRTC_VOICE_GUIDE.md`
 
 Ready to test? Go to:
-👉 **https://hjlees.com/sambanova_todo/webrtc/voice-assistant**
+👉 **https://hjlees.com/convonet_todo/webrtc/voice-assistant**
 

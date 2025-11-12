@@ -1,16 +1,16 @@
-# Sambanova Hackathon Project Documentation
+# Convonet Hackathon Project Documentation
 ## Voice AI Productivity System with Redis & Composio Integration
 
 ### 🎯 Project Overview
 
-**Project Name:** Sambanova Voice AI Productivity System  
+**Project Name:** Convonet Voice AI Productivity System  
 **Theme:** AI-Powered Productivity Assistant  
 **Duration:** October 2025 Hackathon  
 **Team:** HJ Lee (Individual)  
 
 ### 📋 Project Description (25+ Words)
 
-The Sambanova Voice AI Productivity System is an advanced AI-powered voice assistant that integrates Redis for session management and caching, Composio for external tool orchestration, and real-time audio processing to provide seamless productivity management through natural voice interactions. The system features WebRTC voice communication, Redis-based session persistence, Composio tool integrations (Slack, GitHub, Gmail, Notion, Jira), and comprehensive audio stream processing with WebM format support for enterprise-grade voice AI applications.
+The Convonet Voice AI Productivity System is an advanced AI-powered voice assistant that integrates Redis for session management and caching, Composio for external tool orchestration, and real-time audio processing to provide seamless productivity management through natural voice interactions. The system features WebRTC voice communication, Redis-based session persistence, Composio tool integrations (Slack, GitHub, Gmail, Notion, Jira), and comprehensive audio stream processing with WebM format support for enterprise-grade voice AI applications.
 
 ### 🚀 Demo Instructions & Expected Outputs
 

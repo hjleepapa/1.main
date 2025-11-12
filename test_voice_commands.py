@@ -14,7 +14,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 async def test_voice_commands():
     """Test voice commands that should trigger tool usage"""
     try:
-        from sambanova.assistant_graph_todo import get_agent
+        from convonet.assistant_graph_todo import get_agent
         
         print("🎤 Testing Voice Commands for Tool Calling...")
         print("=" * 60)
@@ -83,7 +83,7 @@ async def test_voice_commands():
 async def test_single_command(agent, command):
     """Test a single voice command"""
     try:
-        from sambanova.state import AgentState
+        from convonet.state import AgentState
         from langchain_core.messages import HumanMessage
         
         # Create state for testing

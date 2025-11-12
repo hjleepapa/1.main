@@ -1,4 +1,4 @@
-# Audio Stream Players for Sambanova Project
+# Audio Stream Players for Convonet Project
 
 Two audio stream player applications for viewing, analyzing, and playing audio streams from Redis audio buffers.
 
@@ -258,7 +258,7 @@ python test_simple_audio_player.py
 python test_audio_player.py
 
 # Check Redis connection
-python -c "from sambanova.redis_manager import redis_manager; print('Redis available:', redis_manager.is_available())"
+python -c "from convonet.redis_manager import redis_manager; print('Redis available:', redis_manager.is_available())"
 ```
 
 ## 📈 Performance Tips

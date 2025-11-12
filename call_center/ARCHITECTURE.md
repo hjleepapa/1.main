@@ -362,7 +362,7 @@
 │         │                              │
 │         ├─ /call-center/               │
 │         ├─ /blog_project/              │
-│         ├─ /sambanova/                 │
+│         ├─ /convonet/                 │
 │         └─ /static/                    │
 │                                        │
 │  PostgreSQL (Local)                    │

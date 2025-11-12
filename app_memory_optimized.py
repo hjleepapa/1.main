@@ -88,21 +88,21 @@ def create_app():
     from blog_project.main import blog_bp
     app.register_blueprint(blog_bp, url_prefix='/blog_project')
 
-    # Register Sambanova blueprint (main functionality)
-    from sambanova.routes import sambanova_todo_bp
-    app.register_blueprint(sambanova_todo_bp)
+    # Register Convonet blueprint (main functionality)
+    from convonet.routes import convonet_todo_bp
+    app.register_blueprint(convonet_todo_bp)
     
     # Register authentication and team collaboration blueprints
-    from sambanova.api_routes.auth_routes import auth_bp
-    from sambanova.api_routes.team_routes import team_bp
-    from sambanova.api_routes.team_todo_routes import team_todo_bp
+    from convonet.api_routes.auth_routes import auth_bp
+    from convonet.api_routes.team_routes import team_bp
+    from convonet.api_routes.team_todo_routes import team_todo_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(team_bp)
     app.register_blueprint(team_todo_bp)
     
     # Register WebRTC voice assistant blueprint
-    from sambanova.webrtc_voice_server import webrtc_bp, init_socketio
+    from convonet.webrtc_voice_server import webrtc_bp, init_socketio
     app.register_blueprint(webrtc_bp)
     
     # Initialize Socket.IO event handlers
@@ -154,10 +154,10 @@ def create_app():
     def about():
         return render_template('about.html')
 
-    @app.route('/sambanova-tech-spec')
-    def sambanova_tech_spec():
-        """Renders the technical specification page for the Sambanova todo project."""
-        return render_template('sambanova_tech_spec.html')
+    @app.route('/convonet-tech-spec')
+    def convonet_tech_spec():
+        """Renders the technical specification page for the Convonet todo project."""
+        return render_template('convonet_tech_spec.html')
     
     @app.route('/team-dashboard')
     def team_dashboard():

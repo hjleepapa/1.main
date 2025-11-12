@@ -9,8 +9,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Import after loading .env
-from sambanova.models.user_models import User
-from sambanova.security.auth import jwt_auth
+from convonet.models.user_models import User
+from convonet.security.auth import jwt_auth
 
 # Get database URI
 db_uri = os.getenv("DB_URI", "postgresql://postgres:postgres@localhost:5432/postgres")
@@ -25,7 +25,7 @@ try:
         check_column_sql = text("""
             SELECT column_name 
             FROM information_schema.columns 
-            WHERE table_name = 'users_sambanova' 
+            WHERE table_name = 'users_convonet' 
             AND column_name = 'voice_pin'
         """)
         result = conn.execute(check_column_sql).fetchone()
@@ -36,7 +36,7 @@ try:
             
             # Add the column
             alter_sql = text("""
-                ALTER TABLE users_sambanova 
+                ALTER TABLE users_convonet 
                 ADD COLUMN voice_pin VARCHAR(10) UNIQUE
             """)
             conn.execute(alter_sql)
@@ -44,7 +44,7 @@ try:
             # Create index
             index_sql = text("""
                 CREATE INDEX IF NOT EXISTS idx_users_voice_pin 
-                ON users_sambanova(voice_pin)
+                ON users_convonet(voice_pin)
             """)
             conn.execute(index_sql)
             
@@ -57,7 +57,7 @@ except Exception as e:
 
 with SessionLocal() as session:
     # Check if admin user exists
-    admin = session.query(User).filter(User.email == 'admin@sambanova.com').first()
+    admin = session.query(User).filter(User.email == 'admin@convonet.com').first()
     
     if admin:
         print(f"✅ Admin user found:")
@@ -85,7 +85,7 @@ with SessionLocal() as session:
             print(f"✅ Voice PIN set to '1234'")
         
         print(f"\n📋 DEMO CREDENTIALS:")
-        print(f"   Web Login: admin@sambanova.com / admin123")
+        print(f"   Web Login: admin@convonet.com / admin123")
         print(f"   Voice PIN: {admin.voice_pin}")
         
     else:
@@ -93,7 +93,7 @@ with SessionLocal() as session:
         print(f"🔧 Creating admin user...")
         
         admin = User(
-            email='admin@sambanova.com',
+            email='admin@convonet.com',
             username='admin',
             password_hash=jwt_auth.hash_password('admin123'),
             first_name='Admin',
@@ -107,7 +107,7 @@ with SessionLocal() as session:
         session.refresh(admin)
         
         print(f"✅ Admin user created:")
-        print(f"   Email: admin@sambanova.com")
+        print(f"   Email: admin@convonet.com")
         print(f"   Password: admin123")
         print(f"   Voice PIN: 1234")
         print(f"   User ID: {admin.id}")

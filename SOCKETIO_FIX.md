@@ -162,7 +162,7 @@ Socket.IO connection established
 ### Expected Behavior After Deploy:
 
 1. **Page Load:**
-   - Browser loads: https://hjlees.com/sambanova_todo/webrtc/voice-assistant
+   - Browser loads: https://hjlees.com/convonet_todo/webrtc/voice-assistant
    - JavaScript tries to connect: `io('/voice')`
    - Request sent: `GET /socket.io/?EIO=4&transport=websocket`
 
@@ -272,7 +272,7 @@ Both work, but eventlet is recommended:
 
 After deployment, verify:
 
-- [ ] Page loads: https://hjlees.com/sambanova_todo/webrtc/voice-assistant
+- [ ] Page loads: https://hjlees.com/convonet_todo/webrtc/voice-assistant
 - [ ] Browser console: `✅ Connected to voice server`
 - [ ] Status message: "Connected! Ready to authenticate." (green)
 - [ ] Enter PIN: 1234

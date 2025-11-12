@@ -1,4 +1,4 @@
-# Sambanova Voice AI Productivity System - Hackathon Submission
+# Convonet Voice AI Productivity System - Hackathon Submission
 
 ## Inspiration
 
@@ -12,7 +12,7 @@ Inspired by the potential of AI-powered voice interfaces, we set out to build an
 
 ## What it does
 
-**Sambanova Voice AI Productivity System** is an enterprise voice assistant that enables teams to manage their entire productivity workflow through natural conversation:
+**Convonet Voice AI Productivity System** is an enterprise voice assistant that enables teams to manage their entire productivity workflow through natural conversation:
 
 ### Core Capabilities:
 
@@ -265,13 +265,13 @@ Voice interfaces require:
 
 ---
 
-## What's next for Sambanova
+## What's next for Convonet
 
 ### **Immediate Roadmap (Post-Hackathon):**
 
 **🔊 Voice Experience Enhancements:**
 - WebSocket-based streaming for even faster responses
-- Custom wake word detection ("Hey Sambanova")
+- Custom wake word detection ("Hey Convonet")
 - Multi-language support (Spanish, Mandarin)
 - Voice biometric authentication (replace PIN)
 
@@ -342,7 +342,7 @@ Voice interfaces require:
 
 ---
 
-## Why Sambanova?
+## Why Convonet?
 
 This project showcases the power of combining:
 - 🤖 **AI Intelligence** (LangGraph + OpenAI)
@@ -413,8 +413,8 @@ This represents the future of productivity tools: **intelligent, conversational,
 
 **Phone Number:** +12344007818  
 **PIN:** 1234  
-**Web Dashboard:** https://hjlees.com/sambanova_todo/  
-**Tech Spec:** https://hjlees.com/sambanova_tech_spec  
+**Web Dashboard:** https://hjlees.com/convonet_todo/  
+**Tech Spec:** https://hjlees.com/convonet_tech_spec  
 **Call Center:** https://hjlees.com/call-center/  
 
 **Try it:**
@@ -428,7 +428,7 @@ This represents the future of productivity tools: **intelligent, conversational,
 ## Repository
 
 GitHub: [Your Repository URL]  
-Documentation: All guides included in `/sambanova/` directory  
+Documentation: All guides included in `/convonet/` directory  
 License: MIT  
 
 ---

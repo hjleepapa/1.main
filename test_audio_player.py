@@ -53,7 +53,7 @@ def test_redis_connection():
     print("\n🔍 Testing Redis connection...")
     
     try:
-        from sambanova.redis_manager import redis_manager
+        from convonet.redis_manager import redis_manager
         if redis_manager.is_available():
             print("✅ Redis connection available")
             return True

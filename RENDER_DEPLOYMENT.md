@@ -18,7 +18,7 @@ Render.com uses **Dashboard Configuration** or **render.yaml**, NOT Procfile (Pr
 
 | Setting | Value |
 |---------|-------|
-| **Name** | `sambanova-todo-app` |
+| **Name** | `convonet-todo-app` |
 | **Region** | Choose closest to you |
 | **Branch** | `main` |
 | **Root Directory** | (leave empty) |
@@ -74,7 +74,7 @@ I've created `render.yaml` in your project root:
 ```yaml
 services:
   - type: web
-    name: sambanova-todo-app
+    name: convonet-todo-app
     env: python
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:$PORT passenger_wsgi:application
@@ -127,7 +127,7 @@ Server should show:
 
 Open browser console and navigate to:
 ```
-https://your-app.onrender.com/sambanova_todo/webrtc/voice-assistant
+https://your-app.onrender.com/convonet_todo/webrtc/voice-assistant
 ```
 
 Look for:
@@ -321,7 +321,7 @@ pip install -r requirements.txt
 gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:10000 passenger_wsgi:application
 ```
 
-Open: http://localhost:10000/sambanova_todo/webrtc/voice-assistant
+Open: http://localhost:10000/convonet_todo/webrtc/voice-assistant
 
 Should see:
 ```
@@ -376,7 +376,7 @@ Should return: `0` (Socket.IO handshake)
 You'll know everything is working when:
 
 1. ✅ Render logs show: "Using worker: eventlet"
-2. ✅ Page loads: https://your-app.onrender.com/sambanova_todo/webrtc/voice-assistant
+2. ✅ Page loads: https://your-app.onrender.com/convonet_todo/webrtc/voice-assistant
 3. ✅ Console shows: "Connected to voice server"
 4. ✅ Authentication works with PIN
 5. ✅ Voice recording works

@@ -51,7 +51,7 @@
 ps aux | grep python
 
 # Check if Socket.IO is loaded
-curl https://hjlees.com/sambanova_todo/webrtc/voice-assistant
+curl https://hjlees.com/convonet_todo/webrtc/voice-assistant
 # Should return HTML with Socket.IO script tag
 ```
 
@@ -135,7 +135,7 @@ Enter a PIN with 4-6 digits (e.g., `1234`).
 #### Verify init_socketio is called:
 ```python
 # In app.py, should have:
-from sambanova.webrtc_voice_server import webrtc_bp, init_socketio
+from convonet.webrtc_voice_server import webrtc_bp, init_socketio
 app.register_blueprint(webrtc_bp)
 init_socketio(socketio)  # ← This line is critical!
 ```
@@ -237,7 +237,7 @@ Page Status:
 ```
 Server Logs:
 🔐 Authentication request for session abc123: PIN=1234
-✅ Authentication successful: admin@sambanova.com
+✅ Authentication successful: admin@convonet.com
 ```
 
 ### 5. Success Response
@@ -293,7 +293,7 @@ Before going live, verify:
 python app.py
 
 # Open:
-http://localhost:10000/sambanova_todo/webrtc/voice-assistant
+http://localhost:10000/convonet_todo/webrtc/voice-assistant
 
 # Should work without HTTPS locally
 ```

@@ -1,8 +1,8 @@
 # Composio Features Implementation Summary
 
-## 🚀 **Composio Integration in Sambanova Project**
+## 🚀 **Composio Integration in Convonet Project**
 
-The Sambanova project includes comprehensive Composio integration for external tool connectivity, enabling the AI agent to interact with multiple third-party services.
+The Convonet project includes comprehensive Composio integration for external tool connectivity, enabling the AI agent to interact with multiple third-party services.
 
 ## 📋 **Implemented Composio Features:**
 
@@ -228,4 +228,4 @@ except ImportError as e:
 - **"Add [content] to Notion [page/database]"**
 - **"Create a Jira ticket for [issue]"**
 
-The Composio integration provides comprehensive external service connectivity for the Sambanova voice assistant, enabling natural language control of multiple third-party platforms! 🎉🚀
+The Composio integration provides comprehensive external service connectivity for the Convonet voice assistant, enabling natural language control of multiple third-party platforms! 🎉🚀

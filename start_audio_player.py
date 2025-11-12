@@ -39,7 +39,7 @@ def check_dependencies():
 def check_redis_connection():
     """Check Redis connection"""
     try:
-        from sambanova.redis_manager import redis_manager
+        from convonet.redis_manager import redis_manager
         if redis_manager.is_available():
             print("✅ Redis connection available")
             return True
@@ -84,7 +84,7 @@ def start_audio_player():
 def main():
     """Main function"""
     print("=" * 60)
-    print("🎵 Audio Stream Player for Sambanova Project")
+    print("🎵 Audio Stream Player for Convonet Project")
     print("=" * 60)
     
     # Check if we're in the right directory

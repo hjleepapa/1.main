@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Simple Audio Stream Player for Sambanova Project
+Simple Audio Stream Player for Convonet Project
 Web interface to view and download audio streams from Redis (without PyAudio dependency)
 """
 
@@ -14,7 +14,7 @@ from flask_socketio import SocketIO, emit
 
 # Redis imports
 try:
-    from sambanova.redis_manager import redis_manager, get_session
+    from convonet.redis_manager import redis_manager, get_session
     REDIS_AVAILABLE = True
 except ImportError:
     REDIS_AVAILABLE = False
@@ -270,7 +270,7 @@ def handle_disconnect():
     print(f"❌ Simple audio player client disconnected: {request.sid}")
 
 if __name__ == '__main__':
-    print("🎵 Simple Audio Stream Player for Sambanova Project")
+    print("🎵 Simple Audio Stream Player for Convonet Project")
     print(f"Redis Available: {REDIS_AVAILABLE}")
     
     if not REDIS_AVAILABLE:

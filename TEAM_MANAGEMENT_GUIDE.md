@@ -6,7 +6,7 @@
 
 1. **Login to Team Dashboard**
    - Visit: `https://hjlees.com/team-dashboard`
-   - Login with admin credentials: `admin@sambanova.com` / `admin123`
+   - Login with admin credentials: `admin@convonet.com` / `admin123`
 
 2. **Select a Team**
    - Choose a team from the dropdown menu
@@ -53,10 +53,10 @@ python create_users.py
 ```
 
 This creates users and automatically adds them to the Demo Team:
-- **manager@sambanova.com** / `manager123` (Admin role)
-- **developer@sambanova.com** / `dev123` (Member role)
-- **designer@sambanova.com** / `design123` (Member role)
-- **tester@sambanova.com** / `test123` (Viewer role)
+- **manager@convonet.com** / `manager123` (Admin role)
+- **developer@convonet.com** / `dev123` (Member role)
+- **designer@convonet.com** / `design123` (Member role)
+- **tester@convonet.com** / `test123` (Viewer role)
 
 ### Method 4: During User Registration
 
@@ -123,7 +123,7 @@ When users register via `/register`, they can be manually added to teams by admi
 # 1. Login and get token
 curl -X POST https://hjlees.com/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email": "admin@sambanova.com", "password": "admin123"}'
+  -d '{"email": "admin@convonet.com", "password": "admin123"}'
 
 # 2. Create team
 curl -X POST https://hjlees.com/api/teams/ \
@@ -183,8 +183,8 @@ curl -X POST https://hjlees.com/api/team-todos/ \
 
 | Email | Password | Role | Team |
 |-------|----------|------|------|
-| admin@sambanova.com | admin123 | Owner | Demo Team |
-| manager@sambanova.com | manager123 | Admin | Demo Team |
-| developer@sambanova.com | dev123 | Member | Demo Team |
-| designer@sambanova.com | design123 | Member | Demo Team |
-| tester@sambanova.com | test123 | Viewer | Demo Team |
+| admin@convonet.com | admin123 | Owner | Demo Team |
+| manager@convonet.com | manager123 | Admin | Demo Team |
+| developer@convonet.com | dev123 | Member | Demo Team |
+| designer@convonet.com | design123 | Member | Demo Team |
+| tester@convonet.com | test123 | Viewer | Demo Team |

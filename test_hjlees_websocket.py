@@ -122,7 +122,7 @@ async def main():
         "https://hjlees.com",
         "wss://hjlees.com",
         "wss://hjlees.com/ws",
-        "wss://hjlees.com/sambanova_todo/ws",
+        "wss://hjlees.com/convonet_todo/ws",
         "ws://hjlees.com",  # Non-SSL version
     ]
     

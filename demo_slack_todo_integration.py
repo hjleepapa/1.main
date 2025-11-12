@@ -14,9 +14,9 @@ from typing import List, Dict, Any
 # Add the project root to the path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from sambanova.composio_tools import ComposioManager
-from sambanova.redis_manager import RedisManager
-from sambanova.models import Todo
+from convonet.composio_tools import ComposioManager
+from convonet.redis_manager import RedisManager
+from convonet.models import Todo
 
 class SlackTodoDemo:
     """Demo class for Slack todo integration"""

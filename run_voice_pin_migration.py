@@ -3,7 +3,7 @@
 Run voice_pin migration standalone
 """
 
-from sambanova.migrations.add_voice_pin import run_migration
+from convonet.migrations.add_voice_pin import run_migration
 from dotenv import load_dotenv
 
 load_dotenv()

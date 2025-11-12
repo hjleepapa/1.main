@@ -1,4 +1,4 @@
-# Sambanova Team Collaboration System - Technology Stack
+# Convonet Team Collaboration System - Technology Stack
 
 ## 📋 Complete Technology Inventory
 

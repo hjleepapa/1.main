@@ -23,7 +23,7 @@ def test_with_wscat():
     # Test WebSocket connection
     test_urls = [
         "wss://hjlees.com",
-        "wss://hjlees.com/sambanova_todo/ws",
+        "wss://hjlees.com/convonet_todo/ws",
     ]
     
     for url in test_urls:
@@ -57,7 +57,7 @@ def test_with_curl():
     try:
         result = subprocess.run([
             'curl', '-I', '-H', 'Upgrade: websocket', '-H', 'Connection: Upgrade',
-            'https://hjlees.com/sambanova_todo/ws'
+            'https://hjlees.com/convonet_todo/ws'
         ], capture_output=True, text=True, timeout=10)
         
         print(f"Response:\n{result.stdout}")

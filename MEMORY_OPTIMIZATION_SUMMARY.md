@@ -35,7 +35,7 @@ gunicorn --worker-class eventlet -w 1 --worker-connections 500 --max-requests 10
 
 #### **C. App Streamlined**
 - **Removed unused blueprints**: vapi_todo, syfw_todo, blnd_todo, lgch_todo, call_center
-- **Kept essential blueprints**: blog_project, sambanova, auth, team, webrtc
+- **Kept essential blueprints**: blog_project, convonet, auth, team, webrtc
 - **Memory reduction**: ~100MB
 
 #### **D. Optional Services**

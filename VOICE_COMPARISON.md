@@ -229,7 +229,7 @@ Both interfaces are deployed and accessible:
 
 1. **WebRTC Voice** (Primary)
    ```
-   https://hjlees.com/sambanova_todo/webrtc/voice-assistant
+   https://hjlees.com/convonet_todo/webrtc/voice-assistant
    ```
    - Best for demos and daily use
    - No phone number needed

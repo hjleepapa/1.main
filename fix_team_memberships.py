@@ -27,28 +27,28 @@ def main():
         print("🔍 Checking existing data...")
         
         # Check users
-        result = session.execute(text("SELECT id, email, username FROM users_sambanova"))
+        result = session.execute(text("SELECT id, email, username FROM users_convonet"))
         users = result.fetchall()
         print(f"👥 Found {len(users)} users:")
         for user in users:
             print(f"  - {user.email} (ID: {user.id})")
         
         # Check teams
-        result = session.execute(text("SELECT id, name, description FROM teams_sambanova"))
+        result = session.execute(text("SELECT id, name, description FROM teams_convonet"))
         teams = result.fetchall()
         print(f"\n🏢 Found {len(teams)} teams:")
         for team in teams:
             print(f"  - {team.name} (ID: {team.id})")
         
         # Check existing memberships
-        result = session.execute(text("SELECT team_id, user_id, role FROM team_memberships_sambanova"))
+        result = session.execute(text("SELECT team_id, user_id, role FROM team_memberships_convonet"))
         memberships = result.fetchall()
         print(f"\n🔗 Found {len(memberships)} existing team memberships:")
         for membership in memberships:
             print(f"  - User {membership.user_id} -> Team {membership.team_id} (Role: {membership.role})")
         
         # Find admin user
-        result = session.execute(text("SELECT id, email FROM users_sambanova WHERE email = 'admin@sambanova.com'"))
+        result = session.execute(text("SELECT id, email FROM users_convonet WHERE email = 'admin@convonet.com'"))
         admin_user = result.fetchone()
         if not admin_user:
             print("\n❌ Admin user not found!")
@@ -61,7 +61,7 @@ def main():
         added_count = 0
         for team in teams:
             result = session.execute(text("""
-                SELECT id FROM team_memberships_sambanova 
+                SELECT id FROM team_memberships_convonet 
                 WHERE team_id = :team_id AND user_id = :user_id
             """), {"team_id": team.id, "user_id": admin_user.id})
             existing_membership = result.fetchone()
@@ -69,7 +69,7 @@ def main():
             if not existing_membership:
                 print(f"➕ Adding admin to team: {team.name}")
                 session.execute(text("""
-                    INSERT INTO team_memberships_sambanova (team_id, user_id, role, joined_at)
+                    INSERT INTO team_memberships_convonet (team_id, user_id, role, joined_at)
                     VALUES (:team_id, :user_id, :role, NOW())
                 """), {
                     "team_id": team.id,
@@ -87,8 +87,8 @@ def main():
         print("\n📋 Final team memberships for admin:")
         result = session.execute(text("""
             SELECT tm.role, t.name 
-            FROM team_memberships_sambanova tm
-            JOIN teams_sambanova t ON tm.team_id = t.id
+            FROM team_memberships_convonet tm
+            JOIN teams_convonet t ON tm.team_id = t.id
             WHERE tm.user_id = :user_id
         """), {"user_id": admin_user.id})
         admin_memberships = result.fetchall()

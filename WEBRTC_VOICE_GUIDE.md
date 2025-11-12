@@ -63,7 +63,7 @@ User Browser                 Flask Server                OpenAI APIs
 
 ## 🔧 Technical Implementation
 
-### 1. **Backend: WebSocket Server** (`sambanova/webrtc_voice_server.py`)
+### 1. **Backend: WebSocket Server** (`convonet/webrtc_voice_server.py`)
 
 #### Socket.IO Events:
 
@@ -83,7 +83,7 @@ User Browser                 Flask Server                OpenAI APIs
 
 ##### `authenticate`
 - Receives PIN from client
-- Validates against database (`users_sambanova.voice_pin`)
+- Validates against database (`users_convonet.voice_pin`)
 - Updates session with user info
 - Emits `authenticated` event with result
 
@@ -106,7 +106,7 @@ User Browser                 Flask Server                OpenAI APIs
   2. Agent processing (LangGraph)
   3. Speech synthesis (OpenAI TTS)
 
-### 2. **Frontend: Voice UI** (`sambanova/templates/webrtc_voice_assistant.html`)
+### 2. **Frontend: Voice UI** (`convonet/templates/webrtc_voice_assistant.html`)
 
 #### Key Components:
 
@@ -229,12 +229,12 @@ Server runs on: `http://localhost:10000`
 
 Open in browser:
 ```
-https://hjlees.com/sambanova_todo/webrtc/voice-assistant
+https://hjlees.com/convonet_todo/webrtc/voice-assistant
 ```
 
 Or locally:
 ```
-http://localhost:10000/sambanova_todo/webrtc/voice-assistant
+http://localhost:10000/convonet_todo/webrtc/voice-assistant
 ```
 
 ### 4. **Authenticate**

@@ -1,4 +1,4 @@
-# Sambanova Team Collaboration System - Hackathon Project Story
+# Convonet Team Collaboration System - Hackathon Project Story
 
 ## Inspiration
 
@@ -16,7 +16,7 @@ We wanted to create a system where:
 
 ## What it does
 
-**Sambanova Team Collaboration System** is an **AI-powered voice assistant** that manages personal productivity and team collaboration through phone calls, integrated with Google Calendar and a web dashboard.
+**Convonet Team Collaboration System** is an **AI-powered voice assistant** that manages personal productivity and team collaboration through phone calls, integrated with Google Calendar and a web dashboard.
 
 ### 🎯 Core Features:
 
@@ -46,7 +46,7 @@ We wanted to create a system where:
 
 #### **5. Smart Agent (LangGraph + OpenAI)**
 - Context-aware conversations that remember previous interactions
-- Multi-step workflows: "Create a demo team, then add admin@sambanova.com as owner"
+- Multi-step workflows: "Create a demo team, then add admin@convonet.com as owner"
 - Intelligent error handling with graceful fallbacks
 - Tools orchestration: 35+ MCP tools for database, calendar, and team operations
 
@@ -83,13 +83,13 @@ We wanted to create a system where:
 - **Render.com** for cloud deployment
 
 #### **Database Schema (7 Tables)**
-1. `users_sambanova` - User accounts with authentication
-2. `teams_sambanova` - Team definitions
-3. `team_memberships_sambanova` - User-team relationships
-4. `todos_sambanova` - Task management with team/assignee support
-5. `reminders_sambanova` - Time-based notifications
-6. `calendar_events_sambanova` - Meeting/event tracking
-7. `call_recordings_sambanova` - Voice interaction logs
+1. `users_convonet` - User accounts with authentication
+2. `teams_convonet` - Team definitions
+3. `team_memberships_convonet` - User-team relationships
+4. `todos_convonet` - Task management with team/assignee support
+5. `reminders_convonet` - Time-based notifications
+6. `calendar_events_convonet` - Meeting/event tracking
+7. `call_recordings_convonet` - Voice interaction logs
 
 ### **Architecture Highlights:**
 
@@ -123,12 +123,12 @@ User Call → PIN Auth → LangGraph Agent → MCP Tools → Database/Calendar
 ## Challenges we ran into
 
 ### **1. Circular Import Hell 🔄**
-**Problem**: The MCP server (`db_todo.py`) imported team models, which triggered `sambanova/__init__.py`, which imported `routes.py`, which initialized the `TodoAgent`, which required OpenAI API key—all before environment variables were loaded!
+**Problem**: The MCP server (`db_todo.py`) imported team models, which triggered `convonet/__init__.py`, which imported `routes.py`, which initialized the `TodoAgent`, which required OpenAI API key—all before environment variables were loaded!
 
 **Solution**: 
 - Lazy agent initialization with `get_agent()` function
 - Lazy model imports with `_lazy_import_team_models()`
-- Moved `Base` class to separate `sambanova/models/base.py`
+- Moved `Base` class to separate `convonet/models/base.py`
 
 ### **2. MCP JSON Protocol Breaking 💥**
 **Problem**: Print statements in `db_todo.py` were outputting non-JSON to stdout, breaking the JSONRPC protocol:
@@ -190,7 +190,7 @@ number_words = {
 ### **8. Missing Database Column in Production 💾**
 **Problem**: 
 ```
-psycopg2.errors.UndefinedColumn: column users_sambanova.voice_pin does not exist
+psycopg2.errors.UndefinedColumn: column users_convonet.voice_pin does not exist
 ```
 
 **Solution**: 
@@ -241,7 +241,7 @@ We created extensive documentation:
 - `PIN_AUTHENTICATION_GUIDE.md` - Authentication system details
 - `DEPLOYMENT_VOICE_PIN_FIX.md` - Deployment troubleshooting
 - `HACKATHON_PROJECT_STORY.md` - This comprehensive project story
-- `sambanova_tech_spec.html` - Interactive technical specification with diagrams
+- `convonet_tech_spec.html` - Interactive technical specification with diagrams
 
 ---
 
@@ -323,7 +323,7 @@ A system that works locally but fails in production is worthless. Our auto-migra
 
 ---
 
-## What's next for Sambanova Team Collaboration System
+## What's next for Convonet Team Collaboration System
 
 ### **🎯 Short-Term (Next 3 Months)**
 
@@ -484,7 +484,7 @@ A system that works locally but fails in production is worthless. Our auto-migra
 
 ## 🎉 Conclusion
 
-**Sambanova Team Collaboration System** demonstrates that **voice-first AI can fundamentally transform how we work**. By combining natural language understanding, team collaboration, and seamless integrations, we've created a system that's more than a todo app—it's a **productivity partner** that meets you where you are, whether that's in your car, at your desk, or anywhere in between.
+**Convonet Team Collaboration System** demonstrates that **voice-first AI can fundamentally transform how we work**. By combining natural language understanding, team collaboration, and seamless integrations, we've created a system that's more than a todo app—it's a **productivity partner** that meets you where you are, whether that's in your car, at your desk, or anywhere in between.
 
 This hackathon project proved that with the right architecture, careful error handling, and user-centric design, **complex AI systems can be accessible, reliable, and genuinely useful**.
 
@@ -492,7 +492,7 @@ We're excited to continue building and see where this takes us. The future of wo
 
 ---
 
-**Built with ❤️ for the Sambanova Hackathon 2025**
+**Built with ❤️ for the Convonet Hackathon 2025**
 
 *Transforming team productivity, one phone call at a time.*
 

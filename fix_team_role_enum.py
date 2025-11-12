@@ -23,7 +23,7 @@ try:
         print(f"\n🔍 Checking current role values...")
         check_sql = text("""
             SELECT DISTINCT role 
-            FROM team_memberships_sambanova
+            FROM team_memberships_convonet
             ORDER BY role
         """)
         
@@ -36,7 +36,7 @@ try:
         type_sql = text("""
             SELECT data_type, udt_name
             FROM information_schema.columns
-            WHERE table_name = 'team_memberships_sambanova'
+            WHERE table_name = 'team_memberships_convonet'
             AND column_name = 'role'
         """)
         
@@ -82,7 +82,7 @@ try:
             try:
                 # Drop the enum constraint and convert to varchar
                 convert_sql = text("""
-                    ALTER TABLE team_memberships_sambanova 
+                    ALTER TABLE team_memberships_convonet 
                     ALTER COLUMN role TYPE VARCHAR(20) 
                     USING role::text
                 """)
@@ -92,7 +92,7 @@ try:
                 
                 # Now update any lowercase values to uppercase
                 update_sql = text("""
-                    UPDATE team_memberships_sambanova
+                    UPDATE team_memberships_convonet
                     SET role = UPPER(role)
                 """)
                 result = conn.execute(update_sql)
@@ -102,13 +102,13 @@ try:
             except Exception as e:
                 print(f"  ❌ Conversion failed: {e}")
                 print(f"\n💡 Try manual SQL in PostgreSQL console:")
-                print(f"  ALTER TABLE team_memberships_sambanova")
+                print(f"  ALTER TABLE team_memberships_convonet")
                 print(f"  ALTER COLUMN role TYPE VARCHAR(20) USING role::text;")
         else:
             # Simple varchar column, just update values
             print(f"\n🔧 Column is VARCHAR, updating values to uppercase...")
             update_sql = text("""
-                UPDATE team_memberships_sambanova
+                UPDATE team_memberships_convonet
                 SET role = UPPER(role)
                 WHERE role IN ('owner', 'admin', 'member', 'viewer')
             """)
@@ -121,7 +121,7 @@ try:
         print(f"\n🔍 Verifying fix...")
         check_sql = text("""
             SELECT DISTINCT role 
-            FROM team_memberships_sambanova
+            FROM team_memberships_convonet
             ORDER BY role
         """)
         

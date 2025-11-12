@@ -2,7 +2,7 @@
 
 ## 🚀 **Slack Integration Overview**
 
-The Sambanova project integrates with Slack through Composio to enable voice-controlled todo task management and team communication.
+The Convonet project integrates with Slack through Composio to enable voice-controlled todo task management and team communication.
 
 ## 📋 **Available Slack Functions:**
 
@@ -88,7 +88,7 @@ SLACK_CLIENT_SECRET=your_slack_app_client_secret
 
 ### **3. Tool Integration in Agent:**
 ```python
-# In sambanova/routes.py
+# In convonet/routes.py
 try:
     from .composio_tools import get_all_integration_tools, test_composio_connection
     if test_composio_connection():
@@ -210,7 +210,7 @@ SLACK_CLIENT_SECRET=your_slack_app_client_secret
 
 ### **1. Hackathon Demo:**
 ```
-"Hey Sambanova, create a high-priority todo to review Redis integration, 
+"Hey Convonet, create a high-priority todo to review Redis integration, 
 assign it to John, and send a Slack message to the dev-team channel 
 saying 'Redis integration is ready for review'"
 ```

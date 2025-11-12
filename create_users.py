@@ -24,8 +24,8 @@ def create_users():
         
         from sqlalchemy import create_engine
         from sqlalchemy.orm import sessionmaker
-        from sambanova.models.user_models import User, Team, TeamMembership, TeamRole
-        from sambanova.security.auth import JWTAuth
+        from convonet.models.user_models import User, Team, TeamMembership, TeamRole
+        from convonet.security.auth import JWTAuth
         
         # Create engine and session
         engine = create_engine(db_uri)
@@ -36,28 +36,28 @@ def create_users():
             # Demo users to create
             demo_users = [
                 {
-                    'email': 'manager@sambanova.com',
+                    'email': 'manager@convonet.com',
                     'username': 'manager',
                     'first_name': 'Project',
                     'last_name': 'Manager',
                     'password': 'manager123'
                 },
                 {
-                    'email': 'developer@sambanova.com', 
+                    'email': 'developer@convonet.com', 
                     'username': 'developer',
                     'first_name': 'Dev',
                     'last_name': 'Developer',
                     'password': 'dev123'
                 },
                 {
-                    'email': 'designer@sambanova.com',
+                    'email': 'designer@convonet.com',
                     'username': 'designer', 
                     'first_name': 'UI',
                     'last_name': 'Designer',
                     'password': 'design123'
                 },
                 {
-                    'email': 'tester@sambanova.com',
+                    'email': 'tester@convonet.com',
                     'username': 'tester',
                     'first_name': 'QA',
                     'last_name': 'Tester', 

@@ -2119,7 +2119,7 @@ If you were to manually edit it (not recommended for FusionPBX), the file locati
 /etc/freeswitch/sip_profiles/external.xml
 
 # Your project template file (in your repo)
-sambanova/external.xml  # This is just a reference/template
+convonet/external.xml  # This is just a reference/template
 ```
 
 ## ✅ Correct Way: Configure via FusionPBX GUI
@@ -2207,15 +2207,15 @@ fs_cli -x "sofia xmlstatus profile external"
 
 This shows the actual active configuration.
 
-## 📝 Why sambanova/external.xml Exists
+## 📝 Why convonet/external.xml Exists
 
-The `sambanova/external.xml` file in your project is:
+The `convonet/external.xml` file in your project is:
 - **A template/reference** for what the configuration should look like
 - **Documentation** of the required settings
 - **Not meant to be copied directly** to the server if using FusionPBX
 
 If you were setting up a **standalone FreeSWITCH** (not FusionPBX), then you would:
-1. Copy `sambanova/external.xml` to `/etc/freeswitch/sip_profiles/external.xml`
+1. Copy `convonet/external.xml` to `/etc/freeswitch/sip_profiles/external.xml`
 2. Edit it as needed
 3. Reload: `fs_cli -x "reloadxml"`
 
@@ -4998,8 +4998,8 @@ Your extension is registered as `2001@136.115.41.45`, but your transfer code mig
 **Check your transfer code:**
 ```bash
 # Check what SIP URI your code is sending
-grep -r "sip:2001" sambanova/
-grep -r "2001@" sambanova/
+grep -r "sip:2001" convonet/
+grep -r "2001@" convonet/
 ```
 
 ### 2. Context Mismatch
@@ -5072,7 +5072,7 @@ Based on your output, extension 2001 **IS registered** and working. The failure 
 3. **Domain mismatch** - using wrong domain in SIP URI
 
 **Next Steps:**
-1. Check what SIP URI your code sends: `grep -r "sip:2001" sambanova/`
+1. Check what SIP URI your code sends: `grep -r "sip:2001" convonet/`
 2. Check extension's context: `sudo -u postgres psql fusionpbx -c "SELECT extension, user_context FROM v_extensions WHERE extension = '2001';"`
 3. Check dialplan routing from `public` context to extension
 
@@ -11279,7 +11279,7 @@ If you were to manually edit it (not recommended for FusionPBX), the file locati
 /etc/freeswitch/sip_profiles/external.xml
 
 # Your project template file (in your repo)
-sambanova/external.xml  # This is just a reference/template
+convonet/external.xml  # This is just a reference/template
 ```
 
 ## ✅ Correct Way: Configure via FusionPBX GUI
@@ -11367,15 +11367,15 @@ fs_cli -x "sofia xmlstatus profile external"
 
 This shows the actual active configuration.
 
-## 📝 Why sambanova/external.xml Exists
+## 📝 Why convonet/external.xml Exists
 
-The `sambanova/external.xml` file in your project is:
+The `convonet/external.xml` file in your project is:
 - **A template/reference** for what the configuration should look like
 - **Documentation** of the required settings
 - **Not meant to be copied directly** to the server if using FusionPBX
 
 If you were setting up a **standalone FreeSWITCH** (not FusionPBX), then you would:
-1. Copy `sambanova/external.xml` to `/etc/freeswitch/sip_profiles/external.xml`
+1. Copy `convonet/external.xml` to `/etc/freeswitch/sip_profiles/external.xml`
 2. Edit it as needed
 3. Reload: `fs_cli -x "reloadxml"`
 
@@ -12969,8 +12969,8 @@ Your extension is registered as `2001@136.115.41.45`, but your transfer code mig
 **Check your transfer code:**
 ```bash
 # Check what SIP URI your code is sending
-grep -r "sip:2001" sambanova/
-grep -r "2001@" sambanova/
+grep -r "sip:2001" convonet/
+grep -r "2001@" convonet/
 ```
 
 ### 2. Context Mismatch
@@ -13043,7 +13043,7 @@ Based on your output, extension 2001 **IS registered** and working. The failure 
 3. **Domain mismatch** - using wrong domain in SIP URI
 
 **Next Steps:**
-1. Check what SIP URI your code sends: `grep -r "sip:2001" sambanova/`
+1. Check what SIP URI your code sends: `grep -r "sip:2001" convonet/`
 2. Check extension's context: `sudo -u postgres psql fusionpbx -c "SELECT extension, user_context FROM v_extensions WHERE extension = '2001';"`
 3. Check dialplan routing from `public` context to extension
 

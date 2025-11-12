@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Deployment setup script for Sambanova
+Deployment setup script for Convonet
 Runs database migrations and sets up the application
 """
 
@@ -11,7 +11,7 @@ from pathlib import Path
 
 def setup_deployment():
     """Setup the application for deployment"""
-    print("🚀 Setting up Sambanova for deployment...")
+    print("🚀 Setting up Convonet for deployment...")
     
     # Check if we're in the right directory
     if not Path("app.py").exists():
@@ -35,7 +35,7 @@ def setup_deployment():
     # Run migrations
     migrations = [
         ("run_migration.py", "Team collaboration migration"),
-        ("sambanova/migrations/add_voice_pin.py", "Voice PIN authentication migration")
+        ("convonet/migrations/add_voice_pin.py", "Voice PIN authentication migration")
     ]
     
     for migration_file, migration_name in migrations:

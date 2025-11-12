@@ -1,7 +1,7 @@
 #!/bin/bash
 # Build script for Render.com deployment
 
-echo "🚀 Starting Sambanova build process..."
+echo "🚀 Starting Convonet build process..."
 
 # Install Python dependencies
 echo "📦 Installing Python dependencies..."

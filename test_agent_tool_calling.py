@@ -14,7 +14,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 async def test_agent_tool_calling():
     """Test if agent uses tools for specific requests"""
     try:
-        from sambanova.assistant_graph_todo import get_agent
+        from convonet.assistant_graph_todo import get_agent
         
         print("🤖 Testing Agent Tool Calling...")
         print("=" * 50)
@@ -37,7 +37,7 @@ async def test_agent_tool_calling():
             print("-" * 40)
             
             # Create a simple state for testing
-            from sambanova.state import AgentState
+            from convonet.state import AgentState
             from langchain_core.messages import HumanMessage
             
             state = AgentState(

@@ -26,7 +26,7 @@ Replace your current files with these optimized versions:
 # render_memory_optimized.yaml
 services:
   - type: web
-    name: sambanova-memory-optimized
+    name: convonet-memory-optimized
     env: python
     plan: free
     buildCommand: |

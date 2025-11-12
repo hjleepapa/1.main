@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Flask-SocketIO setup for WebSocket support with Sambanova integration
+Flask-SocketIO setup for WebSocket support with Convonet integration
 """
 
 from flask import Flask
@@ -25,7 +25,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 def handle_connect():
     """Handle WebSocket connection."""
     print('Client connected')
-    emit('status', {'data': 'Connected to Sambanova WebSocket'})
+    emit('status', {'data': 'Connected to Convonet WebSocket'})
 
 @socketio.on('disconnect')
 def handle_disconnect():

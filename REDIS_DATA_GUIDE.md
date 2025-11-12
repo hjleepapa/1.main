@@ -1,7 +1,7 @@
 # Redis Data Storage Guide
 
 ## Overview
-Redis is used for session management, caching, and real-time features in the Sambanova project. Here's what data is stored and how to use it.
+Redis is used for session management, caching, and real-time features in the Convonet project. Here's what data is stored and how to use it.
 
 ## Data Structure
 
@@ -118,7 +118,7 @@ activities = get_user_activity("123", hours=24)
 
 ### Check Session Data
 ```bash
-GET /sambanova_todo/webrtc/debug-session/{session_id}
+GET /convonet_todo/webrtc/debug-session/{session_id}
 ```
 
 **Response**:
@@ -142,14 +142,14 @@ GET /sambanova_todo/webrtc/debug-session/{session_id}
 
 ### Clear Session Data
 ```bash
-GET /sambanova_todo/webrtc/clear-session/{session_id}
+GET /convonet_todo/webrtc/clear-session/{session_id}
 ```
 
 ## Redis Commands
 
 ### Direct Redis Access
 ```python
-from sambanova.redis_manager import redis_manager
+from convonet.redis_manager import redis_manager
 
 # Check if Redis is available
 if redis_manager.is_available():

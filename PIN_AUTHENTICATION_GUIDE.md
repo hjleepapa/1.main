@@ -2,7 +2,7 @@
 
 ## 🔐 Overview
 
-The Sambanova Team Collaboration System now includes **PIN-based voice authentication** for Twilio phone calls. Users must enter a 4-6 digit PIN before accessing the AI assistant.
+The Convonet Team Collaboration System now includes **PIN-based voice authentication** for Twilio phone calls. Users must enter a 4-6 digit PIN before accessing the AI assistant.
 
 ---
 
@@ -10,13 +10,13 @@ The Sambanova Team Collaboration System now includes **PIN-based voice authentic
 
 ### **Step 1: Run Database Migration**
 
-The `voice_pin` column needs to be added to the `users_sambanova` table:
+The `voice_pin` column needs to be added to the `users_convonet` table:
 
 ```sql
-ALTER TABLE users_sambanova 
+ALTER TABLE users_convonet 
 ADD COLUMN voice_pin VARCHAR(10) UNIQUE;
 
-CREATE INDEX idx_users_voice_pin ON users_sambanova(voice_pin);
+CREATE INDEX idx_users_voice_pin ON users_convonet(voice_pin);
 ```
 
 ### **Step 2: Setup Demo Admin User**
@@ -29,7 +29,7 @@ python check_admin_user.py
 ```
 
 This will:
-- ✅ Verify admin@sambanova.com exists
+- ✅ Verify admin@convonet.com exists
 - ✅ Set password to 'admin123'
 - ✅ Set voice PIN to '1234'
 - ✅ Create admin user if doesn't exist
@@ -44,9 +44,9 @@ This will:
 
 **Manual SQL (for existing users):**
 ```sql
-UPDATE users_sambanova 
+UPDATE users_convonet 
 SET voice_pin = '1234' 
-WHERE email = 'admin@sambanova.com';
+WHERE email = 'admin@convonet.com';
 ```
 
 ---
@@ -58,7 +58,7 @@ WHERE email = 'admin@sambanova.com';
 ```
 1. User calls Twilio number
    ↓
-2. System: "Welcome to Sambanova productivity assistant. 
+2. System: "Welcome to Convonet productivity assistant. 
              Please enter or say your 4 to 6 digit PIN, then press pound."
    ↓
 3. User Options:
@@ -70,7 +70,7 @@ WHERE email = 'admin@sambanova.com';
    ↓
 5. System calls verify_user_pin("1234") MCP tool
    ↓
-6. Database lookup: users_sambanova WHERE voice_pin = '1234'
+6. Database lookup: users_convonet WHERE voice_pin = '1234'
    ↓
 7. If found:
    ✅ "AUTHENTICATED:{user_id}|{name}|{email}"
@@ -127,10 +127,10 @@ WHERE email = 'admin@sambanova.com';
 **Cause 1: PIN not set in database**
 ```sql
 -- Check if user has a PIN
-SELECT email, voice_pin FROM users_sambanova WHERE email = 'admin@sambanova.com';
+SELECT email, voice_pin FROM users_convonet WHERE email = 'admin@convonet.com';
 
 -- If NULL, set it:
-UPDATE users_sambanova SET voice_pin = '1234' WHERE email = 'admin@sambanova.com';
+UPDATE users_convonet SET voice_pin = '1234' WHERE email = 'admin@convonet.com';
 ```
 
 **Cause 2: Speech recognition returning unexpected text**
@@ -154,16 +154,16 @@ python check_admin_user.py
 ```python
 # The script will fix this automatically
 # Or manually:
-from sambanova.security.auth import jwt_auth
+from convonet.security.auth import jwt_auth
 new_hash = jwt_auth.hash_password('admin123')
 # Update in database
 ```
 
 **Cause 3: User is inactive**
 ```sql
-UPDATE users_sambanova 
+UPDATE users_convonet 
 SET is_active = true 
-WHERE email = 'admin@sambanova.com';
+WHERE email = 'admin@convonet.com';
 ```
 
 ### **Issue: "It also says put 6 digits"**
@@ -192,7 +192,7 @@ Once authenticated, users can:
 ```
 🗣️ "Create a hackathon team"
 🗣️ "What teams are available?"
-🗣️ "Add admin@sambanova.com to the hackathon team as owner"
+🗣️ "Add admin@convonet.com to the hackathon team as owner"
 🗣️ "Who is in the development team?"
 ```
 
@@ -206,9 +206,9 @@ Once authenticated, users can:
 
 ## 📊 Database Schema
 
-### **users_sambanova table:**
+### **users_convonet table:**
 ```sql
-CREATE TABLE users_sambanova (
+CREATE TABLE users_convonet (
     id UUID PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
     username VARCHAR(100) UNIQUE NOT NULL,
@@ -222,7 +222,7 @@ CREATE TABLE users_sambanova (
     last_login_at TIMESTAMP WITH TIME ZONE
 );
 
-CREATE INDEX idx_users_voice_pin ON users_sambanova(voice_pin);
+CREATE INDEX idx_users_voice_pin ON users_convonet(voice_pin);
 ```
 
 ---
@@ -243,7 +243,7 @@ CREATE INDEX idx_users_voice_pin ON users_sambanova(voice_pin);
 
 ### **Test 3: Web Dashboard Login**
 1. Go to https://hjlees.com/team-dashboard
-2. Email: admin@sambanova.com
+2. Email: admin@convonet.com
 3. Password: admin123
 4. Should login successfully
 
@@ -252,7 +252,7 @@ CREATE INDEX idx_users_voice_pin ON users_sambanova(voice_pin);
 2. Say: "Create a high priority todo to prepare the demo"
 3. Check database:
 ```sql
-SELECT title, creator_id FROM todos_sambanova ORDER BY created_at DESC LIMIT 1;
+SELECT title, creator_id FROM todos_convonet ORDER BY created_at DESC LIMIT 1;
 -- creator_id should be the admin user's UUID
 ```
 
@@ -273,7 +273,7 @@ SELECT title, creator_id FROM todos_sambanova ORDER BY created_at DESC LIMIT 1;
 
 **Web Dashboard:**
 - URL: https://hjlees.com/team-dashboard
-- Email: admin@sambanova.com
+- Email: admin@convonet.com
 - Password: admin123
 
 **Voice Authentication:**

@@ -1,4 +1,4 @@
-# Sambanova Voice AI Productivity System
+# Convonet Voice AI Productivity System
 
 ## Inspiration
 
@@ -8,7 +8,7 @@ We were inspired by how much time teams waste on task management overhead. **Wha
 
 ## What it does
 
-Sambanova is an enterprise voice AI productivity assistant that:
+Convonet is an enterprise voice AI productivity assistant that:
 
 - 📞 **Voice-First Productivity:** Call a phone number, authenticate with voice PIN, manage your entire workflow through conversation
 - 👥 **Team Collaboration:** Multi-tenant teams with role-based access, assign tasks to members by voice ("Assign code review to John")
@@ -92,7 +92,7 @@ SIP.js wouldn't load from CDN in production environments.
 
 **Documentation is a feature:** With 5+ integrated services, good documentation isn't optional - it's what makes the project usable.
 
-## What's next for Sambanova
+## What's next for Convonet
 
 **Immediate (Next Month):**
 - **Redpanda event streaming** for real-time analytics dashboard
@@ -114,7 +114,7 @@ SIP.js wouldn't load from CDN in production environments.
 - **Plugin marketplace:** Third-party tool integrations
 - **Edge deployment:** Low-latency global distribution
 
-**Bold Vision:** Make Sambanova the **de-facto voice interface for enterprise productivity** - where every team has an AI assistant that knows their workflow, handles routine tasks instantly, and connects to humans seamlessly when needed.
+**Bold Vision:** Make Convonet the **de-facto voice interface for enterprise productivity** - where every team has an AI assistant that knows their workflow, handles routine tasks instantly, and connects to humans seamlessly when needed.
 
 ---
 

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Redis Data Explorer for Sambanova Project
+Redis Data Explorer for Convonet Project
 Interactive tool to explore and manage Redis data
 """
 
 import json
 import time
 from datetime import datetime
-from sambanova.redis_manager import redis_manager
+from convonet.redis_manager import redis_manager
 
 def print_separator(title=""):
     """Print a visual separator"""
@@ -212,7 +212,7 @@ def interactive_menu():
 
 def main():
     """Main function"""
-    print("🚀 Redis Data Explorer for Sambanova Project")
+    print("🚀 Redis Data Explorer for Convonet Project")
     
     # Check Redis connection
     if not redis_manager.is_available():

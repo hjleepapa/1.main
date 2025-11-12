@@ -1,4 +1,4 @@
-# Sambanova Team Collaboration System - Test Cases
+# Convonet Team Collaboration System - Test Cases
 
 ## 🧪 Complete Test Suite
 
@@ -120,7 +120,7 @@
 **Database Verification**:
 ```sql
 SELECT title, priority, due_date, google_calendar_event_id 
-FROM todos_sambanova 
+FROM todos_convonet 
 WHERE title ILIKE '%groceries%' 
 ORDER BY created_at DESC LIMIT 1;
 ```
@@ -286,7 +286,7 @@ ORDER BY created_at DESC LIMIT 1;
 **Database Verification**:
 ```sql
 SELECT id, name, description, is_active 
-FROM teams_sambanova 
+FROM teams_convonet 
 WHERE name = 'Marketing' 
 ORDER BY created_at DESC LIMIT 1;
 ```
@@ -301,11 +301,11 @@ ORDER BY created_at DESC LIMIT 1;
 **Objective**: Add user to team with default member role
 
 **Prerequisites**:
-- User admin@sambanova.com exists
+- User admin@convonet.com exists
 - Team "Marketing" exists
 
 **Steps**:
-1. Say: "Add admin@sambanova.com to the Marketing team"
+1. Say: "Add admin@convonet.com to the Marketing team"
 
 **Expected Result**: 
 - ✅ User added to team
@@ -322,7 +322,7 @@ ORDER BY created_at DESC LIMIT 1;
 **Objective**: Add user to team with admin role
 
 **Steps**:
-1. Say: "Add admin@sambanova.com to the Marketing team as admin"
+1. Say: "Add admin@convonet.com to the Marketing team as admin"
 
 **Expected Result**: 
 - ✅ User added to team
@@ -515,7 +515,7 @@ ORDER BY created_at DESC LIMIT 1;
 **Steps**:
 1. Say: "Create a team called Engineering"
 2. Wait for confirmation
-3. Say: "Add admin@sambanova.com to the Engineering team as owner"
+3. Say: "Add admin@convonet.com to the Engineering team as owner"
 4. Wait for confirmation
 5. Say: "Add john@example.com to the Engineering team as member"
 
@@ -687,7 +687,7 @@ ORDER BY created_at DESC LIMIT 1;
 **Steps**:
 1. Go to https://hjlees.com/team-dashboard
 2. Enter:
-   - Email: admin@sambanova.com
+   - Email: admin@convonet.com
    - Password: admin123
 3. Click "Login"
 
@@ -950,7 +950,7 @@ ORDER BY created_at DESC LIMIT 1;
 **Objective**: Verify input sanitization
 
 **Steps**:
-1. Try to create todo with malicious title: "Test'; DROP TABLE todos_sambanova; --"
+1. Try to create todo with malicious title: "Test'; DROP TABLE todos_convonet; --"
 
 **Expected Result**: 
 - ✅ Input treated as literal string
@@ -1160,7 +1160,7 @@ ORDER BY created_at DESC LIMIT 1;
 - URL: https://hjlees.com
 - Phone Number: [Your Twilio Number]
 - Database: PostgreSQL on Render.com
-- Test User: admin@sambanova.com / admin123 / PIN: 1234
+- Test User: admin@convonet.com / admin123 / PIN: 1234
 
 **Test Execution Date**: _______________
 
@@ -1175,6 +1175,6 @@ _________________________________________________
 
 ---
 
-**Generated for Sambanova Team Collaboration System**  
+**Generated for Convonet Team Collaboration System**  
 *Last Updated: October 2025*
 
