@@ -367,23 +367,6 @@
                                 <i class="fas fa-phone-alt"></i> Transfer to ${data.department} (Extension ${data.extension})
                             </h5>
                             <p style="color: #856404; margin-bottom: 15px;">${data.message}</p>
-                            <div style="margin-top: 15px;">
-                                <h6 style="color: #856404; margin-bottom: 10px;">Transfer Options:</h6>
-                                <div style="margin-bottom: 15px;">
-                                    <strong>Option 1 - Call via Twilio:</strong><br>
-                                    <a href="tel:${data.instructions.twilio_number}" style="color: #0066cc; font-size: 18px; font-weight: bold;">
-                                        <i class="fas fa-phone"></i> ${data.instructions.twilio_number}
-                                    </a><br>
-                                    <small style="color: #856404;">Call this number and say "transfer me to extension ${data.extension}" or "transfer me to ${data.department}"</small>
-                                </div>
-                                <div>
-                                    <strong>Option 2 - Direct SIP:</strong><br>
-                                    <code style="background: white; padding: 5px 10px; border-radius: 5px; color: #856404;">
-                                        ${data.instructions.sip_uri}
-                                    </code><br>
-                                    <small style="color: #856404;">Use a SIP client (Zoiper, Linphone) to connect directly</small>
-                                </div>
-                            </div>
                         </div>
                     `;
                     

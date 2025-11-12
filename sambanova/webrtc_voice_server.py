@@ -1021,29 +1021,12 @@ def init_socketio(socketio_instance: SocketIO, app):
                     
                     user_email = session_data.get('user_email', '') if session_data else ''
                     
-                    # Create transfer instructions
-                    transfer_instructions = {
-                        'extension': target_extension,
-                        'department': department,
-                        'reason': reason,
-                        'freepbx_domain': freepbx_domain,
-                        'sip_uri': f"sip:{target_extension}@{freepbx_domain}",
-                        'twilio_number': twilio_number,
-                        'options': {
-                            'method_1': {
-                                'type': 'twilio_call',
-                                'description': 'Call via Twilio to be transferred',
-                                'phone_number': twilio_number,
-                                'instructions': f'Please call {twilio_number} and say "transfer me to extension {target_extension}" or "transfer me to {department}"'
-                            },
-                            'method_2': {
-                                'type': 'sip_link',
-                                'description': 'Direct SIP connection (requires SIP client)',
-                                'sip_uri': f"sip:{target_extension}@{freepbx_domain}",
-                                'instructions': f'Use a SIP client (like Zoiper, Linphone) to connect to: {target_extension}@{freepbx_domain}'
-                            }
-                        }
-                    }
+        # Instructions now simplified for direct bridge messaging only
+        transfer_instructions = {
+            'extension': target_extension,
+            'department': department,
+            'reason': reason
+        }
                     
                     # Send transfer event to client
                     transfer_success, transfer_details = initiate_agent_transfer(
