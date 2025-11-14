@@ -17,7 +17,8 @@ class CallCenterAgent {
             { urls: 'stun:stun.l.google.com:19302' },
             {
                 urls: [
-                    'turn:pbx.hjlees.com:3478?transport=udp'
+                    'turn:pbx.hjlees.com:3478?transport=udp',
+                    'turn:136.115.41.45:3478?transport=udp'
                 ],
                 username: 'agent',
                 credential: 'P@ssw0rd'
