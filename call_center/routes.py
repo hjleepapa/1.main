@@ -8,6 +8,12 @@ from . import call_center_bp
 from .models import Agent, Call, AgentActivity, AgentState, CallState
 from extensions import db
 import uuid
+import json
+
+try:
+    from convonet.redis_manager import redis_manager
+except ImportError:
+    redis_manager = None
 
 @call_center_bp.route('/')
 def index():
@@ -350,9 +356,24 @@ def agent_status():
 
 @call_center_bp.route('/api/customer/<customer_id>', methods=['GET'])
 def get_customer_data(customer_id):
-    """Get customer data for popup (mock data for demo)"""
-    # In production, this would query your CRM/customer database
-    mock_customer_data = {
+    """Get customer data for popup (prefer real data cached by the voice assistant)."""
+    profile = None
+    
+    if redis_manager and redis_manager.is_available():
+        try:
+            cache_key = f"callcenter:customer:{customer_id}"
+            cached = redis_manager.redis_client.get(cache_key)
+            if cached:
+                profile = json.loads(cached)
+                redis_manager.redis_client.delete(cache_key)
+        except Exception as e:
+            print(f"⚠️ Failed to read customer cache for {customer_id}: {e}")
+    
+    if profile:
+        return jsonify(profile)
+    
+    # Fallback mock data
+    return jsonify({
         'customer_id': customer_id,
         'name': 'John Doe',
         'email': 'john.doe@example.com',
@@ -363,7 +384,5 @@ def get_customer_data(customer_id):
         'open_tickets': 2,
         'lifetime_value': '$5,420',
         'notes': 'Preferred contact method: Email'
-    }
-    
-    return jsonify(mock_customer_data)
+    })
 

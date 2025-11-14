@@ -5,7 +5,7 @@ Enhanced todo management with team collaboration features
 
 from flask import Blueprint, request, jsonify
 from convonet.security.auth import jwt_auth, require_auth, require_team_member
-from convonet.mcps.local_servers.db_todo import DBTodo, Todo, TodoPriority
+from convonet.mcps.local_servers.db_todo import DBTodo, Todo, TodoPriority, DBCalendarEvent
 from convonet.models.user_models import User, Team, TeamMembership, TeamRole
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
@@ -188,6 +188,47 @@ def get_team_todos():
             
     except Exception as e:
         return jsonify({'error': f'Failed to get team todos: {str(e)}'}), 500
+
+@team_todo_bp.route('/calendar', methods=['GET'])
+@require_auth
+def get_team_calendar_events():
+    """Return calendar events so the dashboard can render them."""
+    try:
+        team_id = request.args.get('team_id')
+        limit = int(request.args.get('limit', 50))
+        offset = int(request.args.get('offset', 0))
+        
+        with SessionLocal() as session:
+            query = session.query(DBCalendarEvent)
+            
+            # Filter by team_id when the column exists (future-proof for upcoming schema change)
+            if team_id and hasattr(DBCalendarEvent, 'team_id'):
+                query = query.filter(DBCalendarEvent.team_id == team_id)
+            
+            query = query.order_by(DBCalendarEvent.event_from.asc())
+            events = query.offset(offset).limit(limit).all()
+            
+            event_list = []
+            for event in events:
+                event_list.append({
+                    'id': str(event.id),
+                    'title': event.title,
+                    'description': event.description,
+                    'event_from': event.event_from.isoformat() if event.event_from else None,
+                    'event_to': event.event_to.isoformat() if event.event_to else None,
+                    'team_id': str(getattr(event, 'team_id', '')) if getattr(event, 'team_id', None) else None,
+                    'created_at': event.created_at.isoformat() if event.created_at else None,
+                    'updated_at': event.updated_at.isoformat() if event.updated_at else None
+                })
+            
+            return jsonify({
+                'events': event_list,
+                'count': len(event_list),
+                'offset': offset,
+                'limit': limit
+            }), 200
+    except Exception as e:
+        return jsonify({'error': f'Failed to get calendar events: {str(e)}'}), 500
 
 @team_todo_bp.route('/<todo_id>', methods=['PUT'])
 @require_auth

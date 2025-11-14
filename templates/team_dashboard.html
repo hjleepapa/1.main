@@ -133,6 +133,24 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Team Calendar Events -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-calendar-alt"></i> Team Calendar Events</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="calendar-container">
+                                <div class="text-center text-muted">
+                                    <i class="fas fa-spinner fa-spin"></i> Loading events...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -409,6 +427,7 @@
                         currentTeam = data.teams[0];
                         console.log('✅ Auto-selected team:', currentTeam.name);
                         loadTeamTodos();
+                        loadCalendarEvents();
                     } else {
                         console.log('⚠️ No teams found for user');
                         teamSelect.innerHTML = '<option value="">No teams available</option>';
@@ -426,8 +445,13 @@
         document.getElementById('team-select').addEventListener('change', function() {
             const selectedTeamId = this.value;
             if (selectedTeamId) {
-                currentTeam = { id: selectedTeamId };
+                const selectedTeam = Array.from(this.options).find(opt => opt.value === selectedTeamId);
+                currentTeam = {
+                    id: selectedTeamId,
+                    name: selectedTeam ? selectedTeam.textContent : ''
+                };
                 loadTeamTodos();
+                loadCalendarEvents();
             }
         });
 
@@ -584,8 +608,59 @@
             }
         }
 
+        async function loadCalendarEvents() {
+            if (!currentTeam) return;
+            
+            try {
+                const response = await fetch(`/api/team-todos/calendar?team_id=${currentTeam.id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displayCalendarEvents(data.events || []);
+                } else {
+                    console.error('Failed to load calendar events:', data.error);
+                }
+            } catch (error) {
+                console.error('Error loading calendar events:', error);
+            }
+        }
+
+        function displayCalendarEvents(events) {
+            const container = document.getElementById('calendar-container');
+            
+            if (!events || events.length === 0) {
+                container.innerHTML = '<div class="text-center text-muted">No calendar events found</div>';
+                return;
+            }
+            
+            container.innerHTML = events.map(event => `
+                <div class="todo-item">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="card-title"><i class="fas fa-calendar-check text-primary me-2"></i>${event.title}</h6>
+                                    <p class="card-text mb-1">${event.description || 'No description provided.'}</p>
+                                    <small class="text-muted">
+                                        ${event.event_from ? new Date(event.event_from).toLocaleString() : 'No start time'}
+                                        ${event.event_to ? ` → ${new Date(event.event_to).toLocaleTimeString()}` : ''}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
         function refreshTodos() {
             loadTeamTodos();
+            loadCalendarEvents();
         }
 
         function showAddMemberModal() {

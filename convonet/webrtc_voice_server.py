@@ -9,6 +9,7 @@ import os
 import base64
 import time
 import re
+from uuid import UUID
 from urllib.parse import quote
 from flask import Blueprint, render_template, request, jsonify
 from flask_socketio import SocketIO, emit, join_room, leave_room
@@ -65,6 +66,64 @@ active_sessions = {}
 # Global references for background tasks
 socketio = None
 flask_app = None
+
+
+def build_customer_profile_from_session(session_data: dict | None) -> dict | None:
+    """Build a lightweight customer profile for the call center popup."""
+    if not session_data:
+        return None
+    
+    profile = {
+        "customer_id": session_data.get('user_id') or session_data.get('user_name') or "convonet_caller",
+        "name": session_data.get('user_name') or "Convonet Caller",
+        "email": None,
+        "phone": None,
+        "account_status": "Active",
+        "tier": "Standard",
+        "notes": "Captured from Convonet voice assistant",
+    }
+    
+    user_id = session_data.get('user_id')
+    if user_id:
+        try:
+            from convonet.mcps.local_servers.db_todo import SessionLocal, _init_database
+            from convonet.models.user_models import User as UserModel
+            
+            _init_database()
+            with SessionLocal() as db_session:
+                user = db_session.query(UserModel).filter(UserModel.id == UUID(user_id)).first()
+                if user:
+                    profile.update({
+                        "customer_id": str(user.id),
+                        "name": user.full_name if hasattr(user, "full_name") else f"{user.first_name} {user.last_name}",
+                        "email": user.email,
+                        "voice_pin": user.voice_pin,
+                        "account_status": "Verified" if user.is_verified else "Unverified",
+                    })
+        except Exception as e:
+            print(f"⚠️ Unable to load customer profile for call center: {e}")
+    
+    return profile
+
+
+def cache_call_center_profile(extension: str, session_data: dict | None):
+    """Store customer info in Redis so the call-center popup can display real data."""
+    if not extension or not REDIS_AVAILABLE or not redis_manager.is_available():
+        return
+    
+    profile = build_customer_profile_from_session(session_data)
+    if not profile:
+        return
+    
+    profile["extension"] = extension
+    try:
+        redis_manager.redis_client.setex(
+            f"callcenter:customer:{extension}",
+            300,  # expire after 5 minutes
+            json.dumps(profile)
+        )
+    except Exception as e:
+        print(f"⚠️ Failed to cache call center profile: {e}")
 
 
 def initiate_agent_transfer(session_id: str, extension: str, department: str, reason: str, session_data: dict | None):
@@ -988,6 +1047,8 @@ def init_socketio(socketio_instance: SocketIO, app):
                         "platform": "webrtc",
                         "source": source
                     })
+                    
+                    cache_call_center_profile(target_extension, session_record)
                     
                     transfer_instructions = {
                         'extension': target_extension,
