@@ -15,6 +15,7 @@ from flask_socketio import SocketIO, emit, join_room, leave_room
 import openai
 from convonet.assistant_graph_todo import get_agent
 from convonet.state import AgentState
+from convonet.voice_intent_utils import has_transfer_intent
 from langchain_core.messages import HumanMessage
 from twilio.rest import Client
 
@@ -919,11 +920,13 @@ def init_socketio(socketio_instance: SocketIO, app):
             try:
                 # Get session data
                 session = None
+                session_record = None
                 if redis_manager.is_available():
                     session_data = get_session(session_id)
                     if not session_data:
                         sentry_capture_voice_event("session_not_found_processing", session_id, details={"operation": "audio_processing"})
                         return
+                    session_record = session_data
                     # Convert Redis session data to expected format
                     session = {
                         'user_id': session_data.get('user_id'),
@@ -934,6 +937,7 @@ def init_socketio(socketio_instance: SocketIO, app):
                     if not session:
                         sentry_capture_voice_event("session_not_found_processing", session_id, details={"operation": "audio_processing", "storage": "memory"})
                         return
+                    session_record = session
                 
                 print(f"🎧 Processing audio: {len(audio_buffer)} bytes")
                 sentry_capture_voice_event("audio_processing_started", session_id, session.get('user_id'), details={"buffer_size": len(audio_buffer)})
@@ -973,68 +977,30 @@ def init_socketio(socketio_instance: SocketIO, app):
                     'method': 'assemblyai'
                 }, namespace='/voice', room=session_id)
                 
-                # Step 2: Process with agent
-                socketio.emit('status', {'message': 'Processing request...'}, namespace='/voice', room=session_id)
-                sentry_capture_voice_event("agent_processing_started", session_id, session.get('user_id'), details={"transcribed_text": transcribed_text})
+                transfer_requested = has_transfer_intent(transcribed_text)
                 
-                agent_response = asyncio.run(process_with_agent(
-                    transcribed_text,
-                    session['user_id'],
-                    session['user_name']
-                ))
-                
-                print(f"🤖 Agent response: {agent_response}")
-                sentry_capture_voice_event("agent_processing_completed", session_id, session.get('user_id'), details={"response_length": len(agent_response)})
-                
-                # Check if agent response indicates a transfer request
-                if agent_response.startswith("TRANSFER_INITIATED:"):
-                    # Parse transfer details
-                    transfer_data = agent_response.replace("TRANSFER_INITIATED:", "")
-                    parts = transfer_data.split("|")
-                    target_extension = parts[0] if len(parts) > 0 else '2001'
-                    department = parts[1] if len(parts) > 1 else 'support'
-                    reason = parts[2] if len(parts) > 2 else 'User requested transfer'
-                    
+                def start_transfer_flow(target_extension: str, department: str, reason: str, source: str = "agent"):
                     print(f"🔄 Transfer requested: Extension={target_extension}, Department={department}, Reason={reason}")
                     sentry_capture_voice_event("transfer_initiated", session_id, session.get('user_id'), details={
                         "extension": target_extension,
                         "department": department,
                         "reason": reason,
-                        "platform": "webrtc"
+                        "platform": "webrtc",
+                        "source": source
                     })
                     
-                    # Get FusionPBX configuration
-                    freepbx_domain = os.getenv('FREEPBX_DOMAIN', '136.115.41.45')
-                    twilio_number = os.getenv('TWILIO_INBOUND_NUMBER', '+12344007818')
-                    
-                    # For WebRTC, we need to provide transfer instructions
-                    # Option 1: Direct SIP link (if FreePBX supports WebRTC SIP)
-                    # Option 2: Provide Twilio phone number for user to call
-                    # Option 3: Server-side SIP bridge (requires SIP library)
-                    
-                    # Get session data for user info
-                    session_data = None
-                    if redis_manager.is_available():
-                        session_data = get_session(session_id)
-                    else:
-                        session_data = active_sessions.get(session_id, {})
-                    
-                    user_email = session_data.get('user_email', '') if session_data else ''
-                    
-                    # Instructions now simplified for direct bridge messaging only
                     transfer_instructions = {
                         'extension': target_extension,
                         'department': department,
                         'reason': reason
                     }
                     
-                    # Send transfer event to client
                     transfer_success, transfer_details = initiate_agent_transfer(
                         session_id=session_id,
                         extension=target_extension,
                         department=department,
                         reason=reason,
-                        session_data=session_data
+                        session_data=session_record
                     )
 
                     transfer_message_text = f"I'm transferring you to {department} (extension {target_extension})."
@@ -1057,9 +1023,7 @@ def init_socketio(socketio_instance: SocketIO, app):
 
                     print(f"🔄 Transfer instructions sent to WebRTC client for extension {target_extension}")
 
-                    # Generate TTS for transfer message
                     transfer_message = f"I'm transferring you to {department}. Extension {target_extension}."
-                    
                     try:
                         speech_response = openai_client.audio.speech.create(
                             model="tts-1",
@@ -1077,14 +1041,37 @@ def init_socketio(socketio_instance: SocketIO, app):
                         }, namespace='/voice', room=session_id)
                     except Exception as e:
                         print(f"❌ Error generating TTS for transfer: {e}")
-                        socketio.emit('agent_response', {
-                            'success': True,
-                            'text': transfer_message,
-                            'transfer': True
-                        }, namespace='/voice', room=session_id)
+                
+                if transfer_requested:
+                    start_transfer_flow('2001', 'support', 'User requested transfer to human agent', source="caller_intent")
+                    continue
 
-                    sentry_capture_voice_event("transfer_handled", session_id, session.get('user_id'), details={"extension": target_extension, "bridge_success": transfer_success})
-                    return
+                # Step 2: Process with agent
+                socketio.emit('status', {'message': 'Processing request...'}, namespace='/voice', room=session_id)
+                sentry_capture_voice_event("agent_processing_started", session_id, session.get('user_id'), details={"transcribed_text": transcribed_text})
+                
+                agent_response, transfer_marker = asyncio.run(process_with_agent(
+                    transcribed_text,
+                    session['user_id'],
+                    session['user_name']
+                ))
+                
+                print(f"🤖 Agent response: {agent_response}")
+                sentry_capture_voice_event("agent_processing_completed", session_id, session.get('user_id'), details={"response_length": len(agent_response)})
+                
+                effective_marker = transfer_marker or (agent_response if isinstance(agent_response, str) and agent_response.startswith("TRANSFER_INITIATED:") else None)
+                if effective_marker:
+                    if transfer_requested:
+                        marker_data = effective_marker.replace("TRANSFER_INITIATED:", "")
+                        parts = marker_data.split("|")
+                        target_extension = parts[0] if len(parts) > 0 else '2001'
+                        department = parts[1] if len(parts) > 1 else 'support'
+                        reason = parts[2] if len(parts) > 2 else 'User requested transfer'
+                        start_transfer_flow(target_extension, department, reason)
+                        continue
+                    else:
+                        print("Transfer marker detected but caller did not request a human. Ignoring marker.")
+                        agent_response = agent_response if not isinstance(agent_response, str) or not agent_response.startswith("TRANSFER_INITIATED:") else "Let me know how else I can help."
                 
                 # Step 3: Convert response to speech using OpenAI TTS (normal response)
                 socketio.emit('status', {'message': 'Generating speech...'}, namespace='/voice', room=session_id)
@@ -1154,21 +1141,23 @@ async def process_with_agent(text: str, user_id: str, user_name: str) -> str:
             prompt=text,
             user_id=user_id,
             user_name=user_name,
-            reset_thread=False
+            reset_thread=False,
+            include_metadata=True
         )
         
-        # The _run_agent_async function returns a string directly
-        return result
+        if isinstance(result, dict):
+            return result.get("response", ""), result.get("transfer_marker")
+        return result, None
     
     except asyncio.TimeoutError:
         # Capture timeout in Sentry
         if SENTRY_AVAILABLE:
             sentry_sdk.capture_message("Agent processing timeout", level="warning")
-        return "I'm sorry, I'm taking too long to process that request. Please try again."
+        return "I'm sorry, I'm taking too long to process that request. Please try again.", None
     except Exception as e:
         print(f"❌ Agent error: {e}")
         # Capture agent error in Sentry
         if SENTRY_AVAILABLE:
             sentry_sdk.capture_exception(e)
-        return "I'm sorry, I encountered an error. Please try again."
+        return "I'm sorry, I encountered an error. Please try again.", None
 

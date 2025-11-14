@@ -13,6 +13,7 @@ import sentry_sdk
 from twilio.twiml.voice_response import VoiceResponse, Connect, Gather
 from .state import AgentState
 from .assistant_graph_todo import get_agent, TodoAgent
+from .voice_intent_utils import has_transfer_intent
 from langchain_mcp_adapters.client import MultiServerMCPClient
 
 # Import new authentication and team routes
@@ -472,10 +473,8 @@ def process_audio_webhook():
                 response.redirect(f'/convonet_todo/twilio/call?is_continuation=true&authenticated=true{user_param}')
                 return Response(str(response), mimetype='text/xml')
             
-            # Check if user wants to transfer to an agent
-            transfer_phrases = ['transfer', 'agent', 'human', 'representative', 'operator', 'speak to someone', 'talk to someone', 'real person']
-            if any(phrase in transcribed_text.lower() for phrase in transfer_phrases):
-                # Redirect to transfer endpoint
+            transfer_requested = has_transfer_intent(transcribed_text)
+            if transfer_requested:
                 webhook_base_url = get_webhook_base_url()
                 response = VoiceResponse()
                 response.redirect(f'{webhook_base_url}/convonet_todo/twilio/transfer?extension=2001')
@@ -509,13 +508,25 @@ def process_audio_webhook():
             # Process with the agent (with timeout to prevent hanging)
             # Note: Twilio HTTP timeout is ~15 seconds, so we must respond faster
             start_time = time.time()
+            transfer_marker = None
             
             with sentry_sdk.start_span(op="agent_processing", description="LangGraph agent execution"):
                 try:
-                    agent_response = asyncio.run(asyncio.wait_for(
-                        _run_agent_async(transcribed_text, user_id=user_id, reset_thread=reset_thread),
+                    agent_result = asyncio.run(asyncio.wait_for(
+                        _run_agent_async(
+                            transcribed_text,
+                            user_id=user_id,
+                            reset_thread=reset_thread,
+                            include_metadata=True
+                        ),
                         timeout=12.0  # Reduced from 30 to 12 seconds to stay under Twilio's 15s timeout
                     ))
+                    if isinstance(agent_result, dict):
+                        agent_response = agent_result.get("response", "")
+                        transfer_marker = agent_result.get("transfer_marker")
+                    else:
+                        agent_response = agent_result
+                        transfer_marker = None
                     processing_time = time.time() - start_time
                     sentry_sdk.set_measurement("agent_processing_time", processing_time, "second")
                 except asyncio.TimeoutError:
@@ -597,17 +608,28 @@ def process_audio_webhook():
                     agent_response = "I'm sorry, I encountered an error. Please try again or rephrase your question."
             
             # Check if agent response indicates a transfer request
-            if agent_response.startswith("TRANSFER_INITIATED:"):
-                # Parse transfer details
-                transfer_data = agent_response.replace("TRANSFER_INITIATED:", "")
-                parts = transfer_data.split("|")
-                target_extension = parts[0] if len(parts) > 0 else "2001"
-                
-                webhook_base_url = get_webhook_base_url()
-                response = VoiceResponse()
-                response.redirect(f'{webhook_base_url}/convonet_todo/twilio/transfer?extension={target_extension}')
-                logger.info(f"Agent initiated transfer to extension {target_extension}")
-                return Response(str(response), mimetype='text/xml')
+            transfer_marker_value = transfer_marker
+            if not transfer_marker_value and isinstance(agent_response, str) and agent_response.startswith("TRANSFER_INITIATED:"):
+                transfer_marker_value = agent_response
+            
+            if transfer_marker_value:
+                if not transfer_requested:
+                    logger.info("Transfer marker detected but caller did not request a human. Suppressing automatic transfer.")
+                    transfer_marker_value = None
+                else:
+                    transfer_data = transfer_marker_value.replace("TRANSFER_INITIATED:", "")
+                    parts = transfer_data.split("|")
+                    target_extension = parts[0] if len(parts) > 0 else "2001"
+                    
+                    webhook_base_url = get_webhook_base_url()
+                    response = VoiceResponse()
+                    response.redirect(f'{webhook_base_url}/convonet_todo/twilio/transfer?extension={target_extension}')
+                    logger.info(f"Agent initiated transfer to extension {target_extension}")
+                    if user_id:
+                        if not hasattr(_run_agent_async, '_reset_threads'):
+                            _run_agent_async._reset_threads = set()
+                        _run_agent_async._reset_threads.add(user_id)
+                    return Response(str(response), mimetype='text/xml')
             
             # Return TwiML with the agent's response and barge-in capability
             response = VoiceResponse()
@@ -825,7 +847,13 @@ async def _run_agent_for_pin_verification(pin: str) -> str:
         traceback.print_exc()
         return f"AUTHENTICATION_ERROR: {str(e)}"
 
-async def _run_agent_async(prompt: str, user_id: Optional[str] = None, user_name: Optional[str] = None, reset_thread: bool = False) -> str:
+async def _run_agent_async(
+    prompt: str,
+    user_id: Optional[str] = None,
+    user_name: Optional[str] = None,
+    reset_thread: bool = False,
+    include_metadata: bool = False
+) -> str | dict:
     """Runs the agent for a given prompt and returns the final response.
     
     Args:
@@ -901,6 +929,11 @@ async def _run_agent_async(prompt: str, user_id: Optional[str] = None, user_name
             
             # If transfer marker was found, return it (for WebRTC transfer detection)
             # Otherwise return the final response
+            if include_metadata:
+                return {
+                    "response": final_response,
+                    "transfer_marker": transfer_marker
+                }
             if transfer_marker:
                 return transfer_marker
             return final_response
