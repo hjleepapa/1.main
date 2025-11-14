@@ -1044,7 +1044,7 @@ def init_socketio(socketio_instance: SocketIO, app):
                 
                 if transfer_requested:
                     start_transfer_flow('2001', 'support', 'User requested transfer to human agent', source="caller_intent")
-                    continue
+                    return
 
                 # Step 2: Process with agent
                 socketio.emit('status', {'message': 'Processing request...'}, namespace='/voice', room=session_id)
@@ -1068,7 +1068,7 @@ def init_socketio(socketio_instance: SocketIO, app):
                         department = parts[1] if len(parts) > 1 else 'support'
                         reason = parts[2] if len(parts) > 2 else 'User requested transfer'
                         start_transfer_flow(target_extension, department, reason)
-                        continue
+                        return
                     else:
                         print("Transfer marker detected but caller did not request a human. Ignoring marker.")
                         agent_response = agent_response if not isinstance(agent_response, str) or not agent_response.startswith("TRANSFER_INITIATED:") else "Let me know how else I can help."
