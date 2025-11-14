@@ -14,10 +14,9 @@ class CallCenterAgent {
         this.audioAccessDenied = false;
         this.answerInProgress = false;
         this.iceServers = [
-            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:136.115.41.45:3478' },
             {
                 urls: [
-                    'turn:pbx.hjlees.com:3478?transport=udp',
                     'turn:136.115.41.45:3478?transport=udp'
                 ],
                 username: 'agent',
