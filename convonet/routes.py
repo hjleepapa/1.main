@@ -371,17 +371,51 @@ def transfer_callback():
 @convonet_todo_bp.route('/twilio/voice_assistant/transfer_bridge', methods=['POST'])
 def voice_assistant_transfer_bridge():
     """
-    TwiML endpoint used by the WebRTC voice assistant to bridge Twilio call legs into a conference.
+    TwiML endpoint used by the WebRTC voice assistant to connect callers directly
+    to a FusionPBX/SIP extension instead of a conference bridge.
     """
-    conference_name = request.args.get('conference', 'va-transfer')
-    response = VoiceResponse()
-    dial = response.dial()
-    dial.conference(
-        conference_name,
-        start_conference_on_enter=True,
-        end_conference_on_exit=True
-    )
-    return Response(str(response), mimetype='text/xml')
+    try:
+        extension = request.args.get('extension') or request.form.get('extension') or '2001'
+        call_sid = request.form.get('CallSid', '')
+        caller_number = request.form.get('From') or os.getenv('TWILIO_PHONE_NUMBER', '')
+        
+        freepbx_domain = os.getenv('FREEPBX_DOMAIN', '136.115.41.45')
+        transfer_timeout = int(os.getenv('TRANSFER_TIMEOUT', '30'))
+        sip_username = os.getenv('FREEPBX_SIP_USERNAME', '')
+        sip_password = os.getenv('FREEPBX_SIP_PASSWORD', '')
+        sip_uri = f"sip:{extension}@{freepbx_domain};transport=udp"
+        
+        logger.info(f"[VoiceAssistantBridge] Dialing {sip_uri} for call {call_sid}")
+        
+        response = VoiceResponse()
+        dial = response.dial(
+            answer_on_bridge=True,
+            timeout=transfer_timeout,
+            caller_id=caller_number,
+            action=f'/convonet_todo/twilio/transfer_callback?extension={extension}'
+        )
+        
+        if sip_username and sip_password:
+            dial.sip(sip_uri, username=sip_username, password=sip_password)
+            logger.info("[VoiceAssistantBridge] Using SIP authentication")
+        else:
+            dial.sip(sip_uri)
+            logger.info("[VoiceAssistantBridge] Using IP-based SIP authentication")
+        
+        response.say("I'm sorry, the transfer failed. Please try again later.", voice='Polly.Amy')
+        response.hangup()
+        
+        return Response(str(response), mimetype='text/xml')
+    
+    except Exception as e:
+        logger.error(f"[VoiceAssistantBridge] Error connecting to agent: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        response = VoiceResponse()
+        response.say("I'm sorry, there was an error connecting you to an agent. Please try again later.", voice='Polly.Amy')
+        response.hangup()
+        return Response(str(response), mimetype='text/xml')
 
 @convonet_todo_bp.route('/twilio/process_audio', methods=['POST'])
 def process_audio_webhook():
