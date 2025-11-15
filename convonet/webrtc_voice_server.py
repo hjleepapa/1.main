@@ -130,6 +130,41 @@ def cache_call_center_profile(extension: str, session_data: dict | None):
         print(f"⚠️ Failed to cache call center profile: {e}")
 
 
+def is_transfer_in_progress(session_id: str, session_record: dict | None = None) -> bool:
+    """Check whether a transfer is already in progress for this WebRTC session."""
+    try:
+        if session_record and 'transfer_in_progress' in session_record:
+            return str(session_record['transfer_in_progress']).lower() == 'true'
+        
+        if redis_manager.is_available():
+            value = redis_manager.redis_client.hget(f"session:{session_id}", "transfer_in_progress")
+            if value is not None:
+                return str(value).lower() == 'true'
+        else:
+            if session_id in active_sessions:
+                return bool(active_sessions[session_id].get('transfer_in_progress'))
+    except Exception as e:
+        print(f"⚠️ Unable to read transfer flag for session {session_id}: {e}")
+    return False
+
+
+def set_transfer_flag(session_id: str, value: bool, session_record: dict | None = None):
+    """Persist the transfer_in_progress flag for this WebRTC session."""
+    str_value = 'True' if value else 'False'
+    try:
+        if session_record is not None:
+            session_record['transfer_in_progress'] = str_value
+        
+        if redis_manager.is_available():
+            redis_manager.redis_client.hset(f"session:{session_id}", "transfer_in_progress", str_value)
+        else:
+            if session_id not in active_sessions:
+                active_sessions[session_id] = {}
+            active_sessions[session_id]['transfer_in_progress'] = value
+    except Exception as e:
+        print(f"⚠️ Unable to set transfer flag for session {session_id}: {e}")
+
+
 def initiate_agent_transfer(session_id: str, extension: str, department: str, reason: str, session_data: dict | None):
     """
     Use Twilio Programmable Voice to originate a real call path to the target agent (and optionally the user).
@@ -445,6 +480,7 @@ def init_socketio(socketio_instance: SocketIO, app):
         
         # Capture disconnection event in Sentry
         sentry_capture_voice_event("client_disconnected", session_id)
+        set_transfer_flag(session_id, False)
         
         try:
             if redis_manager.is_available():
@@ -1044,6 +1080,10 @@ def init_socketio(socketio_instance: SocketIO, app):
                 
                 def start_transfer_flow(target_extension: str, department: str, reason: str, source: str = "agent"):
                     print(f"🔄 Transfer requested: Extension={target_extension}, Department={department}, Reason={reason}")
+                    if is_transfer_in_progress(session_id, session_record):
+                        print(f"⚠️ Transfer already in progress for session {session_id}, skipping duplicate request")
+                        return
+                    set_transfer_flag(session_id, True, session_record)
                     sentry_capture_voice_event("transfer_initiated", session_id, session.get('user_id'), details={
                         "extension": target_extension,
                         "department": department,
@@ -1067,6 +1107,8 @@ def init_socketio(socketio_instance: SocketIO, app):
                         reason=reason,
                         session_data=session_record
                     )
+                    if not transfer_success:
+                        set_transfer_flag(session_id, False, session_record)
 
                     transfer_message_text = f"I'm transferring you to {department} (extension {target_extension})."
 
