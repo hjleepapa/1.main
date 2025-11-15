@@ -104,6 +104,14 @@ FRONTEGG_DEFAULT_TEAM_ID=uuid-of-existing-convonet-team
 - **Source**: Copy the values from the Frontegg integration guide (`https://portal.frontegg.com/development/frontegg-integration-guide`).
 - **Default team**: Assign the UUID of the Convonet team that should own SSO users; the backend will auto-create memberships if missing.
 
+### FrontMCP server helpers
+```bash
+CONVONET_API_BASE=https://hjlees.com
+FRONTMCP_SERVICE_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+- `CONVONET_API_BASE` – endpoint used by `frontmcp/src/server.ts` when invoking the Flask APIs.
+- `FRONTMCP_SERVICE_TOKEN` – fallback bearer token that lets the MCP server call ConvoNet APIs even before a user authenticates through Frontegg. When the MCP client completes remote auth, the contextual token replaces this value automatically.
+
 ## 🔗 **COMPOSIO CONFIGURATION (NEW)**
 
 ### Your Composio Details

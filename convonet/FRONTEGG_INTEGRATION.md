@@ -55,7 +55,10 @@ The new module `convonet/integrations/frontegg_client.py`:
 - Point your login button to the Frontegg hosted login URL (the guide gives the exact URL snippet) or drop in the MCP widget script.
 - Ensure `/callback/frontegg` exchanges the authorization code and stores `access_token` in `localStorage` just like the existing JWT (front-end work tracked separately).
 
-## 7. Testing Checklist
+## 7. FrontMCP Server (docs.agentfront.dev)
+Following the [FrontMCP welcome guide](https://docs.agentfront.dev/getting-started/welcome), the new `frontmcp/src/server.ts` uses `@FrontMcp`, `@App`, and `tool` decorators to expose ConvoNet APIs. Deploy it inside Frontegg FrontMCP or run locally with `npm run dev`.
+
+## 8. Testing Checklist
 1. `source .env && flask run`
 2. Login via Frontegg → copy the returned access token from dev tools.
 3. Hit `/api/team-todos` with `Authorization: Bearer <frontegg token>` and confirm 200 OK.

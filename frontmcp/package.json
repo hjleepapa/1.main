@@ -1,0 +1,22 @@
+{
+  "name": "convonet-frontmcp",
+  "version": "0.1.0",
+  "description": "FrontMCP server that bridges ConvoNet APIs to hackathon tools",
+  "type": "module",
+  "scripts": {
+    "dev": "ts-node-esm src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "@frontmcp/sdk": "latest",
+    "cross-fetch": "4.0.0",
+    "dotenv": "16.4.5",
+    "zod": "3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "20.11.30",
+    "ts-node": "10.9.2",
+    "typescript": "5.4.5"
+  }
+}
