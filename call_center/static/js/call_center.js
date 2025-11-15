@@ -42,6 +42,7 @@ class CallCenterAgent {
         this.callDurationTimer = null;
         this.callStartTime = null;
         this.activeCallSessionId = null;
+        this.activeCallIdentity = null;
         
         this.init();
     }
@@ -575,13 +576,16 @@ class CallCenterAgent {
     handleIncomingCall(session) {
         console.log('Incoming call:', session);
         
-        if (this.activeCallSessionId && this.activeCallSessionId !== session.id) {
-            console.warn('Already handling an active call. Ignoring additional incoming session.', {
-                activeSession: this.activeCallSessionId,
-                incomingSession: session.id
-            });
-            session.on('failed', () => console.log('Ignored parallel session failed', session.id));
-            session.on('ended', () => console.log('Ignored parallel session ended', session.id));
+        const incomingIdentity = this.extractSessionIdentity(session);
+        const hasActiveCall = this.activeCallSessionId && this.activeCallSessionId !== session.id;
+        
+        if (hasActiveCall && this.isReinviteForActiveCall(incomingIdentity)) {
+            this.handleReinviteSession(session, incomingIdentity);
+            return;
+        }
+        
+        if (hasActiveCall) {
+            this.handleParallelInviteDuringActiveCall(session, incomingIdentity);
             return;
         }
         
@@ -604,6 +608,7 @@ class CallCenterAgent {
             customer_id: customerId,
             direction: 'inbound'
         };
+        this.activeCallIdentity = incomingIdentity;
         
         // Notify backend
         fetch('/call-center/api/call/ringing', {
@@ -622,6 +627,79 @@ class CallCenterAgent {
         this.ringTone.play();
         
         this.attachSessionEventHandlers(session, 'inbound');
+    }
+
+    extractSessionIdentity(session) {
+        if (!session) {
+            return { callId: null, twilioCallSid: null, fromTag: null };
+        }
+        const request = session.request || {};
+        const getHeader = typeof request.getHeader === 'function'
+            ? request.getHeader.bind(request)
+            : () => null;
+        return {
+            callId: request.call_id || request.callId || session.id,
+            twilioCallSid: getHeader('X-Twilio-CallSid'),
+            fromTag: request.from_tag || null
+        };
+    }
+
+    isReinviteForActiveCall(identity) {
+        if (!identity || !this.activeCallIdentity) {
+            return false;
+        }
+        if (identity.callId && this.activeCallIdentity.callId && identity.callId === this.activeCallIdentity.callId) {
+            return true;
+        }
+        if (identity.twilioCallSid && this.activeCallIdentity.twilioCallSid &&
+            identity.twilioCallSid === this.activeCallIdentity.twilioCallSid) {
+            return true;
+        }
+        return false;
+    }
+
+    handleReinviteSession(session, identity) {
+        console.warn('Detected SIP re-INVITE for active call. Auto-processing session update.', {
+            reinviteSession: session.id,
+            reinviteIdentity: identity,
+            activeSession: this.activeCallSessionId,
+            activeIdentity: this.activeCallIdentity
+        });
+        this.answerReinviteSession(session);
+    }
+
+    async answerReinviteSession(session) {
+        try {
+            const stream = (this.localStream && this.localStream.active)
+                ? this.localStream
+                : await this.ensureLocalAudioStream();
+            const options = this.buildSessionOptions(stream);
+            await session.answer(options);
+            session.on('accepted', () => console.log('Re-INVITE leg accepted', session.id));
+            session.on('confirmed', () => console.log('Re-INVITE leg confirmed', session.id));
+            session.on('ended', () => console.log('Re-INVITE leg ended', session.id));
+        } catch (error) {
+            console.error('Failed to auto-answer re-INVITE session', error);
+            try {
+                session.terminate({
+                    status_code: 488,
+                    reason_phrase: 'Unable to process re-INVITE'
+                });
+            } catch (terminateError) {
+                console.warn('Failed to terminate re-INVITE session cleanly', terminateError);
+            }
+        }
+    }
+
+    handleParallelInviteDuringActiveCall(session, identity) {
+        console.warn('Already handling an active call. Ignoring parallel incoming session.', {
+            activeSession: this.activeCallSessionId,
+            incomingSession: session.id,
+            incomingIdentity: identity,
+            activeIdentity: this.activeCallIdentity
+        });
+        session.on('failed', () => console.log('Ignored parallel session failed', session.id));
+        session.on('ended', () => console.log('Ignored parallel session ended', session.id));
     }
 
     async answerCall() {
@@ -993,6 +1071,7 @@ class CallCenterAgent {
         this.pendingDialNumber = null;
         this.answerInProgress = false;
         this.activeCallSessionId = null;
+        this.activeCallIdentity = null;
         
         this.setReady();
     }
