@@ -41,6 +41,7 @@ class CallCenterAgent {
         this.statusStartTime = null;
         this.callDurationTimer = null;
         this.callStartTime = null;
+        this.activeCallSessionId = null;
         
         this.init();
     }
@@ -341,6 +342,7 @@ class CallCenterAgent {
     
     attachSessionEventHandlers(session, direction = 'inbound', dialedNumber = null) {
         this.currentSession = session;
+        this.activeCallSessionId = session ? session.id : null;
 
         this.enforceNonTrickle(session);
 
@@ -573,6 +575,15 @@ class CallCenterAgent {
     handleIncomingCall(session) {
         console.log('Incoming call:', session);
         
+        if (this.activeCallSessionId && this.activeCallSessionId !== session.id) {
+            console.warn('Already handling an active call. Rejecting new incoming session.', {
+                activeSession: this.activeCallSessionId,
+                incomingSession: session.id
+            });
+            this.rejectIncomingCall(session);
+            return;
+        }
+        
         const remoteIdentity = session.remote_identity;
         const callerNumber = remoteIdentity.uri.user;
         const callerName = remoteIdentity.display_name || callerNumber;
@@ -583,6 +594,8 @@ class CallCenterAgent {
         // Mock customer data (in production, fetch from CRM)
         const customerId = callerNumber;
         
+        this.currentSession = session;
+        this.activeCallSessionId = session.id;
         this.currentCall = {
             call_id: callId,
             caller_number: callerNumber,
@@ -608,6 +621,22 @@ class CallCenterAgent {
         this.ringTone.play();
         
         this.attachSessionEventHandlers(session, 'inbound');
+    }
+
+    rejectIncomingCall(session) {
+        if (!session) {
+            return;
+        }
+        try {
+            if (typeof session.terminate === 'function') {
+                session.terminate({
+                    status_code: 486,
+                    reason_phrase: 'Busy Here'
+                });
+            }
+        } catch (error) {
+            console.error('Failed to reject incoming session:', error);
+        }
     }
     
     async answerCall() {
@@ -685,12 +714,14 @@ class CallCenterAgent {
         try {
             this.currentSession.terminate();
             
-            // Notify backend
-            await fetch('/call-center/api/call/drop', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ call_id: this.currentCall.call_id })
-            });
+            // Notify backend if we still have call metadata
+            if (this.currentCall && this.currentCall.call_id) {
+                await fetch('/call-center/api/call/drop', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ call_id: this.currentCall.call_id })
+                });
+            }
         } catch (error) {
             console.error('Hangup call error:', error);
         }
@@ -976,6 +1007,7 @@ class CallCenterAgent {
         this.currentSession = null;
         this.pendingDialNumber = null;
         this.answerInProgress = false;
+        this.activeCallSessionId = null;
         
         this.setReady();
     }
