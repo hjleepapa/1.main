@@ -88,6 +88,22 @@ REDIS_DB=0
 - ✅ **Rate Limiting**: DDoS protection
 - ✅ **Analytics**: Agent activity tracking
 
+## 🛡️ **FRONTEGG / FRONTMCP CONFIGURATION (NEW)**
+
+```bash
+FRONTEGG_CLIENT_ID=your-frontegg-client-id
+FRONTEGG_CLIENT_SECRET=your-frontegg-client-secret
+FRONTEGG_BASE_URL=https://your-workspace.frontegg.com
+FRONTEGG_JWKS_URL=https://your-workspace.frontegg.com/.well-known/jwks.json
+FRONTEGG_AUDIENCE=your-frontegg-client-id
+FRONTEGG_ISSUER=https://your-workspace.frontegg.com
+FRONTEGG_DEFAULT_TEAM_ID=uuid-of-existing-convonet-team
+```
+
+- **Purpose**: Enable FrontMCP (Frontegg) Auth-as-a-Service for the hackathon.
+- **Source**: Copy the values from the Frontegg integration guide (`https://portal.frontegg.com/development/frontegg-integration-guide`).
+- **Default team**: Assign the UUID of the Convonet team that should own SSO users; the backend will auto-create memberships if missing.
+
 ## 🔗 **COMPOSIO CONFIGURATION (NEW)**
 
 ### Your Composio Details
