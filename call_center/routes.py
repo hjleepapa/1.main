@@ -358,14 +358,31 @@ def agent_status():
 def get_customer_data(customer_id):
     """Get customer data for popup (prefer real data cached by the voice assistant)."""
     profile = None
+    agent_extension = None
+    
+    agent_id = session.get('agent_id')
+    if agent_id:
+        agent = Agent.query.get(agent_id)
+        if agent:
+            agent_extension = agent.sip_extension or agent.agent_id
     
     if redis_manager and redis_manager.is_available():
         try:
-            cache_key = f"callcenter:customer:{customer_id}"
-            cached = redis_manager.redis_client.get(cache_key)
+            keys_to_try = []
+            if customer_id:
+                keys_to_try.append(f"callcenter:customer:{customer_id}")
+            if agent_extension and agent_extension != customer_id:
+                keys_to_try.append(f"callcenter:customer:{agent_extension}")
+            
+            cached = None
+            for cache_key in keys_to_try:
+                cached = redis_manager.redis_client.get(cache_key)
+                if cached:
+                    redis_manager.redis_client.delete(cache_key)
+                    break
+            
             if cached:
                 profile = json.loads(cached)
-                redis_manager.redis_client.delete(cache_key)
         except Exception as e:
             print(f"⚠️ Failed to read customer cache for {customer_id}: {e}")
     
