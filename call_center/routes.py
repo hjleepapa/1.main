@@ -378,7 +378,6 @@ def get_customer_data(customer_id):
             for cache_key in keys_to_try:
                 cached = redis_manager.redis_client.get(cache_key)
                 if cached:
-                    redis_manager.redis_client.delete(cache_key)
                     break
             
             if cached:

@@ -1207,6 +1207,7 @@ async def get_calendar_events() -> str:
     Returns:
         A list of all calendar events.
     """
+    check_database_available()
     with SessionLocal() as session:
         events = session.query(DBCalendarEvent).all()
         events_list = [CalendarEvent.model_validate(event.__dict__).model_dump_json(indent=2) for event in events]

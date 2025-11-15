@@ -55,6 +55,10 @@ except ImportError as e:
     def delete_session(*args, **kwargs):
         return False
 
+# Optional test PIN support (disabled by default unless explicitly enabled)
+ENABLE_TEST_PIN = os.getenv('ENABLE_TEST_PIN', 'false').lower() == 'true'
+TEST_VOICE_PIN = os.getenv('TEST_VOICE_PIN', '1234')
+
 webrtc_bp = Blueprint('webrtc_voice', __name__, url_prefix='/convonet_todo/webrtc')
 
 # Initialize OpenAI client for Whisper and TTS
@@ -473,8 +477,8 @@ def init_socketio(socketio_instance: SocketIO, app):
         sentry_capture_voice_event("authentication_attempt", session_id, details={"pin_provided": bool(pin)})
         
         try:
-            # TEST MODE: Accept "1234" as a test PIN for local development
-            if pin == "1234":
+            # TEST MODE (optional): allow a configurable PIN when explicitly enabled
+            if ENABLE_TEST_PIN and pin == TEST_VOICE_PIN:
                 print(f"✅ Test authentication successful with PIN: {pin}")
                 auth_updates = {
                     'authenticated': 'True',
