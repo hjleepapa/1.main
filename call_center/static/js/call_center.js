@@ -576,11 +576,12 @@ class CallCenterAgent {
         console.log('Incoming call:', session);
         
         if (this.activeCallSessionId && this.activeCallSessionId !== session.id) {
-            console.warn('Already handling an active call. Rejecting new incoming session.', {
+            console.warn('Already handling an active call. Ignoring additional incoming session.', {
                 activeSession: this.activeCallSessionId,
                 incomingSession: session.id
             });
-            this.rejectIncomingCall(session);
+            session.on('failed', () => console.log('Ignored parallel session failed', session.id));
+            session.on('ended', () => console.log('Ignored parallel session ended', session.id));
             return;
         }
         
@@ -623,22 +624,6 @@ class CallCenterAgent {
         this.attachSessionEventHandlers(session, 'inbound');
     }
 
-    rejectIncomingCall(session) {
-        if (!session) {
-            return;
-        }
-        try {
-            if (typeof session.terminate === 'function') {
-                session.terminate({
-                    status_code: 486,
-                    reason_phrase: 'Busy Here'
-                });
-            }
-        } catch (error) {
-            console.error('Failed to reject incoming session:', error);
-        }
-    }
-    
     async answerCall() {
         const session = this.currentSession;
         if (!session) {
