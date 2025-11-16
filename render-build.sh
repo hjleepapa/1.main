@@ -4,11 +4,7 @@ set -e
 echo "Installing Python dependencies..."
 pip install -r requirements.txt
 
-echo "Building FrontMCP server..."
-cd frontmcp
-npm install
-npm run build
-cd ..
+echo "Skipping FrontMCP build (Frontegg disabled)."
 
 echo "Build complete!"
 

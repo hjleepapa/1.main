@@ -11,18 +11,14 @@ from functools import wraps
 from flask import request, jsonify, current_app
 import os
 
-try:
-    from convonet.integrations.frontegg_client import frontegg_auth_manager
-except Exception:  # pragma: no cover - optional integration
-    frontegg_auth_manager = None
-
 class JWTAuth:
     def __init__(self, secret_key: Optional[str] = None):
         self.secret_key = secret_key or os.getenv('JWT_SECRET_KEY', 'your-super-secret-jwt-key-change-in-production')
         self.algorithm = 'HS256'
         self.access_token_expire_minutes = 30
         self.refresh_token_expire_days = 7
-        self.frontegg_manager = frontegg_auth_manager
+        # Frontegg disabled/removed; use only local JWT verification
+        self.frontegg_manager = None
     
     def hash_password(self, password: str) -> str:
         """Hash a password using bcrypt"""
@@ -66,10 +62,6 @@ class JWTAuth:
     
     def verify_token(self, token: str) -> Optional[Dict[str, Any]]:
         """Verify and decode a JWT token"""
-        if self.frontegg_manager:
-            payload = self.frontegg_manager.verify_token(token)
-            if payload:
-                return payload
         try:
             payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
             return payload
@@ -97,19 +89,16 @@ class JWTAuth:
             payload = self.verify_token(token)
             if not payload:
                 return jsonify({'error': 'Invalid or expired token'}), 401
-            
-            if payload.get('_provider') == 'frontegg' and self.frontegg_manager:
-                request.current_user = self.frontegg_manager.build_request_user(payload)
-            else:
-                if payload.get('type') != 'access':
-                    return jsonify({'error': 'Invalid token type'}), 401
-                # Add user info to request context
-                request.current_user = {
-                    'user_id': payload['user_id'],
-                    'email': payload['email'],
-                    'roles': payload.get('roles', []),
-                    'team_id': payload.get('team_id')
-                }
+
+            if payload.get('type') != 'access':
+                return jsonify({'error': 'Invalid token type'}), 401
+            # Add user info to request context
+            request.current_user = {
+                'user_id': payload['user_id'],
+                'email': payload['email'],
+                'roles': payload.get('roles', []),
+                'team_id': payload.get('team_id')
+            }
             
             return f(*args, **kwargs)
         return decorated_function
