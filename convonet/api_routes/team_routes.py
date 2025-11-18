@@ -136,11 +136,11 @@ def get_user_teams():
 def get_team(team_id):
     """Get team details and members"""
     try:
-                session_factory = get_session_factory()
-                if session_factory is None:
-                    return jsonify({'error': 'Database connection not initialized on server'}), 500
-                
-                with session_factory() as session:
+        session_factory = get_session_factory()
+        if session_factory is None:
+            return jsonify({'error': 'Database connection not initialized on server'}), 500
+        
+        with session_factory() as session:
             team = session.query(Team).filter(Team.id == team_id).first()
             
             if not team:
