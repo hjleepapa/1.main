@@ -65,9 +65,14 @@ class JWTAuth:
         try:
             payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
             return payload
-        except jwt.ExpiredSignatureError:
+        except jwt.ExpiredSignatureError as e:
+            print(f"⚠️  Token expired: {str(e)}")
             return None
-        except jwt.InvalidTokenError:
+        except jwt.InvalidTokenError as e:
+            print(f"⚠️  Invalid token: {str(e)}")
+            return None
+        except Exception as e:
+            print(f"⚠️  Token verification error: {str(e)}")
             return None
     
     def get_token_from_header(self) -> Optional[str]:
