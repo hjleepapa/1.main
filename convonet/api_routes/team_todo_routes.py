@@ -15,10 +15,32 @@ import os
 from datetime import datetime, timezone
 from uuid import UUID
 
-# Database setup
-db_uri = os.getenv("DB_URI")
-engine = create_engine(db_uri)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Database setup with safe defaults
+db_uri = (
+    os.getenv("CONVONET_DB_URI")
+    or os.getenv("DATABASE_URL")
+    or os.getenv("DB_URI")
+    or "sqlite:///convonet_team.db"
+)
+engine = None
+SessionLocal = None
+
+
+def get_session_factory():
+    """Lazily initialize the SQLAlchemy session factory."""
+    global engine, SessionLocal
+    if SessionLocal is not None:
+        return SessionLocal
+    
+    try:
+        engine = create_engine(db_uri, pool_pre_ping=True)
+        SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        print(f"✅ Convonet team todo routes connected to database: {db_uri}")
+    except Exception as e:
+        print(f"❌ Failed to initialize Convonet todo database engine: {e}")
+        engine = None
+        SessionLocal = None
+    return SessionLocal
 
 team_todo_bp = Blueprint('team_todos', __name__, url_prefix='/api/team-todos')
 
@@ -27,14 +49,18 @@ team_todo_bp = Blueprint('team_todos', __name__, url_prefix='/api/team-todos')
 def create_team_todo():
     """Create a new team todo"""
     try:
-        data = request.get_json()
+        session_factory = get_session_factory()
+        if session_factory is None:
+            return jsonify({'error': 'Database connection not initialized on server'}), 500
+        
+        data = request.get_json() or {}
         current_user_id = request.current_user['user_id']
         current_user_team_id = request.current_user.get('team_id')
         
         if not data.get('title'):
             return jsonify({'error': 'Title is required'}), 400
         
-        with SessionLocal() as session:
+        with session_factory() as session:
             # Set default due date to today if not provided
             due_date = None
             if data.get('due_date'):
@@ -111,7 +137,11 @@ def get_team_todos():
         limit = int(request.args.get('limit', 50))
         offset = int(request.args.get('offset', 0))
         
-        with SessionLocal() as session:
+        session_factory = get_session_factory()
+        if session_factory is None:
+            return jsonify({'error': 'Database connection not initialized on server'}), 500
+        
+        with session_factory() as session:
             # Build query
             query = session.query(DBTodo)
             
@@ -198,7 +228,11 @@ def get_team_calendar_events():
         limit = int(request.args.get('limit', 50))
         offset = int(request.args.get('offset', 0))
         
-        with SessionLocal() as session:
+        session_factory = get_session_factory()
+        if session_factory is None:
+            return jsonify({'error': 'Database connection not initialized on server'}), 500
+        
+        with session_factory() as session:
             query = session.query(DBCalendarEvent)
             
             # Filter by team_id when the column exists (future-proof for upcoming schema change)
@@ -238,7 +272,11 @@ def update_team_todo(todo_id):
         data = request.get_json()
         current_user_id = request.current_user['user_id']
         
-        with SessionLocal() as session:
+        session_factory = get_session_factory()
+        if session_factory is None:
+            return jsonify({'error': 'Database connection not initialized on server'}), 500
+        
+        with session_factory() as session:
             todo = session.query(DBTodo).filter(DBTodo.id == todo_id).first()
             
             if not todo:
@@ -322,7 +360,11 @@ def delete_team_todo(todo_id):
     try:
         current_user_id = request.current_user['user_id']
         
-        with SessionLocal() as session:
+        session_factory = get_session_factory()
+        if session_factory is None:
+            return jsonify({'error': 'Database connection not initialized on server'}), 500
+        
+        with session_factory() as session:
             todo = session.query(DBTodo).filter(DBTodo.id == todo_id).first()
             
             if not todo:
@@ -364,7 +406,11 @@ def assign_todo():
         if not todo_id or not assignee_id:
             return jsonify({'error': 'todo_id and assignee_id are required'}), 400
         
-        with SessionLocal() as session:
+        session_factory = get_session_factory()
+        if session_factory is None:
+            return jsonify({'error': 'Database connection not initialized on server'}), 500
+        
+        with session_factory() as session:
             todo = session.query(DBTodo).filter(DBTodo.id == todo_id).first()
             
             if not todo:

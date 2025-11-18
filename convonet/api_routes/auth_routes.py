@@ -13,10 +13,32 @@ import os
 from datetime import datetime, timezone
 from uuid import uuid4
 
-# Database setup
-db_uri = os.getenv("DB_URI")
-engine = create_engine(db_uri)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Database setup with safe defaults
+db_uri = (
+    os.getenv("CONVONET_DB_URI")
+    or os.getenv("DATABASE_URL")
+    or os.getenv("DB_URI")
+    or "sqlite:///convonet_team.db"
+)
+engine = None
+SessionLocal = None
+
+
+def get_session_factory():
+    """Lazily initialize the SQLAlchemy session factory."""
+    global engine, SessionLocal
+    if SessionLocal is not None:
+        return SessionLocal
+    
+    try:
+        engine = create_engine(db_uri, pool_pre_ping=True)
+        SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        print(f"✅ Convonet auth routes connected to database: {db_uri}")
+    except Exception as e:
+        print(f"❌ Failed to initialize Convonet auth database engine: {e}")
+        engine = None
+        SessionLocal = None
+    return SessionLocal
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 
@@ -24,7 +46,11 @@ auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 def register():
     """Register a new user"""
     try:
-        data = request.get_json()
+        session_factory = get_session_factory()
+        if session_factory is None:
+            return jsonify({'error': 'Database connection not initialized on server'}), 500
+        
+        data = request.get_json() or {}
         
         # Validate required fields
         required_fields = ['email', 'username', 'password', 'first_name', 'last_name']
@@ -33,7 +59,7 @@ def register():
                 return jsonify({'error': f'{field} is required'}), 400
         
         # Check if user already exists
-        with SessionLocal() as session:
+        with session_factory() as session:
             existing_user = session.query(User).filter(
                 (User.email == data['email']) | (User.username == data['username'])
             ).first()
@@ -90,12 +116,16 @@ def register():
 def login():
     """Login user and return tokens"""
     try:
-        data = request.get_json()
+        session_factory = get_session_factory()
+        if session_factory is None:
+            return jsonify({'error': 'Database connection not initialized on server'}), 500
+        
+        data = request.get_json() or {}
         
         if not data.get('email') or not data.get('password'):
             return jsonify({'error': 'Email and password are required'}), 400
         
-        with SessionLocal() as session:
+        with session_factory() as session:
             user = session.query(User).filter(User.email == data['email']).first()
             
             if not user or not jwt_auth.verify_password(data['password'], user.password_hash):
@@ -155,7 +185,11 @@ def login():
 def refresh_token():
     """Refresh access token using refresh token"""
     try:
-        data = request.get_json()
+        session_factory = get_session_factory()
+        if session_factory is None:
+            return jsonify({'error': 'Database connection not initialized on server'}), 500
+        
+        data = request.get_json() or {}
         refresh_token = data.get('refresh_token')
         
         if not refresh_token:
@@ -165,7 +199,7 @@ def refresh_token():
         if not payload or payload.get('type') != 'refresh':
             return jsonify({'error': 'Invalid refresh token'}), 401
         
-        with SessionLocal() as session:
+        with session_factory() as session:
             user = session.query(User).filter(User.id == payload['user_id']).first()
             
             if not user or not user.is_active:
@@ -198,7 +232,11 @@ def get_profile():
     try:
         user_id = request.current_user['user_id']
         
-        with SessionLocal() as session:
+        session_factory = get_session_factory()
+        if session_factory is None:
+            return jsonify({'error': 'Database connection not initialized on server'}), 500
+        
+        with session_factory() as session:
             user = session.query(User).filter(User.id == user_id).first()
             
             if not user:

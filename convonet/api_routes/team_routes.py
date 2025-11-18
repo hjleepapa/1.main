@@ -13,10 +13,32 @@ import os
 from datetime import datetime, timezone
 from uuid import uuid4
 
-# Database setup
-db_uri = os.getenv("DB_URI")
-engine = create_engine(db_uri)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Database setup with safe defaults
+db_uri = (
+    os.getenv("CONVONET_DB_URI")
+    or os.getenv("DATABASE_URL")
+    or os.getenv("DB_URI")
+    or "sqlite:///convonet_team.db"
+)
+engine = None
+SessionLocal = None
+
+
+def get_session_factory():
+    """Lazily initialize the SQLAlchemy session factory."""
+    global engine, SessionLocal
+    if SessionLocal is not None:
+        return SessionLocal
+    
+    try:
+        engine = create_engine(db_uri, pool_pre_ping=True)
+        SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        print(f"✅ Convonet team routes connected to database: {db_uri}")
+    except Exception as e:
+        print(f"❌ Failed to initialize Convonet team database engine: {e}")
+        engine = None
+        SessionLocal = None
+    return SessionLocal
 
 team_bp = Blueprint('teams', __name__, url_prefix='/api/teams')
 
@@ -31,7 +53,11 @@ def create_team():
         if not data.get('name'):
             return jsonify({'error': 'Team name is required'}), 400
         
-        with SessionLocal() as session:
+    session_factory = get_session_factory()
+    if session_factory is None:
+        return jsonify({'error': 'Database connection not initialized on server'}), 500
+    
+    with session_factory() as session:
             # Create team
             team = Team(
                 name=data['name'],
@@ -72,7 +98,11 @@ def get_user_teams():
     try:
         user_id = request.current_user['user_id']
         
-        with SessionLocal() as session:
+        session_factory = get_session_factory()
+        if session_factory is None:
+            return jsonify({'error': 'Database connection not initialized on server'}), 500
+        
+        with session_factory() as session:
             # Use join query instead of relationship to avoid issues
             results = session.query(TeamMembership, Team).join(
                 Team, TeamMembership.team_id == Team.id
@@ -106,7 +136,11 @@ def get_user_teams():
 def get_team(team_id):
     """Get team details and members"""
     try:
-        with SessionLocal() as session:
+                session_factory = get_session_factory()
+                if session_factory is None:
+                    return jsonify({'error': 'Database connection not initialized on server'}), 500
+                
+                with session_factory() as session:
             team = session.query(Team).filter(Team.id == team_id).first()
             
             if not team:
@@ -162,7 +196,11 @@ def add_team_member(team_id):
         if not data.get('user_id') or not data.get('role'):
             return jsonify({'error': 'user_id and role are required'}), 400
         
-        with SessionLocal() as session:
+        session_factory = get_session_factory()
+        if session_factory is None:
+            return jsonify({'error': 'Database connection not initialized on server'}), 500
+        
+        with session_factory() as session:
             # Get current user to check if they're the admin user
             current_user = session.query(User).filter(User.id == current_user_id).first()
             is_admin_user = current_user and current_user.email == 'admin@convonet.com'
