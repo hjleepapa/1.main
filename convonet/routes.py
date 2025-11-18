@@ -16,10 +16,10 @@ from .assistant_graph_todo import get_agent, TodoAgent
 from .voice_intent_utils import has_transfer_intent
 from langchain_mcp_adapters.client import MultiServerMCPClient
 
-# Import new authentication and team routes
-from .api_routes.auth_routes import auth_bp
-from .api_routes.team_routes import team_bp
-from .api_routes.team_todo_routes import team_todo_bp
+# Import new authentication and team routes (optional - commented out as api_routes moved to archive)
+# from .api_routes.auth_routes import auth_bp
+# from .api_routes.team_routes import team_bp
+# from .api_routes.team_todo_routes import team_todo_bp
 
 # Set up logging
 logger = logging.getLogger(__name__)

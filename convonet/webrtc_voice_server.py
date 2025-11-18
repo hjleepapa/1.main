@@ -23,8 +23,8 @@ from twilio.rest import Client
 # Deepgram WebRTC integration
 from deepgram_webrtc_integration import transcribe_audio_with_deepgram_webrtc, get_deepgram_webrtc_info
 
-# Import the blueprint
-from convonet.routes import convonet_todo_bp
+# Import the blueprint (optional - not used in this module)
+# from convonet.routes import convonet_todo_bp
 
 # Sentry integration for monitoring Redis interactions and errors
 try:
