@@ -112,7 +112,7 @@ def create_app():
     from lgch_todo import lgch_todo_bp
     app.register_blueprint(lgch_todo_bp)
 
-    # Convonet blueprints - restored for audio-player and voice-assistant
+    # Convonet blueprints - restored for audio-player, voice-assistant, and APIs
     try:
         # Register WebRTC voice assistant blueprint
         from convonet.webrtc_voice_server import webrtc_bp, init_socketio
@@ -128,6 +128,18 @@ def create_app():
         print(f"⚠️  Convonet modules not available: {e}")
         import traceback
         traceback.print_exc()
+    
+    # Register Convonet API blueprints (authentication, teams, todos)
+    try:
+        from convonet.api_routes.auth_routes import auth_bp
+        from convonet.api_routes.team_routes import team_bp
+        from convonet.api_routes.team_todo_routes import team_todo_bp
+        
+        app.register_blueprint(auth_bp)
+        app.register_blueprint(team_bp)
+        app.register_blueprint(team_todo_bp)
+    except ImportError as e:
+        print(f"⚠️  Convonet API routes not available: {e}")
     
     # Register call center blueprint
     try:
