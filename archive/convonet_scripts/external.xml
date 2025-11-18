@@ -1,0 +1,37 @@
+<profile name="external">
+  <gateways></gateways>
+  <domains></domains>
+  <settings>
+    <!-- Bind to private interface IP -->
+    <param name="sip-ip" value="10.128.0.8"/>
+    <param name="rtp-ip" value="10.128.0.8"/>
+
+    <!-- Advertise public IP to Twilio -->
+    <param name="ext-sip-ip" value="136.115.41.45"/>
+    <param name="ext-rtp-ip" value="136.115.41.45"/>
+
+    <!-- NAT Settings - force using public IP in SIP headers -->
+    <param name="sip-force-contact" value="136.115.41.45:5060"/>
+    <param name="rtp-force-contact" value="136.115.41.45"/>
+    <param name="aggressive-nat-detection" value="true"/>
+    <param name="rtp-timeout-sec" value="300"/>
+    <param name="rtp-hold-timeout-sec" value="1800"/>
+
+    <!-- Apply ACL for Twilio -->
+    <param name="apply-inbound-acl" value="twilio"/>
+    <param name="apply-register-acl" value="domains"/>
+    <param name="accept-blind-reg" value="false"/>
+
+    <!-- SIP & codec settings -->
+    <param name="sip-port" value="5060"/>
+    <param name="inbound-codec-prefs" value="PCMU,PCMA"/>
+    <param name="outbound-codec-prefs" value="PCMU,PCMA"/>
+    <param name="dtmf-mode" value="rfc2833"/>
+    <param name="session-timeout" value="3600"/>
+    
+    <!-- Media settings - disable media bypass for proper RTP handling -->
+    <param name="bypass-media" value="false"/>
+    <param name="media-bypass" value="false"/>
+  </settings>
+</profile>
+
