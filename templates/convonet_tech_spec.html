@@ -942,7 +942,7 @@
                         <h4 class="text-lg font-semibold mb-4 text-gray-800">LangGraph Workflow Diagram</h4>
                         <div class="bg-white p-6 rounded-lg border-2 border-gray-200">
                             <div class="flex justify-center">
-                                <img src="/convonet_todo/static/assets/img/lgwfdg.png" 
+                                <img src="{{ url_for('static', filename='assets/img/lgwfdg.png') }}" 
                                      alt="LangGraph Workflow Diagram" 
                                      class="max-w-full h-auto rounded-lg shadow-lg"
                                      style="max-width: 800px; height: auto;">
@@ -1088,7 +1088,7 @@
                         <h4 class="text-lg font-semibold mb-4 text-gray-800">Tool Calls Flow Diagram</h4>
                         <div class="bg-white p-6 rounded-lg border-2 border-gray-200">
                             <div class="flex justify-center">
-                                <img src="/convonet_todo/static/assets/img/tool_calls_flow_diagram.png" 
+                                <img src="{{ url_for('static', filename='assets/img/tool_calls_flow_diagram.png') }}" 
                                      alt="Tool Calls Flow Diagram" 
                                      class="max-w-full h-auto rounded-lg shadow-lg"
                                      style="max-width: 900px; height: auto;">
@@ -2048,9 +2048,9 @@ POST https://hjlees.com/convonet_todo/twilio/process_audio
                                 preload="metadata"
                                 playsinline
                                 crossorigin="anonymous">
-                                <source src="/convonet_todo/static/assets/img/convonet_dm_fixed.m4v" type="video/mp4">
-                                <source src="/convonet_todo/static/assets/img/convonet_dm_fixed.m4v" type="video/x-m4v">
-                                <source src="/convonet_todo/static/assets/img/convonet_dm_fixed.m4v" type="video/quicktime">
+                                <source src="{{ url_for('static', filename='assets/img/convonet_dm_fixed.m4v') }}" type="video/mp4">
+                                <source src="{{ url_for('static', filename='assets/img/convonet_dm_fixed.m4v') }}" type="video/x-m4v">
+                                <source src="{{ url_for('static', filename='assets/img/convonet_dm_fixed.m4v') }}" type="video/quicktime">
                                 Your browser does not support the video tag.
                             </video>
                         </div>

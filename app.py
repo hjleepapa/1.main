@@ -241,6 +241,24 @@ def create_app():
         """Renders the team collaboration dashboard."""
         return render_template('team_dashboard.html')
     
+    @app.route('/audio-player/')
+    @app.route('/audio-player')
+    def audio_player():
+        """Renders the audio player dashboard."""
+        try:
+            return render_template('audio_player_dashboard.html')
+        except Exception as e:
+            return f"Audio player temporarily unavailable: {str(e)}", 503
+    
+    @app.route('/convonet_todo/webrtc/voice-assistant')
+    def webrtc_voice_assistant():
+        """Renders the WebRTC voice assistant page."""
+        try:
+            # Check if template exists, otherwise return a placeholder
+            return render_template('webrtc_voice_assistant.html')
+        except Exception as e:
+            return f"WebRTC voice assistant temporarily unavailable: {str(e)}", 503
+    
     @app.route('/register')
     def register():
         """Renders the user registration page."""
