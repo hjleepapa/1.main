@@ -768,11 +768,18 @@ async def _get_agent_graph() -> StateGraph:
             tools = await asyncio.wait_for(client.get_tools(), timeout=10.0)
             print(f"✅ MCP client initialized successfully with {len(tools)} tools")
             
-            # Add call transfer tools (non-MCP tools)
-            from .mcps.local_servers.call_transfer import get_transfer_tools
-            transfer_tools = get_transfer_tools()
-            tools.extend(transfer_tools)
-            print(f"✅ Added {len(transfer_tools)} call transfer tools")
+            # Add call transfer tools (non-MCP tools) - optional
+            try:
+                from .mcps.local_servers.call_transfer import get_transfer_tools
+                transfer_tools = get_transfer_tools()
+                tools.extend(transfer_tools)
+                print(f"✅ Added {len(transfer_tools)} call transfer tools")
+            except ImportError as e:
+                print(f"⚠️ Call transfer tools not available: {e}")
+                print("⚠️ Continuing without call transfer tools")
+            except Exception as e:
+                print(f"⚠️ Failed to load call transfer tools: {e}")
+                print("⚠️ Continuing without call transfer tools")
             
             # Add Composio integration tools (optional)
             try:
