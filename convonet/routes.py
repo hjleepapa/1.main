@@ -722,6 +722,11 @@ async def _get_agent_graph() -> StateGraph:
         if not os.path.exists(config_path):
             # Fallback path for when running from the root directory
             config_path = os.path.join('convonet', 'mcps', 'mcp_config.json')
+        
+        if not os.path.exists(config_path):
+            error_msg = f"❌ MCP config file not found. Tried: {os.path.join(os.path.dirname(__file__), 'mcps', 'mcp_config.json')} and {config_path}"
+            print(error_msg)
+            raise FileNotFoundError(error_msg)
 
         with open(config_path) as f:
             mcp_config = json.load(f)
