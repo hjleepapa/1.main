@@ -53,11 +53,11 @@ def create_team():
         if not data.get('name'):
             return jsonify({'error': 'Team name is required'}), 400
         
-    session_factory = get_session_factory()
-    if session_factory is None:
-        return jsonify({'error': 'Database connection not initialized on server'}), 500
-    
-    with session_factory() as session:
+        session_factory = get_session_factory()
+        if session_factory is None:
+            return jsonify({'error': 'Database connection not initialized on server'}), 500
+        
+        with session_factory() as session:
             # Create team
             team = Team(
                 name=data['name'],
