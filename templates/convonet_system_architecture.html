@@ -25,12 +25,10 @@
             <!-- Diagram Image -->
             <div class="bg-white p-8 rounded-lg shadow-lg mb-8">
                 <h2 class="text-2xl font-semibold mb-6 text-gray-800 text-center">Complete System Architecture</h2>
-                <div class="border-2 border-gray-200 rounded-lg overflow-hidden bg-gray-100 p-8">
-                    <div class="text-center text-gray-500">
-                        <p class="mb-4">System Architecture Diagram</p>
-                        <p class="text-sm">The diagram image will be available soon.</p>
-                        <p class="text-xs mt-2">For now, refer to the <a href="{{ url_for('convonet_tech_spec') }}" class="text-blue-600 underline">Technical Specification</a> for architecture details.</p>
-                    </div>
+                <div class="border-2 border-gray-200 rounded-lg overflow-hidden">
+                    <img src="{{ url_for('static', filename='assets/img/convonet_flow_diagram.png') }}"
+                         alt="Convonet System Architecture Flow Diagram"
+                         class="w-full h-auto">
                 </div>
             </div>
 
