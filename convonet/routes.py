@@ -10,6 +10,13 @@ import logging
 import time
 import sentry_sdk
 
+# Apply nest_asyncio to allow nested event loops (needed for eventlet compatibility)
+try:
+    import nest_asyncio
+    nest_asyncio.apply()
+except ImportError:
+    pass  # nest_asyncio not available, may cause issues with eventlet
+
 from twilio.twiml.voice_response import VoiceResponse, Connect, Gather
 from .state import AgentState
 from .assistant_graph_todo import get_agent, TodoAgent
