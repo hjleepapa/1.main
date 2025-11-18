@@ -112,22 +112,22 @@ def create_app():
     from lgch_todo import lgch_todo_bp
     app.register_blueprint(lgch_todo_bp)
 
-    # Convonet blueprints - restored for audio-player, voice-assistant, and APIs
+    # Convonet WebRTC blueprint
     try:
-        # Register WebRTC voice assistant blueprint
         from convonet.webrtc_voice_server import webrtc_bp, init_socketio
         app.register_blueprint(webrtc_bp)
-        
-        # Register audio player blueprint
-        from convonet.audio_player_routes import audio_player_bp
-        app.register_blueprint(audio_player_bp)
-        
-        # Initialize Socket.IO event handlers (pass app explicitly)
         init_socketio(socketio, app)
     except ImportError as e:
-        print(f"⚠️  Convonet modules not available: {e}")
+        print(f"⚠️  Convonet WebRTC module not available: {e}")
         import traceback
         traceback.print_exc()
+
+    # Convonet audio player blueprint (independent of WebRTC import)
+    try:
+        from convonet.audio_player_routes import audio_player_bp
+        app.register_blueprint(audio_player_bp)
+    except ImportError as e:
+        print(f"⚠️  Convonet audio player module not available: {e}")
     
     # Register Convonet API blueprints (authentication, teams, todos)
     try:

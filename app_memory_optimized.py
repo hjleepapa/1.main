@@ -102,19 +102,23 @@ def create_app():
         app.register_blueprint(auth_bp)
         app.register_blueprint(team_bp)
         app.register_blueprint(team_todo_bp)
+    except ImportError as e:
+        print(f"⚠️  Convonet core routes not available in memory-optimized app: {e}")
 
-        # Register WebRTC voice assistant blueprint
+    # Register WebRTC voice assistant blueprint
+    try:
         from convonet.webrtc_voice_server import webrtc_bp, init_socketio
         app.register_blueprint(webrtc_bp)
-
-        # Register audio player blueprint
-        from convonet.audio_player_routes import audio_player_bp
-        app.register_blueprint(audio_player_bp)
-
-        # Initialize Socket.IO event handlers
         init_socketio(socketio, app)
     except ImportError as e:
-        print(f"⚠️  Convonet modules not available in memory-optimized app: {e}")
+        print(f"⚠️  Convonet WebRTC module not available in memory-optimized app: {e}")
+
+    # Register audio player blueprint independently
+    try:
+        from convonet.audio_player_routes import audio_player_bp
+        app.register_blueprint(audio_player_bp)
+    except ImportError as e:
+        print(f"⚠️  Convonet audio player module not available in memory-optimized app: {e}")
 
     # Main Application Routes
     @app.route('/', methods=["GET", "POST"])
