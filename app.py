@@ -112,32 +112,40 @@ def create_app():
     from lgch_todo import lgch_todo_bp
     app.register_blueprint(lgch_todo_bp)
 
-    from convonet.routes import convonet_todo_bp
-    app.register_blueprint(convonet_todo_bp)
-    
-    # Register new authentication and team collaboration blueprints
-    from convonet.api_routes.auth_routes import auth_bp
-    from convonet.api_routes.team_routes import team_bp
-    from convonet.api_routes.team_todo_routes import team_todo_bp
-    
-    app.register_blueprint(auth_bp)
-    app.register_blueprint(team_bp)
-    app.register_blueprint(team_todo_bp)
+    # Convonet blueprints - commented out as files moved to archive
+    # Uncomment if convonet module is restored
+    # try:
+    #     from convonet.routes import convonet_todo_bp
+    #     app.register_blueprint(convonet_todo_bp)
+    #     
+    #     # Register new authentication and team collaboration blueprints
+    #     from convonet.api_routes.auth_routes import auth_bp
+    #     from convonet.api_routes.team_routes import team_bp
+    #     from convonet.api_routes.team_todo_routes import team_todo_bp
+    #     
+    #     app.register_blueprint(auth_bp)
+    #     app.register_blueprint(team_bp)
+    #     app.register_blueprint(team_todo_bp)
+    #     
+    #     # Register WebRTC voice assistant blueprint
+    #     from convonet.webrtc_voice_server import webrtc_bp, init_socketio
+    #     app.register_blueprint(webrtc_bp)
+    #     
+    #     # Register audio player blueprint
+    #     from convonet.audio_player_routes import audio_player_bp
+    #     app.register_blueprint(audio_player_bp)
+    #     
+    #     # Initialize Socket.IO event handlers (pass app explicitly)
+    #     init_socketio(socketio, app)
+    # except ImportError as e:
+    #     print(f"⚠️  Convonet modules not available: {e}")
     
     # Register call center blueprint
-    from call_center import call_center_bp
-    app.register_blueprint(call_center_bp)
-    
-    # Register WebRTC voice assistant blueprint
-    from convonet.webrtc_voice_server import webrtc_bp, init_socketio
-    app.register_blueprint(webrtc_bp)
-    
-    # Register audio player blueprint
-    from convonet.audio_player_routes import audio_player_bp
-    app.register_blueprint(audio_player_bp)
-    
-    # Initialize Socket.IO event handlers (pass app explicitly)
-    init_socketio(socketio, app)
+    try:
+        from call_center import call_center_bp
+        app.register_blueprint(call_center_bp)
+    except ImportError as e:
+        print(f"⚠️  Call center module not available: {e}")
 
     # --- Main Application Routes ---
     @app.route('/', methods=["GET", "POST"])

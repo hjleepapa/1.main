@@ -88,25 +88,30 @@ def create_app():
     from blog_project.main import blog_bp
     app.register_blueprint(blog_bp, url_prefix='/blog_project')
 
-    # Register Convonet blueprint (main functionality)
-    from convonet.routes import convonet_todo_bp
-    app.register_blueprint(convonet_todo_bp)
-    
-    # Register authentication and team collaboration blueprints
-    from convonet.api_routes.auth_routes import auth_bp
-    from convonet.api_routes.team_routes import team_bp
-    from convonet.api_routes.team_todo_routes import team_todo_bp
-    
-    app.register_blueprint(auth_bp)
-    app.register_blueprint(team_bp)
-    app.register_blueprint(team_todo_bp)
-    
-    # Register WebRTC voice assistant blueprint
-    from convonet.webrtc_voice_server import webrtc_bp, init_socketio
-    app.register_blueprint(webrtc_bp)
-    
-    # Initialize Socket.IO event handlers
-    init_socketio(socketio, app)
+    # Convonet blueprints - commented out as files moved to archive
+    # Uncomment if convonet module is restored
+    # try:
+    #     # Register Convonet blueprint (main functionality)
+    #     from convonet.routes import convonet_todo_bp
+    #     app.register_blueprint(convonet_todo_bp)
+    #     
+    #     # Register authentication and team collaboration blueprints
+    #     from convonet.api_routes.auth_routes import auth_bp
+    #     from convonet.api_routes.team_routes import team_bp
+    #     from convonet.api_routes.team_todo_routes import team_todo_bp
+    #     
+    #     app.register_blueprint(auth_bp)
+    #     app.register_blueprint(team_bp)
+    #     app.register_blueprint(team_todo_bp)
+    #     
+    #     # Register WebRTC voice assistant blueprint
+    #     from convonet.webrtc_voice_server import webrtc_bp, init_socketio
+    #     app.register_blueprint(webrtc_bp)
+    #     
+    #     # Initialize Socket.IO event handlers
+    #     init_socketio(socketio, app)
+    # except ImportError as e:
+    #     print(f"⚠️  Convonet modules not available: {e}")
 
     # Main Application Routes
     @app.route('/', methods=["GET", "POST"])
