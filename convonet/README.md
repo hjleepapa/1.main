@@ -49,15 +49,15 @@ python app.py
 
 ## 📚 Documentation
 
-- [Technical Specification](templates/convonet_tech_spec.html)
-- [System Architecture](templates/convonet_system_architecture.html)
-- [Sequence Diagram](templates/convonet_sequence_diagram.html)
+- [Technical Specification](docs/convonet_tech_spec.md)
+- [System Architecture](docs/convonet_system_architecture.md)
+- [Sequence Diagram](docs/convonet_sequence_diagram.md)
 - [Deployment Guide](CONVONET_DEPLOYMENT_CONFIG.md)
 - [WebRTC Call Flow](WEBRTC_CALL_FLOW_DIAGRAM.md)
 
 ## 🏗️ Architecture
 
-See the [Technical Specification](templates/convonet_tech_spec.html) for detailed architecture documentation.
+See the [Technical Specification](docs/convonet_tech_spec.md) for detailed architecture documentation.
 
 ## 📄 License
 

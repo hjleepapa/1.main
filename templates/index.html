@@ -6,9 +6,9 @@
     <section class="py-20">
         <div class="max-w-6xl mx-auto text-center">
             <h1 id="dynamic-hero-text" class="text-4xl md:text-6xl font-bold text-gray-800 mb-6" style="min-height: 72px;">&nbsp;</h1> <!-- Placeholder for dynamic text, added min-height -->
-            <!-- <p class="text-xl text-gray-600 mb-8">
-                I'm a passionate developer with 20+ years of contact center experiences and 5+ years of software development experience. I specialize in creating innovative solutions that enhance customer experiences and streamline operations. 
-            </p> -->
+            <p class="text-xl text-gray-600 mb-8 max-w-4xl mx-auto">
+                Voice AI Program Lead & Solution Architect specializing in the end-to-end design, delivery, and governance of enterprise Voice AI agents. My expertise bridges the gap between deep technical architecture (LLMs, Telephony, APIs) and measurable business outcomes with cross-functional alignment.
+            </p>
         </div>
     </section> <!-- Added closing tag for Hero Section -->
     <section id="about" class="py-20 bg-gray-50"> <!-- Added bg-gray-50 for visual separation, similar to previous placeholder -->
@@ -19,32 +19,24 @@
                 <div class="text-left"> <!-- Added text-left to ensure all content within is left-aligned -->
                     <h2 class="text-2xl font-semibold mb-4 text-gray-800">Professional Background</h2>
                     <div class="mb-8 bg-white p-6 rounded-lg shadow">
-                        <h3 class="text-xl font-semibold text-gray-700">📡 Telecom Engineer  – Apple</h3>
+                        <h3 class="text-xl font-semibold text-gray-700">📡 Telecom Architect / Project Lead – Apple</h3>
                         <p class="text-sm text-gray-500 mb-2">Elk Grove, CA | Jan 2021 – Nov. 2024</p>
                         <ul class="list-disc list-inside text-gray-600 space-y-1">
-                            <li>Led strategic assessment and migration planning for IS&T HelpLine Call Center infrastructure as part of
-                                long-term transition off Genesys Engage.</li>
-                            <li>Architected multi-year roadmap for migration to SIPCluster, AWS, and ISCloud platforms.</li>
-                            <li>Partnered with cross-functional teams to design scalable, compliant systems integrated with existing tools and
-                                third-party services.</li>
-                            <li>Delivered seamless implementation with minimal downtime, improving performance and reliability.</li>
-                            <li>Owned stakeholder communication, documentation, and change management across multiple regions (AMR,
-                                EMEIA, APAC)</li>
+                            <li>Led strategic assessment, multi-year roadmap architecture, and migration planning for a global, mission-critical HelpLine Contact Center (Genesys Engage to SIPCluster/AWS/ISCloud).</li>
+                            <li>Designed target-state, compliant architectures leveraging SIP, AWS, and internal cloud platforms while ensuring scalability and integration with existing corporate tools.</li>
+                            <li>Owned communication, change management, and technical documentation across cross-functional engineering teams in AMR, EMEIA, and APAC.</li>
+                            <li>Delivered seamless, large-scale platform implementations with zero material downtime, validating improved performance and operational reliability.</li>
                         </ul>
                     </div>
 
                     <div class="bg-white p-6 rounded-lg shadow">
-                        <h3 class="text-xl font-semibold text-gray-700">💼 Solutions Architect, Sr. Software Engineer – Genesys</h3>
+                        <h3 class="text-xl font-semibold text-gray-700">💼 Solution Architect, Technical Delivery Lead – Genesys</h3>
                         <p class="text-sm text-gray-500 mb-2">Daly City, CA | May 1998 – Jan 2020</p>
                         <ul class="list-disc list-inside text-gray-600 space-y-1">
-                            <li>Delivered full-cycle implementations of Genesys On-Premise and Cloud platforms across APAC for enterprise
-                                clients.</li>
-                            <li>Led cross-functional teams through discovery, design, deployment, and optimization phases.</li>
-                            <li>Developed automated testing frameworks for voice and digital channels, significantly reducing issue detection
-                                time.</li>
-                            <li>Authored detailed technical documentation and provided hands-on troubleshooting and support for mission-critical
-                                environments.</li>
-                            <li>Advised customers on roadmap and architecture, translating business goals into technical strategies.</li>
+                            <li>Directed full-cycle technical delivery of Genesys On-Premise and Cloud solutions for leading clients across APAC.</li>
+                            <li>Advised stakeholders on conversational architecture, translating business strategy into precise technical roadmaps.</li>
+                            <li>Developed automated testing frameworks for voice/digital channels, accelerating issue detection and reducing post-deployment defects.</li>
+                            <li>Provided L3 hands-on troubleshooting and technical support for mission-critical, high-availability contact center environments.</li>
                         </ul>
                     </div>
 
@@ -64,70 +56,129 @@
 
     <!-- Tech Skills Section -->
     <section id="tech-skills" class="py-12 bg-white"> <!-- Added id -->
-        <div class="max-w-6xl mx-auto">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="text-3xl font-bold text-center mb-12">Technical Skills</h2>
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                <!-- Python -->
-                <div class="bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg transition">
-                    <div class="text-center">
-                        <img src="{{ url_for('static', filename='images/python.png') }}" alt="Python logo" class="w-12 h-12 mx-auto mb-4">
-                        <h3 class="text-lg font-semibold">Python</h3>
+            
+            <!-- Voice AI & LLM -->
+            <div class="mb-8">
+                <h3 class="text-2xl font-semibold mb-4 text-gray-800">Voice AI & LLM</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
+                        <img src="{{ url_for('static', filename='images/LG.png') }}" alt="LangGraph logo" class="w-8 h-8 mx-auto mb-2">
+                        <h4 class="text-sm font-semibold">LangGraph</h4>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
+                        <img src="{{ url_for('static', filename='images/lc.png') }}" alt="LangChain logo" class="w-8 h-8 mx-auto mb-2">
+                        <h4 class="text-sm font-semibold">LangChain</h4>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
+                        <img src="{{ url_for('static', filename='images/ai-agent.webp') }}" alt="Agentic AI logo" class="w-8 h-8 mx-auto mb-2">
+                        <h4 class="text-sm font-semibold">Agentic AI</h4>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
+                        <img src="{{ url_for('static', filename='images/prompt-engineering.png') }}" alt="Prompt Engineering logo" class="w-8 h-8 mx-auto mb-2">
+                        <h4 class="text-sm font-semibold">Prompt Engineering</h4>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
+                        <img src="{{ url_for('static', filename='images/RAG.jpg') }}" alt="RAG logo" class="w-8 h-8 mx-auto mb-2 object-contain">
+                        <h4 class="text-sm font-semibold">RAG</h4>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
+                        <img src="{{ url_for('static', filename='images/asr-tts.png') }}" alt="ASR/TTS logo" class="w-8 h-8 mx-auto mb-2">
+                        <h4 class="text-sm font-semibold">ASR/TTS Pipelines</h4>
                     </div>
                 </div>
+            </div>
 
-                <!-- Flask -->
-                <div class="bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg transition">
-                    <div class="text-center">
-                        <img src="{{ url_for('static', filename='images/flask.png') }}" alt="Flask logo" class="w-12 h-12 mx-auto mb-4">
-                        <h3 class="text-lg font-semibold">Flask</h3>
+            <!-- Voice & Telephony -->
+            <div class="mb-8">
+                <h3 class="text-2xl font-semibold mb-4 text-gray-800">Voice & Telephony</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
+                        <img src="{{ url_for('static', filename='images/twilio.png') }}" alt="Twilio logo" class="w-8 h-8 mx-auto mb-2">
+                        <h4 class="text-sm font-semibold">Twilio Voice</h4>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
+                        <img src="{{ url_for('static', filename='images/media-stream.png') }}" alt="Media Streams logo" class="w-8 h-8 mx-auto mb-2">
+                        <h4 class="text-sm font-semibold">Media Streams</h4>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
+                        <img src="{{ url_for('static', filename='images/sip.png') }}" alt="SIP logo" class="w-8 h-8 mx-auto mb-2">
+                        <h4 class="text-sm font-semibold">SIP</h4>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
+                        <img src="{{ url_for('static', filename='images/webrtc.webp') }}" alt="WebRTC logo" class="w-8 h-8 mx-auto mb-2">
+                        <h4 class="text-sm font-semibold">WebRTC</h4>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
+                        <img src="{{ url_for('static', filename='images/ivr.png') }}" alt="IVR logo" class="w-8 h-8 mx-auto mb-2">
+                        <h4 class="text-sm font-semibold">IVR</h4>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
+                        <img src="{{ url_for('static', filename='images/genesys.png') }}" alt="Genesys logo" class="w-8 h-8 mx-auto mb-2">
+                        <h4 class="text-sm font-semibold">Genesys</h4>
                     </div>
                 </div>
+            </div>
 
-                <!-- JavaScript -->
-                <div class="bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg transition">
-                    <div class="text-center">
-                        <img src="{{ url_for('static', filename='images/js.png') }}" alt="JavaScript logo" class="w-12 h-12 mx-auto mb-4">
-                        <h3 class="text-lg font-semibold">JavaScript</h3>
+            <!-- Backend & Cloud -->
+            <div class="mb-8">
+                <h3 class="text-2xl font-semibold mb-4 text-gray-800">Backend & Cloud</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
+                        <img src="{{ url_for('static', filename='images/python.png') }}" alt="Python logo" class="w-8 h-8 mx-auto mb-2">
+                        <h4 class="text-sm font-semibold">Python</h4>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
+                        <img src="{{ url_for('static', filename='images/flask.png') }}" alt="Flask logo" class="w-8 h-8 mx-auto mb-2">
+                        <h4 class="text-sm font-semibold">Flask</h4>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
+                        <img src="{{ url_for('static', filename='images/js.png') }}" alt="JavaScript logo" class="w-8 h-8 mx-auto mb-2">
+                        <h4 class="text-sm font-semibold">Node.js/TypeScript</h4>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
+                        <img src="{{ url_for('static', filename='images/api.png') }}" alt="API logo" class="w-8 h-8 mx-auto mb-2">
+                        <h4 class="text-sm font-semibold">REST APIs</h4>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
+                        <img src="{{ url_for('static', filename='images/redis.png') }}" alt="Redis logo" class="w-8 h-8 mx-auto mb-2">
+                        <h4 class="text-sm font-semibold">Redis</h4>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
+                        <img src="{{ url_for('static', filename='images/Docker.png') }}" alt="Docker logo" class="w-8 h-8 mx-auto mb-2">
+                        <h4 class="text-sm font-semibold">Docker</h4>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
+                        <img src="{{ url_for('static', filename='images/cloud.png') }}" alt="Cloud logo" class="w-8 h-8 mx-auto mb-2">
+                        <h4 class="text-sm font-semibold">AWS/GCP</h4>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
+                        <img src="{{ url_for('static', filename='images/sql.png') }}" alt="SQL logo" class="w-8 h-8 mx-auto mb-2">
+                        <h4 class="text-sm font-semibold">SQL</h4>
                     </div>
                 </div>
+            </div>
 
-                <!-- Contact Center -->
-                <div class="bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg transition">
-                    <div class="text-center">
-                        <img src="{{ url_for('static', filename='images/cc.png') }}" alt="Contact Center logo" class="w-12 h-12 mx-auto mb-4">
-                        <h3 class="text-lg font-semibold">Contact Center</h3>
+            <!-- Delivery & Tools -->
+            <div class="mb-8">
+                <h3 class="text-2xl font-semibold mb-4 text-gray-800">Delivery & Tools</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
+                        <img src="{{ url_for('static', filename='images/jira.png') }}" alt="Jira logo" class="w-8 h-8 mx-auto mb-2">
+                        <h4 class="text-sm font-semibold">Jira</h4>
                     </div>
-                </div>
-
-                <!-- Genesys -->
-                <div class="bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg transition">
-                    <div class="text-center">
-                        <img src="{{ url_for('static', filename='images/genesys.png') }}" alt="Genesys logo" class="w-12 h-12 mx-auto mb-4">
-                        <h3 class="text-lg font-semibold">Genesys</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
+                        <img src="{{ url_for('static', filename='images/agile.png') }}" alt="Agile logo" class="w-8 h-8 mx-auto mb-2">
+                        <h4 class="text-sm font-semibold">Agile</h4>
                     </div>
-                </div>
-
-                <!-- Cloud -->
-                <div class="bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg transition">
-                    <div class="text-center">
-                        <img src="{{ url_for('static', filename='images/cloud.png') }}" alt="Cloud logo" class="w-12 h-12 mx-auto mb-4">
-                        <h3 class="text-lg font-semibold">Cloud</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
+                        <img src="{{ url_for('static', filename='images/sentry.png') }}" alt="Sentry logo" class="w-8 h-8 mx-auto mb-2">
+                        <h4 class="text-sm font-semibold">Sentry</h4>
                     </div>
-                </div>
-
-                <!-- API -->
-                <div class="bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg transition">
-                    <div class="text-center">
-                        <img src="{{ url_for('static', filename='images/api.png') }}" alt="API logo" class="w-12 h-12 mx-auto mb-4">
-                        <h3 class="text-lg font-semibold">API</h3>
-                    </div>
-                </div>
-
-                <!-- SQL -->
-                <div class="bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg transition">
-                    <div class="text-center">
-                        <img src="{{ url_for('static', filename='images/sql.png') }}" alt="SQL logo" class="w-12 h-12 mx-auto mb-4">
-                        <h3 class="text-lg font-semibold">SQL</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
+                        <img src="{{ url_for('static', filename='images/github.png') }}" alt="GitHub logo" class="w-8 h-8 mx-auto mb-2">
+                        <h4 class="text-sm font-semibold">GitHub</h4>
                     </div>
                 </div>
             </div>
@@ -139,23 +190,34 @@
         <div class="max-w-6xl mx-auto">
             <h2 class="text-3xl font-bold text-center mb-12">Featured Projects</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Project 1 -->
-                <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition">
+                <!-- Project 1 - Enterprise Voice AI System (Most Prominent) -->
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition border-2 border-purple-200">
                     <div class="p-6">
-                        <h3 class="text-xl font-semibold mb-2">Create Blog Web Site</h3>
-                        <p class="text-gray-600 mb-4">A full-stack blog solution with register, login/out, post, comment, delete with users management.</p>
+                        <h3 class="text-xl font-semibold mb-2">🎤 Enterprise-Grade Voice AI Delivery & Observability</h3>
+                        <p class="text-gray-600 mb-4">Production-ready full-stack solution featuring Twilio/WebRTC integration, human-agent handoff, 38 custom tools, and sub-5s latency optimization via Sentry monitoring.</p>
+                        <div class="flex flex-wrap gap-2 mb-3">
+                            <span class="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded">Full-Stack Delivery</span>
+                            <span class="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded">Low-Latency Architecture</span>
+                            <span class="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded">Human Handoff</span>
+                            <span class="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded">Observability</span>
+                            <span class="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded">Telemetry</span>
+                        </div>
                         <div class="flex space-x-4">
-                            <a href="{{ url_for('blog_tech_spec') }}" class="text-blue-500 hover:text-blue-600">Learn More →</a>
-                            <a href="https://github.com/hjleepapa/blog_project.git" target="_blank" class="text-green-500 hover:text-green-600">GitHub →</a>
+                            <a href="{{ url_for('convonet_tech_spec') }}" class="text-purple-500 hover:text-purple-600">Learn More →</a>
                         </div>
                     </div>
                 </div>
 
-                <!-- Project 2 -->
+                <!-- Project 2 - Agentic AI POC: VAPI -->
                 <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition">
                     <div class="p-6">
-                        <h3 class="text-xl font-semibold mb-2">Voice AI with VAPI</h3>
-                        <p class="text-gray-600 mb-4">AI Voice managing "To Do" integrated with VAPI.</p>
+                        <h3 class="text-xl font-semibold mb-2">Agentic AI POC: Voice-First Task Management</h3>
+                        <p class="text-gray-600 mb-4">Voice AI solution for managing tasks, reminders, and calendar events through natural language conversations. Integrated with VAPI platform and Google Calendar API for seamless productivity management via phone calls.</p>
+                        <div class="flex flex-wrap gap-2 mb-3">
+                            <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Voice AI</span>
+                            <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Natural Language Processing</span>
+                            <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Proof-of-Concept</span>
+                        </div>
                         <div class="flex space-x-4">
                             <a href="{{ url_for('vapi_tech_spec') }}" class="text-blue-500 hover:text-blue-600">Learn More →</a>
                             <a href="https://github.com/hjleepapa/vapi.git" target="_blank" class="text-green-500 hover:text-green-600">GitHub →</a>
@@ -163,11 +225,16 @@
                     </div>
                 </div>
 
-                <!-- Project 3 -->
+                <!-- Project 3 - Agentic AI POC: Synthflow -->
                 <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition">
                     <div class="p-6">
-                        <h3 class="text-xl font-semibold mb-2">Voice AI with Synthflow</h3>
-                        <p class="text-gray-600 mb-4">AI Voice managing "To Do" integrated with Synthflow.</p>
+                        <h3 class="text-xl font-semibold mb-2">Agentic AI POC: Voice-First Task Management</h3>
+                        <p class="text-gray-600 mb-4">Voice AI solution for managing tasks, reminders, and calendar events through natural language conversations. Integrated with Synthflow platform and Google Calendar API for seamless productivity management via phone calls.</p>
+                        <div class="flex flex-wrap gap-2 mb-3">
+                            <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Voice AI</span>
+                            <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Natural Language Processing</span>
+                            <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Proof-of-Concept</span>
+                        </div>
                         <div class="flex space-x-4">
                             <a href="{{ url_for('syfw_tech_spec') }}" class="text-blue-500 hover:text-blue-600">Learn More →</a>
                             <a href="https://github.com/hjleepapa/syfw.git" target="_blank" class="text-green-500 hover:text-green-600">GitHub →</a>
@@ -175,11 +242,16 @@
                     </div>
                 </div>
 
-                <!-- Project 4 -->
+                <!-- Project 4 - Agentic AI POC: LangGraph -->
                 <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition">
                     <div class="p-6">
-                        <h3 class="text-xl font-semibold mb-2">LangGraph + MCP + Langflow</h3>
-                        <p class="text-gray-600 mb-4">AI Voice "To Do" using LangGraph + MCP + Langflow</p>
+                        <h3 class="text-xl font-semibold mb-2">Agentic AI POC: LangGraph + MCP + Langflow</h3>
+                        <p class="text-gray-600 mb-4">Advanced orchestration POC demonstrating LangGraph state management, MCP (Model Context Protocol) tool integration, and Langflow visual workflows for voice agent development.</p>
+                        <div class="flex flex-wrap gap-2 mb-3">
+                            <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Agentic AI</span>
+                            <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Tool Orchestration</span>
+                            <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Proof-of-Concept</span>
+                        </div>
                         <div class="flex space-x-4">
                             <a href="{{ url_for('lgch_tech_spec') }}" class="text-blue-500 hover:text-blue-600">Learn More →</a>
                             <a href="https://github.com/hjleepapa/lgch.git" target="_blank" class="text-green-500 hover:text-green-600">GitHub →</a>
@@ -187,13 +259,14 @@
                     </div>
                 </div>
 
-                <!-- Project 5 - Voice AI Productivity System -->
-                <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition">
+                <!-- Project 5 - General Software Engineering (Less Prominent) -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition opacity-90">
                     <div class="p-6">
-                        <h3 class="text-xl font-semibold mb-2">🎤 Voice AI Productivity System</h3>
-                        <p class="text-gray-600 mb-4">Advanced AI voice assistant with Redis caching, Composio integrations, and real-time audio processing for productivity management.</p>
+                        <h3 class="text-lg font-semibold mb-2">Full-Stack Blog Application</h3>
+                        <p class="text-gray-600 mb-4 text-sm">A full-stack blog solution with register, login/out, post, comment, delete with users management.</p>
                         <div class="flex space-x-4">
-                            <a href="{{ url_for('convonet_tech_spec') }}" class="text-purple-500 hover:text-purple-600">Learn More →</a>
+                            <a href="{{ url_for('blog_tech_spec') }}" class="text-blue-500 hover:text-blue-600 text-sm">Learn More →</a>
+                            <a href="https://github.com/hjleepapa/blog_project.git" target="_blank" class="text-green-500 hover:text-green-600 text-sm">GitHub →</a>
                         </div>
                     </div>
                 </div>
@@ -223,8 +296,8 @@
                 <div>
                     <h2 class="text-2xl font-semibold mb-4">Get in Touch</h2>
                     <p class="text-gray-900 mb-6 text-justify">
-                        I'm always open to exploring new projects related to Voice AI Contact Centers, sharing creative ideas for migration or integration with existing systems, or discussing ways to enhance customer satisfaction. 
-                        Whether you have a question, are interested in collaborating, or just want to connect, I'd love to hear from you. 
+                        I specialize in the end-to-end design, delivery, and governance of enterprise Voice AI agents. My expertise bridges the gap between deep technical architecture (LLMs, Telephony, APIs) and successful program execution (POC management, SOW translation, executive reporting). 
+                        Whether you're looking to build agentic AI systems, integrate voice platforms, or scale enterprise deployments, I'd love to discuss how we can bring your Voice AI vision to life.
                     </p>
                     
                     <div class="space-y-4">

@@ -344,8 +344,8 @@ asterisk -rx "pjsip show identifies"
    - Get Account SID and Auth Token from Dashboard
 
 2. **Purchase Phone Numbers:**
-   - Purchase an inbound number (e.g., `+12344007818`)
-   - Optionally purchase a trunk number for SIP (e.g., `+19256337818`)
+   - Purchase an inbound number (e.g., `+1234567890`)
+   - Optionally purchase a trunk number for SIP (e.g., `+1098765432`)
 
 ### Step 2: Configure Twilio Elastic SIP Trunking
 
@@ -368,8 +368,8 @@ asterisk -rx "pjsip show identifies"
    - Allow IP: ✓
 
 4. **Assign Phone Numbers:**
-   - Add inbound number: `+12344007818`
-   - Add trunk number (if purchased): `+19256337818`
+   - Add inbound number: `+1234567890`
+   - Add trunk number (if purchased): `+1098765432`
 
 ### Step 3: Configure Twilio Webhook
 
@@ -621,14 +621,14 @@ REDIS_PASSWORD=your-redis-password
 REDIS_DB=0
 
 # ===== COMPOSIO =====
-COMPOSIO_API_KEY=ak_68Xsj6WGv3Zl4ooBgkcD
-COMPOSIO_PROJECT_ID=pr_bz7nkY2wflSi
+COMPOSIO_API_KEY=ak_test_placeholder
+COMPOSIO_PROJECT_ID=pr_test_placeholder
 
 # ===== TWILIO =====
 TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 TWILIO_AUTH_TOKEN=your-twilio-auth-token
-TWILIO_PHONE_NUMBER=+12344007818
-TWILIO_TRUNK_NUMBER=+19256337818  # Optional, for SIP trunking
+TWILIO_PHONE_NUMBER=+1234567890
+TWILIO_TRUNK_NUMBER=+1098765432  # Optional, for SIP trunking
 
 # ===== WEBHOOK URLS =====
 WEBHOOK_BASE_URL=https://hjlees.com
@@ -734,15 +734,15 @@ nc -zuv 136.115.41.45 3478
 # Test webhook endpoint
 curl -X POST https://hjlees.com/convonet_todo/twilio/voice \
   -d "CallSid=test123" \
-  -d "From=+1234567890" \
-  -d "To=+12344007818"
+  -d "From=+15555555555" \
+  -d "To=+1234567890"
 
 # Should return TwiML response
 ```
 
 ### Step 3: Test Call Transfer
 
-1. **Call Twilio number**: `+12344007818`
+1. **Call Twilio number**: `+1234567890`
 2. **Follow voice prompts**
 3. **Say "transfer me to an agent"**
 4. **Verify:**
