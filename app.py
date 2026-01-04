@@ -129,6 +129,13 @@ def create_app():
     except ImportError as e:
         print(f"⚠️  Convonet audio player module not available: {e}")
     
+    # Convonet LLM response viewer blueprint
+    try:
+        from convonet.llm_response_viewer_routes import llm_viewer_bp
+        app.register_blueprint(llm_viewer_bp)
+    except ImportError as e:
+        print(f"⚠️  Convonet LLM response viewer module not available: {e}")
+    
     # Register Convonet API blueprints (authentication, teams, todos)
     try:
         from convonet.api_routes.auth_routes import auth_bp
