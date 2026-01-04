@@ -1185,10 +1185,53 @@ async def create_calendar_event(
             session.refresh(new_event)
             # print(...) # Removed to avoid MCP protocol issues
             
-            # Skip Google Calendar sync for voice calls to avoid timeout
-            # Database event is created successfully - return immediately
+            # Sync with Google Calendar
+            google_event_id = None
+            # Check if get_calendar_service is available (it might be None if import failed, or a function if defined locally)
+            if get_calendar_service is not None and callable(get_calendar_service):
+                try:
+                    logging.info("🔧 Attempting to sync calendar event with Google Calendar...")
+                    calendar_service = get_calendar_service()
+                    if calendar_service:
+                        logging.info("✅ Google Calendar service obtained, creating event...")
+                        # Create Google Calendar event using the proper API format
+                        event_body = {
+                            'summary': title,
+                            'description': description or "",
+                            'start': {
+                                'dateTime': event_from.isoformat(),
+                                'timeZone': 'UTC',
+                            },
+                            'end': {
+                                'dateTime': event_to.isoformat(),
+                                'timeZone': 'UTC',
+                            },
+                        }
+                        
+                        logging.info(f"📅 Creating Google Calendar event: {title} from {event_from} to {event_to}")
+                        created_event = calendar_service.events().insert(
+                            calendarId='primary',
+                            body=event_body
+                        ).execute()
+                        
+                        google_event_id = created_event.get('id')
+                        
+                        if google_event_id:
+                            logging.info(f"✅ Google Calendar event created successfully: {google_event_id}")
+                            new_event.google_calendar_event_id = google_event_id
+                            session.commit()
+                            session.refresh(new_event)
+                            logging.info(f"✅ Database updated with google_calendar_event_id: {google_event_id}")
+                        else:
+                            logging.warning("⚠️ Google Calendar event creation returned None event ID")
+                    else:
+                        logging.warning("⚠️ get_calendar_service() returned None - Google Calendar service not available")
+                except Exception as e:
+                    # Don't fail event creation if Google Calendar sync fails
+                    logging.error(f"❌ Failed to sync calendar event with Google Calendar: {e}", exc_info=True)
+            else:
+                logging.warning("⚠️ get_calendar_service function not available - skipping Google Calendar sync")
             
-            # Return simple success message - don't wait for slow Google Calendar API
             # Format dates for natural speech response
             from_str = new_event.event_from.strftime('%b %d at %I:%M %p') if new_event.event_from else "unknown time"
             to_str = new_event.event_to.strftime('%I:%M %p') if new_event.event_to else "unknown time"
