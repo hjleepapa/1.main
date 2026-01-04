@@ -164,7 +164,7 @@ def api_conversation(thread_id: str):
         })
     
     try:
-        agent_graph = await _get_agent_graph()
+        agent_graph = asyncio.run(_get_agent_graph())
         config = {"configurable": {"thread_id": thread_id}}
         
         # Get the conversation state
