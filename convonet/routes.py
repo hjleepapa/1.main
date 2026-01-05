@@ -327,8 +327,9 @@ def transfer_callback():
         if dial_call_status == 'completed':
             # Transfer succeeded - call is now connected to agent
             logger.info(f"✅ Transfer successful for call {call_sid} to extension {extension}")
-            # Call will continue on the agent side
-            
+            # Return empty TwiML to keep the call connected
+            # The two calls are now bridged together
+            return Response(str(response), mimetype='text/xml')
         elif dial_call_status == 'busy':
             response.say("The agent is currently busy. Please try again later.", voice='Polly.Amy')
             response.hangup()
@@ -410,8 +411,9 @@ def voice_assistant_transfer_bridge():
             dial.sip(sip_uri)
             logger.info("[VoiceAssistantBridge] Using IP-based SIP authentication")
         
-        response.say("I'm sorry, the transfer failed. Please try again later.", voice='Polly.Amy')
-        response.hangup()
+        # Note: Error handling after Dial with action URL is not executed
+        # because Twilio always calls the action URL when Dial completes
+        # Error handling is done in transfer_callback endpoint
         
         return Response(str(response), mimetype='text/xml')
     

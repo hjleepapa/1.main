@@ -197,7 +197,8 @@ def initiate_agent_transfer(session_id: str, extension: str, department: str, re
         return False, {'error': message}
 
     conference_name = re.sub(r'[^a-zA-Z0-9_-]', '', f"va-transfer-{session_id or 'anon'}")
-    conference_url = f"{base_url.rstrip('/')}/convonet_todo/twilio/voice_assistant/transfer_bridge?conference={quote(conference_name)}"
+    # Pass extension parameter to transfer_bridge endpoint
+    conference_url = f"{base_url.rstrip('/')}/convonet_todo/twilio/voice_assistant/transfer_bridge?extension={quote(extension)}"
 
     client = Client(account_sid, auth_token)
     response_details = {
