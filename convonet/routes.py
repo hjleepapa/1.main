@@ -322,23 +322,42 @@ def transfer_callback():
     Logs transfer results and handles failures.
     """
     try:
+        # Log all incoming parameters for debugging
+        logger.info("=" * 80)
+        logger.info("📞 TRANSFER_CALLBACK RECEIVED")
+        logger.info(f"Request method: {request.method}")
+        logger.info(f"Request URL: {request.url}")
+        logger.info(f"Request args: {dict(request.args)}")
+        logger.info(f"Request form data: {dict(request.form)}")
+        logger.info(f"Request headers: {dict(request.headers)}")
+        
         dial_call_status = request.form.get('DialCallStatus', 'unknown')
         call_sid = request.form.get('CallSid', '')
+        dial_call_sid = request.form.get('DialCallSid', 'N/A')
+        dial_call_duration = request.form.get('DialCallDuration', 'N/A')
         extension = request.args.get('extension', '2001')
         
-        logger.info(f"Transfer callback for call {call_sid}: status={dial_call_status}, extension={extension}")
+        logger.info(f"📊 Call Status Details:")
+        logger.info(f"   Call SID: {call_sid}")
+        logger.info(f"   Dial Call SID: {dial_call_sid}")
+        logger.info(f"   Dial Call Status: {dial_call_status}")
+        logger.info(f"   Dial Call Duration: {dial_call_duration} seconds")
+        logger.info(f"   Extension: {extension}")
         
         response = VoiceResponse()
         
         if dial_call_status == 'completed':
             # Transfer succeeded - call is now connected to agent
             logger.info(f"✅ Transfer successful for call {call_sid} to extension {extension}")
+            logger.info(f"   Call duration before transfer: {dial_call_duration} seconds")
             # Return a Pause instruction to keep the call connected
             # When Dial completes successfully, the two calls are bridged together
             # We use Pause to keep this leg of the call alive without doing anything
             response.pause(length=3600)  # Pause for 1 hour (max allowed)
             twiml_response = str(response)
-            logger.info(f"📋 Returning TwiML with Pause to keep call connected: {twiml_response}")
+            logger.info(f"📋 Returning TwiML with Pause to keep call connected:")
+            logger.info(f"   TwiML: {twiml_response}")
+            logger.info("=" * 80)
             # Ensure we return quickly to avoid timeout
             return Response(twiml_response, mimetype='text/xml', status=200)
         elif dial_call_status == 'busy':
@@ -378,8 +397,14 @@ def transfer_callback():
         return Response(str(response), mimetype='text/xml')
         
     except Exception as e:
-        logger.error(f"Error in transfer callback: {e}")
+        logger.error("=" * 80)
+        logger.error(f"❌ EXCEPTION in transfer_callback: {e}")
+        logger.error(f"   Exception type: {type(e).__name__}")
         import traceback
+        logger.error(f"   Traceback:\n{traceback.format_exc()}")
+        logger.error(f"   Request URL: {request.url}")
+        logger.error(f"   Request form: {dict(request.form)}")
+        logger.error("=" * 80)
         traceback.print_exc()
         
         response = VoiceResponse()
