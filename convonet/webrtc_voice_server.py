@@ -310,8 +310,15 @@ def build_customer_profile_from_session(session_data: dict | None) -> dict | Non
     return profile
 
 
-def cache_call_center_profile(extension: str, session_data: dict | None):
-    """Store customer info in Redis so the call-center popup can display real data."""
+def cache_call_center_profile(extension: str, session_data: dict | None, call_sid: str | None = None, call_id: str | None = None):
+    """Store customer info in Redis so the call-center popup can display real data.
+    
+    Args:
+        extension: Agent extension number (e.g., '2001')
+        session_data: Session data containing user_id and conversation history
+        call_sid: Twilio Call SID (for Twilio calls) - used to create unique cache key
+        call_id: SIP Call-ID (for WebRTC calls) - used as fallback for unique cache key
+    """
     if not extension or not REDIS_AVAILABLE or not redis_manager.is_available():
         return
     
@@ -320,12 +327,33 @@ def cache_call_center_profile(extension: str, session_data: dict | None):
         return
     
     profile["extension"] = extension
+    
     try:
+        # Cache with unique identifier (Call SID or Call-ID) to prevent overwriting
+        # when multiple calls from same user transfer to same extension
+        unique_key = None
+        if call_sid:
+            unique_key = f"callcenter:customer:{extension}:{call_sid}"
+        elif call_id:
+            unique_key = f"callcenter:customer:{extension}:{call_id}"
+        
+        # Always cache with extension-only key (most recent call for backward compatibility)
         redis_manager.redis_client.setex(
             f"callcenter:customer:{extension}",
             300,  # expire after 5 minutes
             json.dumps(profile)
         )
+        
+        # Also cache with unique key if available
+        if unique_key:
+            redis_manager.redis_client.setex(
+                unique_key,
+                300,  # expire after 5 minutes
+                json.dumps(profile)
+            )
+            print(f"📋 Cached customer profile with unique key: {unique_key}")
+        else:
+            print(f"📋 Cached customer profile for extension {extension} (no unique identifier)")
     except Exception as e:
         print(f"⚠️ Failed to cache call center profile: {e}")
 
@@ -408,10 +436,6 @@ def initiate_agent_transfer(session_id: str, extension: str, department: str, re
         'user_call_sid': None
     }
 
-    # Cache customer profile BEFORE initiating the call so it's available when agent answers
-    cache_call_center_profile(extension, session_data)
-    print(f"📋 Cached customer profile for extension {extension}")
-    
     try:
         sip_target = f"sip:{extension}@{freepbx_domain};transport=udp"
         print(f"📞 Initiating Twilio call to {sip_target} with URL: {conference_url}")
@@ -423,6 +447,10 @@ def initiate_agent_transfer(session_id: str, extension: str, department: str, re
         response_details['agent_call_sid'] = agent_call.sid
         print(f"📞 Initiated agent call via Twilio (Call SID: {agent_call.sid}) to {sip_target}")
         print(f"📞 Agent call status: {agent_call.status}")
+        
+        # Cache customer profile AFTER getting Call SID so we can use it in the cache key
+        cache_call_center_profile(extension, session_data, call_sid=agent_call.sid)
+        print(f"📋 Cached customer profile for extension {extension} with Call SID {agent_call.sid}")
     except Exception as agent_error:
         message = f"Failed to originate agent call: {agent_error}"
         print(f"❌ {message}")
@@ -1299,7 +1327,8 @@ def init_socketio(socketio_instance: SocketIO, app):
                         "source": source
                     })
                     
-                    cache_call_center_profile(target_extension, session_record)
+                    # For WebRTC calls, we don't have Call SID yet, but we can use session_id as call_id
+                    cache_call_center_profile(target_extension, session_record, call_id=session_id)
                     
                     transfer_instructions = {
                         'extension': target_extension,

@@ -1120,7 +1120,26 @@ class CallCenterAgent {
         }
         
         try {
-            const response = await fetch(`/call-center/api/customer/${customerId}`);
+            // Extract Call SID or Call-ID from current session for unique lookup
+            let url = `/call-center/api/customer/${customerId}`;
+            const identity = this.currentSession ? this.extractSessionIdentity(this.currentSession) : null;
+            const params = new URLSearchParams();
+            
+            if (identity) {
+                if (identity.twilioCallSid) {
+                    params.append('call_sid', identity.twilioCallSid);
+                } else if (identity.callId) {
+                    params.append('call_id', identity.callId);
+                }
+            }
+            
+            if (params.toString()) {
+                url += '?' + params.toString();
+            }
+            
+            console.log('Fetching customer data with unique identifier', { url, identity });
+            
+            const response = await fetch(url);
             const customer = await response.json();
             
             this.displayCustomerData(customer);

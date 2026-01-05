@@ -541,6 +541,37 @@ def process_audio_webhook():
             
             transfer_requested = has_transfer_intent(transcribed_text)
             if transfer_requested:
+                # Cache customer profile before transfer so agent popup can display it
+                call_sid = request.form.get('CallSid', '')
+                extension = '2001'  # Default extension for human agent
+                
+                # Get user object if user_id is available
+                user_name = None
+                if user_id:
+                    try:
+                        from convonet.mcps.local_servers.db_todo import SessionLocal, _init_database
+                        from convonet.models.user_models import User as UserModel
+                        from uuid import UUID
+                        
+                        _init_database()
+                        with SessionLocal() as db_session:
+                            user = db_session.query(UserModel).filter(UserModel.id == UUID(user_id)).first()
+                            if user:
+                                user_name = user.full_name if hasattr(user, 'full_name') else f"{user.first_name} {user.last_name}"
+                    except Exception as e:
+                        logger.warning(f"Could not fetch user name for caching: {e}")
+                
+                # Build session_data from current call context
+                session_data = {
+                    'user_id': user_id,
+                    'user_name': user_name
+                } if user_id else None
+                
+                # Import cache function
+                from convonet.webrtc_voice_server import cache_call_center_profile
+                cache_call_center_profile(extension, session_data, call_sid=call_sid)
+                logger.info(f"📋 Cached customer profile for extension {extension} with Call SID {call_sid}")
+                
                 webhook_base_url = get_webhook_base_url()
                 response = VoiceResponse()
                 response.redirect(f'{webhook_base_url}/convonet_todo/twilio/transfer?extension=2001')

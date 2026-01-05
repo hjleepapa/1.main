@@ -356,9 +356,18 @@ def agent_status():
 
 @call_center_bp.route('/api/customer/<customer_id>', methods=['GET'])
 def get_customer_data(customer_id):
-    """Get customer data for popup (prefer real data cached by the voice assistant)."""
+    """Get customer data for popup (prefer real data cached by the voice assistant).
+    
+    Query parameters:
+        call_sid: Twilio Call SID (optional) - used to look up specific call
+        call_id: SIP Call-ID (optional) - used as fallback to look up specific call
+    """
     profile = None
     agent_extension = None
+    
+    # Get Call SID or Call-ID from query parameters for unique lookup
+    call_sid = request.args.get('call_sid')
+    call_id = request.args.get('call_id')
     
     agent_id = session.get('agent_id')
     if agent_id:
@@ -369,6 +378,14 @@ def get_customer_data(customer_id):
     if redis_manager and redis_manager.is_available():
         try:
             keys_to_try = []
+            
+            # First, try to look up by unique identifier (Call SID or Call-ID)
+            if call_sid and agent_extension:
+                keys_to_try.append(f"callcenter:customer:{agent_extension}:{call_sid}")
+            if call_id and agent_extension and not call_sid:
+                keys_to_try.append(f"callcenter:customer:{agent_extension}:{call_id}")
+            
+            # Then try extension-only keys (for backward compatibility and when no unique ID)
             if customer_id:
                 keys_to_try.append(f"callcenter:customer:{customer_id}")
             if agent_extension and agent_extension != customer_id:
@@ -378,6 +395,7 @@ def get_customer_data(customer_id):
             for cache_key in keys_to_try:
                 cached = redis_manager.redis_client.get(cache_key)
                 if cached:
+                    print(f"✅ Found customer profile in cache: {cache_key}")
                     break
             
             if cached:
