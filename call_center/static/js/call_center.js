@@ -148,7 +148,7 @@ class CallCenterAgent {
         // Customer popup
         this.closeCustomerPopup.addEventListener('click', () => this.hideCustomerPopup());
         this.acceptCallFromPopup.addEventListener('click', () => {
-            this.hideCustomerPopup();
+            // Don't close popup when accepting call - keep it open until call ends
             this.answerCall();
         });
     }
@@ -1419,6 +1419,9 @@ class CallCenterAgent {
         console.log('Call ended');
         
         this.stopCallDurationTimer();
+        
+        // Close customer popup when call ends
+        this.hideCustomerPopup();
         
         this.callInfo.innerHTML = `
             <div class="no-call">
