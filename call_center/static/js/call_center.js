@@ -310,10 +310,18 @@ class CallCenterAgent {
         });
         
         this.sipUser.on('newRTCSession', (event) => {
-            console.log('New RTC session');
+            console.log('🔔 New RTC session event received');
+            console.log('Event details:', event);
             const session = event.session;
+            console.log('Session details:', {
+                id: session.id,
+                direction: session.direction,
+                local_identity: session.local_identity,
+                remote_identity: session.remote_identity
+            });
             
             if (session.direction === 'incoming') {
+                console.log('📞 Incoming call detected, handling...');
                 this.handleIncomingCall(session);
             } else {
                 const dialedNumber = this.pendingDialNumber || (session.remote_identity && session.remote_identity.uri ? session.remote_identity.uri.user : null);

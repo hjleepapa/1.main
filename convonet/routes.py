@@ -394,7 +394,9 @@ def voice_assistant_transfer_bridge():
         sip_password = os.getenv('FREEPBX_SIP_PASSWORD', '')
         sip_uri = f"sip:{extension}@{freepbx_domain};transport=udp"
         
-        logger.info(f"[VoiceAssistantBridge] Dialing {sip_uri} for call {call_sid}")
+        logger.info(f"[VoiceAssistantBridge] Received call {call_sid} from {caller_number}")
+        logger.info(f"[VoiceAssistantBridge] Dialing {sip_uri} for extension {extension}")
+        logger.info(f"[VoiceAssistantBridge] Transfer timeout: {transfer_timeout} seconds")
         
         response = VoiceResponse()
         dial = response.dial(

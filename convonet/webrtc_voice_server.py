@@ -208,8 +208,13 @@ def initiate_agent_transfer(session_id: str, extension: str, department: str, re
         'user_call_sid': None
     }
 
+    # Cache customer profile BEFORE initiating the call so it's available when agent answers
+    cache_call_center_profile(extension, session_data)
+    print(f"📋 Cached customer profile for extension {extension}")
+    
     try:
         sip_target = f"sip:{extension}@{freepbx_domain};transport=udp"
+        print(f"📞 Initiating Twilio call to {sip_target} with URL: {conference_url}")
         agent_call = client.calls.create(
             to=sip_target,
             from_=caller_id,
@@ -217,6 +222,7 @@ def initiate_agent_transfer(session_id: str, extension: str, department: str, re
         )
         response_details['agent_call_sid'] = agent_call.sid
         print(f"📞 Initiated agent call via Twilio (Call SID: {agent_call.sid}) to {sip_target}")
+        print(f"📞 Agent call status: {agent_call.status}")
     except Exception as agent_error:
         message = f"Failed to originate agent call: {agent_error}"
         print(f"❌ {message}")
