@@ -795,7 +795,7 @@ class CallCenterAgent {
         });
         
         if (isDialLeg) {
-            console.log('✅ Detected Dial leg from Twilio transfer. Replacing current session.', {
+            console.log('✅ Detected Dial leg from Twilio transfer. Switching to Dial leg session.', {
                 activeSession: this.activeCallSessionId,
                 activeCallSid: this.activeCallIdentity.twilioCallSid,
                 activeCallId: this.activeCallIdentity.callId,
@@ -805,20 +805,18 @@ class CallCenterAgent {
                 timeSinceFirstCall: `${timeSinceFirstCall}ms`
             });
             
-            // Remove event handlers from the old session to prevent it from disabling the Answer button
+            // CRITICAL: Do NOT terminate the old session!
+            // Terminating the first call causes FusionPBX/Twilio to cancel the Dial leg.
+            // Instead, we keep the old session alive and just switch to the Dial leg.
+            // The old session will naturally end when the Dial leg is answered and established.
             const oldSession = this.currentSession;
             if (oldSession && oldSession.id !== session.id) {
-                console.log('Removing event handlers from old session and closing it', oldSession.id);
-                try {
-                    // Remove all event listeners by creating a new session object reference
-                    // (JsSIP doesn't provide a direct way to remove all listeners, so we terminate)
-                    oldSession.terminate({
-                        status_code: 486, // Busy Here
-                        reason_phrase: 'Replaced by Dial leg'
-                    });
-                } catch (error) {
-                    console.warn('Error closing parent call session', error);
-                }
+                console.log('Keeping old session alive (not terminating) to prevent Dial leg cancellation', {
+                    oldSessionId: oldSession.id,
+                    oldSessionStatus: oldSession.status
+                });
+                // Store reference to old session but don't terminate it
+                // It will be cleaned up when the Dial leg is established
             }
             
             // Replace the current session with the Dial leg BEFORE attaching handlers
@@ -849,9 +847,24 @@ class CallCenterAgent {
                 popupBtnDisabled: this.acceptCallFromPopup ? this.acceptCallFromPopup.disabled : 'N/A'
             });
             
-            // Attach event handlers to the new session AFTER setting currentSession
-            // This ensures event handlers reference the correct session
+            // CRITICAL: Attach event handlers IMMEDIATELY to ensure 180 Ringing is sent
+            // This prevents FusionPBX from canceling the Dial leg due to timeout
             this.attachSessionEventHandlers(session, 'inbound');
+            
+            // CRITICAL: Auto-answer the Dial leg immediately to prevent FusionPBX from canceling it
+            // FusionPBX will cancel the Dial leg if it's not answered quickly, especially if
+            // the first call is already established. By auto-answering, we ensure the Dial leg
+            // is connected before FusionPBX has a chance to cancel it.
+            console.log('Auto-answering Dial leg to prevent cancellation', {
+                sessionId: session.id,
+                sessionStatus: session.status
+            });
+            
+            // Auto-answer the Dial leg immediately
+            this.answerCall().catch(error => {
+                console.error('Failed to auto-answer Dial leg', error);
+                // If auto-answer fails, at least the Answer button is enabled for manual answer
+            });
             
             // Show popup again if it's not already shown (in case it was closed)
             if (this.currentCall && this.currentCall.customer_id) {
