@@ -73,7 +73,7 @@ flask_app = None
 
 
 def build_customer_profile_from_session(session_data: dict | None) -> dict | None:
-    """Build a lightweight customer profile for the call center popup."""
+    """Build a lightweight customer profile for the call center popup, including conversation history and activities."""
     if not session_data:
         return None
     
@@ -85,6 +85,8 @@ def build_customer_profile_from_session(session_data: dict | None) -> dict | Non
         "account_status": "Active",
         "tier": "Standard",
         "notes": "Captured from Convonet voice assistant",
+        "conversation_history": [],
+        "activities": []
     }
     
     user_id = session_data.get('user_id')
@@ -106,6 +108,204 @@ def build_customer_profile_from_session(session_data: dict | None) -> dict | Non
                     })
         except Exception as e:
             print(f"⚠️ Unable to load customer profile for call center: {e}")
+    
+    # Retrieve conversation history and activities from LangGraph
+    try:
+        from convonet.routes import _get_agent_graph
+        from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
+        import asyncio
+        
+        # Generate thread_id from user_id (same format as used in _run_agent_async)
+        thread_id = f"user-{user_id}" if user_id else None
+        
+        if thread_id:
+            try:
+                # Get agent graph
+                agent_graph = asyncio.run(_get_agent_graph())
+                config = {"configurable": {"thread_id": thread_id}}
+                
+                # Get conversation state
+                state = agent_graph.get_state(config=config)
+                
+                if state and state.values:
+                    messages = state.values.get("messages", [])
+                    
+                    # Extract conversation history (user and assistant messages)
+                    conversation = []
+                    activities = []
+                    
+                    for msg in messages:
+                        if isinstance(msg, HumanMessage):
+                            conversation.append({
+                                "type": "user",
+                                "content": str(msg.content),
+                                "timestamp": None  # LangGraph doesn't store timestamps by default
+                            })
+                        elif isinstance(msg, AIMessage):
+                            # Check if this AI message has tool calls
+                            tool_calls_info = []
+                            if hasattr(msg, 'tool_calls') and msg.tool_calls:
+                                for tc in msg.tool_calls:
+                                    tool_calls_info.append({
+                                        "name": tc.get('name', ''),
+                                        "args": tc.get('args', {})
+                                    })
+                            
+                            conversation.append({
+                                "type": "assistant",
+                                "content": str(msg.content),
+                                "timestamp": None,
+                                "tool_calls": tool_calls_info if tool_calls_info else None
+                            })
+                        elif isinstance(msg, ToolMessage):
+                            # Extract tool execution results (calendar events, todos, etc.)
+                            tool_name = getattr(msg, 'name', '') or ''
+                            tool_call_id = getattr(msg, 'tool_call_id', '')
+                            tool_content = str(msg.content)
+                            
+                            # Also check previous AIMessage for tool_calls to get tool name
+                            # Look for the AIMessage that has this tool_call_id
+                            tool_name_from_ai = ''
+                            for prev_msg in messages:
+                                if isinstance(prev_msg, AIMessage) and hasattr(prev_msg, 'tool_calls'):
+                                    for tc in prev_msg.tool_calls or []:
+                                        if tc.get('id') == tool_call_id:
+                                            tool_name_from_ai = tc.get('name', '')
+                                            break
+                                    if tool_name_from_ai:
+                                        break
+                            
+                            # Use tool name from AI message if available, otherwise use ToolMessage name
+                            effective_tool_name = tool_name_from_ai or tool_name
+                            
+                            # Get tool call arguments from the corresponding AIMessage
+                            tool_args = {}
+                            for prev_msg in messages:
+                                if isinstance(prev_msg, AIMessage) and hasattr(prev_msg, 'tool_calls'):
+                                    for tc in prev_msg.tool_calls or []:
+                                        if tc.get('id') == tool_call_id:
+                                            tool_args = tc.get('args', {})
+                                            break
+                                    if tool_args:
+                                        break
+                            
+                            # Parse tool results to extract activities
+                            if 'create_calendar_event' in effective_tool_name.lower() or 'calendar' in tool_content.lower():
+                                # Extract calendar event details from tool args or response
+                                try:
+                                    import json
+                                    title = tool_args.get('title', '')
+                                    event_from = tool_args.get('event_from', '')
+                                    event_to = tool_args.get('event_to', '')
+                                    description = tool_args.get('description', '')
+                                    
+                                    # If tool_content is JSON, parse it
+                                    if tool_content.startswith('{'):
+                                        try:
+                                            event_data = json.loads(tool_content)
+                                            title = title or event_data.get('title', '')
+                                            event_from = event_from or event_data.get('event_from', '')
+                                            event_to = event_to or event_data.get('event_to', '')
+                                            description = description or event_data.get('description', '')
+                                        except:
+                                            pass
+                                    
+                                    # Extract from text response if args not available
+                                    if not title and tool_content:
+                                        # Try to extract from response like "Calendar event 'title' created..."
+                                        import re
+                                        match = re.search(r"Calendar event '([^']+)'", tool_content)
+                                        if match:
+                                            title = match.group(1)
+                                    
+                                    activities.append({
+                                        "type": "calendar_event",
+                                        "action": "created",
+                                        "title": title or "Calendar Event",
+                                        "start": event_from or "",
+                                        "end": event_to or "",
+                                        "description": description or "",
+                                        "raw": tool_content
+                                    })
+                                except Exception as e:
+                                    print(f"⚠️ Error parsing calendar event: {e}")
+                                    activities.append({
+                                        "type": "calendar_event",
+                                        "action": "created",
+                                        "raw": tool_content
+                                    })
+                            
+                            elif 'create_todo' in effective_tool_name.lower() or ('todo' in tool_content.lower() and 'create' in effective_tool_name.lower()):
+                                # Extract todo details from tool args or response
+                                try:
+                                    import json
+                                    title = tool_args.get('title', '')
+                                    priority = tool_args.get('priority', '')
+                                    due_date = tool_args.get('due_date', '')
+                                    description = tool_args.get('description', '')
+                                    
+                                    # If tool_content is JSON, parse it
+                                    if tool_content.startswith('{'):
+                                        try:
+                                            todo_data = json.loads(tool_content)
+                                            title = title or todo_data.get('title', '')
+                                            priority = priority or todo_data.get('priority', '')
+                                            due_date = due_date or todo_data.get('due_date', '')
+                                            description = description or todo_data.get('description', '')
+                                        except:
+                                            pass
+                                    
+                                    activities.append({
+                                        "type": "todo",
+                                        "action": "created",
+                                        "title": title or "Todo",
+                                        "priority": priority or "",
+                                        "due_date": due_date or "",
+                                        "description": description or "",
+                                        "raw": tool_content
+                                    })
+                                except Exception as e:
+                                    print(f"⚠️ Error parsing todo: {e}")
+                                    activities.append({
+                                        "type": "todo",
+                                        "action": "created",
+                                        "raw": tool_content
+                                    })
+                            
+                            elif 'complete_todo' in effective_tool_name.lower():
+                                activities.append({
+                                    "type": "todo",
+                                    "action": "completed",
+                                    "raw": tool_content
+                                })
+                            
+                            elif 'update_todo' in effective_tool_name.lower():
+                                activities.append({
+                                    "type": "todo",
+                                    "action": "updated",
+                                    "raw": tool_content
+                                })
+                            
+                            elif 'delete_todo' in effective_tool_name.lower():
+                                activities.append({
+                                    "type": "todo",
+                                    "action": "deleted",
+                                    "raw": tool_content
+                                })
+                    
+                    profile["conversation_history"] = conversation
+                    profile["activities"] = activities
+                    
+                    print(f"📋 Retrieved conversation history: {len(conversation)} messages, {len(activities)} activities")
+                    
+            except Exception as e:
+                print(f"⚠️ Unable to retrieve conversation history: {e}")
+                import traceback
+                traceback.print_exc()
+    except Exception as e:
+        print(f"⚠️ Error setting up conversation history retrieval: {e}")
+        import traceback
+        traceback.print_exc()
     
     return profile
 

@@ -1131,52 +1131,162 @@ class CallCenterAgent {
     }
     
     displayCustomerData(customer) {
-        const html = `
+        // Build customer info section
+        let customerInfoHtml = `
             <div class="customer-info">
                 <div class="customer-field">
                     <label>Customer ID:</label>
-                    <span>${customer.customer_id}</span>
+                    <span>${customer.customer_id || 'N/A'}</span>
                 </div>
                 <div class="customer-field">
                     <label>Name:</label>
-                    <span>${customer.name}</span>
+                    <span>${customer.name || 'N/A'}</span>
                 </div>
                 <div class="customer-field">
                     <label>Email:</label>
-                    <span>${customer.email}</span>
+                    <span>${customer.email || 'N/A'}</span>
                 </div>
                 <div class="customer-field">
                     <label>Phone:</label>
-                    <span>${customer.phone}</span>
+                    <span>${customer.phone || 'N/A'}</span>
                 </div>
                 <div class="customer-field">
                     <label>Account Status:</label>
-                    <span>${customer.account_status}</span>
+                    <span>${customer.account_status || 'N/A'}</span>
                 </div>
                 <div class="customer-field">
                     <label>Tier:</label>
-                    <span>${customer.tier}</span>
+                    <span>${customer.tier || 'N/A'}</span>
                 </div>
                 <div class="customer-field">
                     <label>Last Contact:</label>
-                    <span>${customer.last_contact}</span>
+                    <span>${customer.last_contact || 'N/A'}</span>
                 </div>
                 <div class="customer-field">
                     <label>Open Tickets:</label>
-                    <span>${customer.open_tickets}</span>
+                    <span>${customer.open_tickets || 'N/A'}</span>
                 </div>
                 <div class="customer-field">
                     <label>Lifetime Value:</label>
-                    <span>${customer.lifetime_value}</span>
+                    <span>${customer.lifetime_value || 'N/A'}</span>
                 </div>
                 <div class="customer-field">
                     <label>Notes:</label>
-                    <span>${customer.notes}</span>
+                    <span>${customer.notes || 'N/A'}</span>
                 </div>
             </div>
         `;
         
+        // Build activities section (calendar events, todos, etc.)
+        let activitiesHtml = '';
+        if (customer.activities && customer.activities.length > 0) {
+            activitiesHtml = `
+                <div class="customer-section">
+                    <h4><i class="fas fa-tasks"></i> Activities During Session</h4>
+                    <div class="activities-list">
+            `;
+            
+            customer.activities.forEach((activity, index) => {
+                let activityIcon = 'fa-check-circle';
+                let activityColor = 'info';
+                let activityText = '';
+                
+                if (activity.type === 'calendar_event') {
+                    activityIcon = 'fa-calendar';
+                    activityColor = 'primary';
+                    if (activity.title) {
+                        activityText = `Created calendar event: "${activity.title}"`;
+                        if (activity.start && activity.end) {
+                            activityText += ` (${activity.start} - ${activity.end})`;
+                        }
+                    } else {
+                        activityText = `Created calendar event: ${activity.raw || 'Event created'}`;
+                    }
+                } else if (activity.type === 'todo') {
+                    activityIcon = 'fa-list-check';
+                    if (activity.action === 'created') {
+                        activityColor = 'success';
+                        activityText = `Created todo: "${activity.title || 'Todo'}"`;
+                        if (activity.priority) {
+                            activityText += ` (Priority: ${activity.priority})`;
+                        }
+                        if (activity.due_date) {
+                            activityText += ` (Due: ${activity.due_date})`;
+                        }
+                    } else if (activity.action === 'completed') {
+                        activityColor = 'success';
+                        activityText = `Completed todo: ${activity.raw || 'Todo completed'}`;
+                    } else if (activity.action === 'updated') {
+                        activityColor = 'warning';
+                        activityText = `Updated todo: ${activity.raw || 'Todo updated'}`;
+                    } else if (activity.action === 'deleted') {
+                        activityColor = 'danger';
+                        activityText = `Deleted todo: ${activity.raw || 'Todo deleted'}`;
+                    } else {
+                        activityText = `Todo ${activity.action}: ${activity.raw || 'Todo action'}`;
+                    }
+                } else {
+                    activityText = `${activity.type}: ${activity.raw || 'Activity'}`;
+                }
+                
+                activitiesHtml += `
+                    <div class="activity-item activity-${activityColor}">
+                        <i class="fas ${activityIcon}"></i>
+                        <span>${activityText}</span>
+                    </div>
+                `;
+            });
+            
+            activitiesHtml += `
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Build conversation history section
+        let conversationHtml = '';
+        if (customer.conversation_history && customer.conversation_history.length > 0) {
+            conversationHtml = `
+                <div class="customer-section">
+                    <h4><i class="fas fa-comments"></i> Conversation History</h4>
+                    <div class="conversation-list">
+            `;
+            
+            // Show last 10 messages (most recent first)
+            const recentMessages = customer.conversation_history.slice(-10).reverse();
+            
+            recentMessages.forEach((msg, index) => {
+                const messageClass = msg.type === 'user' ? 'user-message' : 'assistant-message';
+                const messageIcon = msg.type === 'user' ? 'fa-user' : 'fa-robot';
+                const messageLabel = msg.type === 'user' ? 'User' : 'Assistant';
+                
+                conversationHtml += `
+                    <div class="conversation-item ${messageClass}">
+                        <div class="message-header">
+                            <i class="fas ${messageIcon}"></i>
+                            <strong>${messageLabel}</strong>
+                        </div>
+                        <div class="message-content">${this.escapeHtml(msg.content || '')}</div>
+                    </div>
+                `;
+            });
+            
+            conversationHtml += `
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Combine all sections
+        const html = customerInfoHtml + activitiesHtml + conversationHtml;
+        
         this.customerData.innerHTML = html;
+    }
+    
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
     
     hideCustomerPopup() {
