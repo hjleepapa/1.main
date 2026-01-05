@@ -8,7 +8,12 @@
             "transport": "stdio",
             "env": {
                 "DB_URI": "${DB_URI}",
-                "PYTHONPATH": "."
+                "PYTHONPATH": ".",
+                "GOOGLE_OAUTH2_TOKEN_B64": "${GOOGLE_OAUTH2_TOKEN_B64}",
+                "GOOGLE_CLIENT_ID": "${GOOGLE_CLIENT_ID}",
+                "GOOGLE_CLIENT_SECRET": "${GOOGLE_CLIENT_SECRET}",
+                "GOOGLE_CREDENTIALS_B64": "${GOOGLE_CREDENTIALS_B64}",
+                "GOOGLE_TOKEN_B64": "${GOOGLE_TOKEN_B64}"
             }
         }
     }
