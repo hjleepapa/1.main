@@ -430,15 +430,21 @@ def voice_assistant_transfer_bridge():
         sip_password = os.getenv('FREEPBX_SIP_PASSWORD', '')
         sip_uri = f"sip:{extension}@{freepbx_domain};transport=udp"
         
-        logger.info(f"[VoiceAssistantBridge] Received call {call_sid} from {caller_number}")
-        logger.info(f"[VoiceAssistantBridge] Dialing {sip_uri} for extension {extension}")
-        logger.info(f"[VoiceAssistantBridge] Transfer timeout: {transfer_timeout} seconds")
-        
         # Get webhook base URL for absolute action URL
         webhook_base_url = get_webhook_base_url()
         action_url = f'{webhook_base_url}/convonet_todo/twilio/transfer_callback?extension={extension}'
         
-        logger.info(f"[VoiceAssistantBridge] Action URL for callback: {action_url}")
+        logger.info("=" * 80)
+        logger.info("📞 TRANSFER_BRIDGE RECEIVED")
+        logger.info(f"   Call SID: {call_sid}")
+        logger.info(f"   Caller Number: {caller_number}")
+        logger.info(f"   Extension: {extension}")
+        logger.info(f"   SIP URI: {sip_uri}")
+        logger.info(f"   Transfer Timeout: {transfer_timeout} seconds")
+        logger.info(f"   Webhook Base URL: {webhook_base_url}")
+        logger.info(f"   Action URL: {action_url}")
+        logger.info(f"   Request URL: {request.url}")
+        logger.info(f"   Request form: {dict(request.form)}")
         
         response = VoiceResponse()
         dial = response.dial(
@@ -457,11 +463,16 @@ def voice_assistant_transfer_bridge():
             dial.sip(sip_uri)
             logger.info("[VoiceAssistantBridge] Using IP-based SIP authentication")
         
+        twiml_response = str(response)
+        logger.info(f"📋 Generated TwiML:")
+        logger.info(f"   {twiml_response}")
+        logger.info("=" * 80)
+        
         # Note: Error handling after Dial with action URL is not executed
         # because Twilio always calls the action URL when Dial completes
         # Error handling is done in transfer_callback endpoint
         
-        return Response(str(response), mimetype='text/xml')
+        return Response(twiml_response, mimetype='text/xml')
     
     except Exception as e:
         logger.error(f"[VoiceAssistantBridge] Error connecting to agent: {e}")
