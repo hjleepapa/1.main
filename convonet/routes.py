@@ -271,12 +271,18 @@ def transfer_to_agent():
         logger.info(f"FusionPBX Domain: {freepbx_domain}, Extension: {extension}")
         logger.info(f"Transfer Timeout: {transfer_timeout} seconds")
         
+        # Get webhook base URL for absolute action URL
+        webhook_base_url = get_webhook_base_url()
+        action_url = f'{webhook_base_url}/convonet_todo/twilio/transfer_callback?extension={extension}'
+        
+        logger.info(f"[Transfer] Action URL for callback: {action_url}")
+        
         # Create Dial verb with transfer settings
         dial = response.dial(
             answer_on_bridge=True,  # Wait for agent to answer before connecting
             timeout=transfer_timeout,
             caller_id=caller_number,
-            action=f'/convonet_todo/twilio/transfer_callback?extension={extension}'
+            action=action_url  # Use absolute URL, not relative path
         )
         
         # Add SIP destination
@@ -403,12 +409,18 @@ def voice_assistant_transfer_bridge():
         logger.info(f"[VoiceAssistantBridge] Dialing {sip_uri} for extension {extension}")
         logger.info(f"[VoiceAssistantBridge] Transfer timeout: {transfer_timeout} seconds")
         
+        # Get webhook base URL for absolute action URL
+        webhook_base_url = get_webhook_base_url()
+        action_url = f'{webhook_base_url}/convonet_todo/twilio/transfer_callback?extension={extension}'
+        
+        logger.info(f"[VoiceAssistantBridge] Action URL for callback: {action_url}")
+        
         response = VoiceResponse()
         dial = response.dial(
             answer_on_bridge=True,
             timeout=transfer_timeout,
             caller_id=caller_number,
-            action=f'/convonet_todo/twilio/transfer_callback?extension={extension}',
+            action=action_url,  # Use absolute URL, not relative path
             hangup_on_star=False,  # Don't hang up on * keypress
             record=False  # Don't record the call
         )
