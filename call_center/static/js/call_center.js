@@ -100,11 +100,18 @@ class CallCenterAgent {
         this.customerData = document.getElementById('customerData');
         this.closeCustomerPopup = document.getElementById('closeCustomerPopup');
         this.acceptCallFromPopup = document.getElementById('acceptCallFromPopup');
+        this.customerPopupContent = this.customerPopup ? this.customerPopup.querySelector('.modal-content') : null;
         
         // Customer info window (read-only, no Accept button)
         this.customerInfoWindow = document.getElementById('customerInfoWindow');
         this.customerInfoData = document.getElementById('customerInfoData');
         this.closeCustomerInfoWindow = document.getElementById('closeCustomerInfoWindow');
+        this.customerInfoWindowContent = this.customerInfoWindow ? this.customerInfoWindow.querySelector('.modal-content') : null;
+        
+        // Dragging state
+        this.isDragging = false;
+        this.dragOffset = { x: 0, y: 0 };
+        this.currentDraggedElement = null;
         
         // Audio
         this.ringTone = document.getElementById('ringTone');
@@ -162,6 +169,9 @@ class CallCenterAgent {
         
         // Customer info window (read-only)
         this.closeCustomerInfoWindow.addEventListener('click', () => this.hideCustomerInfoWindow());
+        
+        // Make modals draggable and resizable
+        this.initModalDragAndResize();
     }
     
     async handleLogin(e) {
@@ -1113,6 +1123,16 @@ class CallCenterAgent {
         this.customerPopup.classList.add('active');
         this.customerData.innerHTML = '<div class="customer-info loading"><i class="fas fa-spinner fa-spin"></i> Loading customer data...</div>';
         
+        // Reset position to center if not already positioned
+        if (this.customerPopupContent) {
+            const rect = this.customerPopupContent.getBoundingClientRect();
+            if (rect.left === 0 && rect.top === 0) {
+                this.customerPopupContent.style.left = '50%';
+                this.customerPopupContent.style.top = '50%';
+                this.customerPopupContent.style.transform = 'translate(-50%, -50%)';
+            }
+        }
+        
         // Ensure Answer button in popup is enabled when popup is shown
         // This is critical because the popup may be shown before showIncomingCall completes,
         // or showIncomingCall may have been called but the button state needs to be refreshed
@@ -1178,6 +1198,80 @@ class CallCenterAgent {
         return div.innerHTML;
     }
     
+    initModalDragAndResize() {
+        // Initialize dragging for customer popup
+        if (this.customerPopupContent) {
+            const header = this.customerPopupContent.querySelector('.modal-header');
+            if (header) {
+                header.addEventListener('mousedown', (e) => this.startDrag(e, this.customerPopupContent));
+            }
+        }
+        
+        // Initialize dragging for customer info window
+        if (this.customerInfoWindowContent) {
+            const header = this.customerInfoWindowContent.querySelector('.modal-header');
+            if (header) {
+                header.addEventListener('mousedown', (e) => this.startDrag(e, this.customerInfoWindowContent));
+            }
+        }
+        
+        // Global mouse move and up handlers
+        document.addEventListener('mousemove', (e) => this.onDrag(e));
+        document.addEventListener('mouseup', () => this.stopDrag());
+    }
+    
+    startDrag(e, element) {
+        // Don't start drag if clicking on close button or other interactive elements
+        if (e.target.classList.contains('close-modal') || 
+            e.target.closest('button') || 
+            e.target.closest('input') ||
+            e.target.closest('select') ||
+            e.target.closest('textarea')) {
+            return;
+        }
+        
+        this.isDragging = true;
+        this.currentDraggedElement = element;
+        
+        const rect = element.getBoundingClientRect();
+        this.dragOffset.x = e.clientX - rect.left;
+        this.dragOffset.y = e.clientY - rect.top;
+        
+        element.style.cursor = 'move';
+        e.preventDefault();
+    }
+    
+    onDrag(e) {
+        if (!this.isDragging || !this.currentDraggedElement) {
+            return;
+        }
+        
+        const x = e.clientX - this.dragOffset.x;
+        const y = e.clientY - this.dragOffset.y;
+        
+        // Constrain to viewport
+        const maxX = window.innerWidth - this.currentDraggedElement.offsetWidth;
+        const maxY = window.innerHeight - this.currentDraggedElement.offsetHeight;
+        
+        const constrainedX = Math.max(0, Math.min(x, maxX));
+        const constrainedY = Math.max(0, Math.min(y, maxY));
+        
+        this.currentDraggedElement.style.left = `${constrainedX}px`;
+        this.currentDraggedElement.style.top = `${constrainedY}px`;
+        this.currentDraggedElement.style.transform = 'none';
+        this.currentDraggedElement.style.margin = '0';
+        
+        e.preventDefault();
+    }
+    
+    stopDrag() {
+        if (this.isDragging && this.currentDraggedElement) {
+            this.currentDraggedElement.style.cursor = 'default';
+        }
+        this.isDragging = false;
+        this.currentDraggedElement = null;
+    }
+    
     hideCustomerPopup() {
         this.customerPopup.classList.remove('active');
     }
@@ -1189,6 +1283,17 @@ class CallCenterAgent {
         }
         
         this.customerInfoWindow.classList.add('active');
+        
+        // Reset position to center if not already positioned
+        if (this.customerInfoWindowContent) {
+            const rect = this.customerInfoWindowContent.getBoundingClientRect();
+            if (rect.left === 0 && rect.top === 0) {
+                this.customerInfoWindowContent.style.left = '50%';
+                this.customerInfoWindowContent.style.top = '50%';
+                this.customerInfoWindowContent.style.transform = 'translate(-50%, -50%)';
+            }
+        }
+        
         console.log('📋 Customer info window opened (read-only)');
     }
     
