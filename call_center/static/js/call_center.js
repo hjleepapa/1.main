@@ -609,6 +609,7 @@ class CallCenterAgent {
         
         this.currentSession = session;
         this.activeCallSessionId = session.id;
+        this.firstCallTimestamp = Date.now(); // Track when first call arrives for Dial leg detection
         this.currentCall = {
             call_id: callId,
             caller_number: callerNumber,
@@ -721,18 +722,44 @@ class CallCenterAgent {
         // Check if this is a Dial leg from Twilio (second INVITE with different Call SID)
         // In Twilio transfers, the Dial leg has a different Call SID but is part of the same transfer
         // We should answer this call and replace the current session
-        const isDialLeg = identity.twilioCallSid && 
-                          this.activeCallIdentity.twilioCallSid &&
-                          identity.twilioCallSid !== this.activeCallIdentity.twilioCallSid &&
-                          identity.fromTag === this.activeCallIdentity.fromTag;
+        
+        // Criteria for Dial leg detection:
+        // 1. Both have Twilio Call SIDs
+        // 2. Different Call SIDs (parent vs child)
+        // 3. Different Call-IDs (different SIP sessions)
+        // 4. From same extension (both targeting extension 2001)
+        // 5. Arrives within 10 seconds of the first call
+        const hasTwilioCallSids = identity.twilioCallSid && this.activeCallIdentity.twilioCallSid;
+        const differentCallSids = identity.twilioCallSid !== this.activeCallIdentity.twilioCallSid;
+        const differentCallIds = identity.callId !== this.activeCallIdentity.callId;
+        const timeSinceFirstCall = Date.now() - (this.firstCallTimestamp || Date.now());
+        const withinTimeWindow = timeSinceFirstCall < 10000; // 10 seconds
+        
+        const isDialLeg = hasTwilioCallSids && differentCallSids && differentCallIds && withinTimeWindow;
         
         if (isDialLeg) {
-            console.log('Detected Dial leg from Twilio transfer. Replacing current session.', {
+            console.log('✅ Detected Dial leg from Twilio transfer. Replacing current session.', {
                 activeSession: this.activeCallSessionId,
                 activeCallSid: this.activeCallIdentity.twilioCallSid,
+                activeCallId: this.activeCallIdentity.callId,
                 incomingSession: session.id,
-                incomingCallSid: identity.twilioCallSid
+                incomingCallSid: identity.twilioCallSid,
+                incomingCallId: identity.callId,
+                timeSinceFirstCall: `${timeSinceFirstCall}ms`
             });
+            
+            // Close the first session (parent call) - it's not the one Twilio wants answered
+            if (this.currentSession && this.currentSession.id !== session.id) {
+                console.log('Closing parent call session to make way for Dial leg', this.currentSession.id);
+                try {
+                    this.currentSession.terminate({
+                        status_code: 486, // Busy Here
+                        reason_phrase: 'Replaced by Dial leg'
+                    });
+                } catch (error) {
+                    console.warn('Error closing parent call session', error);
+                }
+            }
             
             // Replace the current session with the Dial leg
             this.currentSession = session;
@@ -744,6 +771,12 @@ class CallCenterAgent {
             if (this.acceptCallFromPopup) {
                 this.acceptCallFromPopup.disabled = false;
             }
+            
+            // Update UI to show incoming call for the Dial leg
+            const remoteIdentity = session.remote_identity;
+            const callerNumber = remoteIdentity.uri.user;
+            const callerName = remoteIdentity.display_name || callerNumber;
+            this.showIncomingCall(callerName, callerNumber);
             
             // Attach event handlers to the new session
             this.attachSessionEventHandlers(session, 'inbound');
@@ -760,7 +793,14 @@ class CallCenterAgent {
             activeSession: this.activeCallSessionId,
             incomingSession: session.id,
             incomingIdentity: identity,
-            activeIdentity: this.activeCallIdentity
+            activeIdentity: this.activeCallIdentity,
+            isDialLeg: false,
+            reasons: {
+                hasTwilioCallSids,
+                differentCallSids,
+                differentCallIds,
+                withinTimeWindow
+            }
         });
         session.on('failed', () => console.log('Ignored parallel session failed', session.id));
         session.on('ended', () => console.log('Ignored parallel session ended', session.id));
