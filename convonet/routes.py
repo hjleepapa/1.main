@@ -327,12 +327,14 @@ def transfer_callback():
         if dial_call_status == 'completed':
             # Transfer succeeded - call is now connected to agent
             logger.info(f"✅ Transfer successful for call {call_sid} to extension {extension}")
-            # Return empty TwiML response to keep the call connected
-            # The two calls are now bridged together, so we just return empty response
-            # An empty <Response></Response> tells Twilio to do nothing and keep the call connected
+            # Return a Pause instruction to keep the call connected
+            # When Dial completes successfully, the two calls are bridged together
+            # We use Pause to keep this leg of the call alive without doing anything
+            response.pause(length=3600)  # Pause for 1 hour (max allowed)
             twiml_response = str(response)
-            logger.info(f"📋 Returning empty TwiML response: {twiml_response}")
-            return Response(twiml_response, mimetype='text/xml')
+            logger.info(f"📋 Returning TwiML with Pause to keep call connected: {twiml_response}")
+            # Ensure we return quickly to avoid timeout
+            return Response(twiml_response, mimetype='text/xml', status=200)
         elif dial_call_status == 'busy':
             response.say("The agent is currently busy. Please try again later.", voice='Polly.Amy')
             response.hangup()
@@ -406,7 +408,9 @@ def voice_assistant_transfer_bridge():
             answer_on_bridge=True,
             timeout=transfer_timeout,
             caller_id=caller_number,
-            action=f'/convonet_todo/twilio/transfer_callback?extension={extension}'
+            action=f'/convonet_todo/twilio/transfer_callback?extension={extension}',
+            hangup_on_star=False,  # Don't hang up on * keypress
+            record=False  # Don't record the call
         )
         
         if sip_username and sip_password:
