@@ -148,6 +148,14 @@ def create_app():
     except ImportError as e:
         print(f"⚠️  Convonet API routes not available: {e}")
     
+    # Register debug environment routes (for diagnosing environment variable issues)
+    try:
+        from convonet.debug_env_routes import debug_env_bp
+        app.register_blueprint(debug_env_bp)
+        print("✅ Debug environment routes registered at /debug/env")
+    except ImportError as e:
+        print(f"⚠️  Debug environment routes not available: {e}")
+    
     # Register call center blueprint
     try:
         from call_center import call_center_bp
