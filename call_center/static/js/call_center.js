@@ -661,14 +661,48 @@ class CallCenterAgent {
             return { callId: null, twilioCallSid: null, fromTag: null };
         }
         const request = session.request || {};
+        
+        // Try multiple ways to get headers (JsSIP may store them differently)
         const getHeader = typeof request.getHeader === 'function'
-            ? request.getHeader.bind(request)
-            : () => null;
-        return {
-            callId: request.call_id || request.callId || session.id,
-            twilioCallSid: getHeader('X-Twilio-CallSid'),
-            fromTag: request.from_tag || null
+            ? (name) => request.getHeader(name)
+            : (name) => {
+                // Try accessing headers directly
+                if (request.headers) {
+                    const header = Array.isArray(request.headers)
+                        ? request.headers.find(h => h.name && h.name.toLowerCase() === name.toLowerCase())
+                        : request.headers[name] || request.headers[name.toLowerCase()];
+                    return header ? (header.value || header) : null;
+                }
+                // Try case-insensitive property access
+                const lowerName = name.toLowerCase();
+                for (const key in request) {
+                    if (key.toLowerCase() === lowerName) {
+                        return request[key];
+                    }
+                }
+                return null;
+            };
+        
+        const twilioCallSid = getHeader('X-Twilio-CallSid') || getHeader('x-twilio-callsid');
+        const callId = request.call_id || request.callId || session.id;
+        const fromTag = request.from_tag || null;
+        
+        const identity = {
+            callId: callId,
+            twilioCallSid: twilioCallSid,
+            fromTag: fromTag
         };
+        
+        console.log('Extracted session identity:', {
+            sessionId: session.id,
+            callId: identity.callId,
+            twilioCallSid: identity.twilioCallSid,
+            fromTag: identity.fromTag,
+            hasRequest: !!request,
+            requestKeys: request ? Object.keys(request).slice(0, 10) : []
+        });
+        
+        return identity;
     }
 
     isReinviteForActiveCall(identity) {
@@ -737,6 +771,19 @@ class CallCenterAgent {
         
         const isDialLeg = hasTwilioCallSids && differentCallSids && differentCallIds && withinTimeWindow;
         
+        console.log('🔍 Dial leg detection check:', {
+            hasTwilioCallSids,
+            differentCallSids,
+            differentCallIds,
+            withinTimeWindow,
+            timeSinceFirstCall: `${timeSinceFirstCall}ms`,
+            isDialLeg,
+            incomingIdentity: identity,
+            activeIdentity: this.activeCallIdentity,
+            firstCallTimestamp: this.firstCallTimestamp,
+            currentTime: Date.now()
+        });
+        
         if (isDialLeg) {
             console.log('✅ Detected Dial leg from Twilio transfer. Replacing current session.', {
                 activeSession: this.activeCallSessionId,
@@ -748,11 +795,14 @@ class CallCenterAgent {
                 timeSinceFirstCall: `${timeSinceFirstCall}ms`
             });
             
-            // Close the first session (parent call) - it's not the one Twilio wants answered
-            if (this.currentSession && this.currentSession.id !== session.id) {
-                console.log('Closing parent call session to make way for Dial leg', this.currentSession.id);
+            // Remove event handlers from the old session to prevent it from disabling the Answer button
+            const oldSession = this.currentSession;
+            if (oldSession && oldSession.id !== session.id) {
+                console.log('Removing event handlers from old session and closing it', oldSession.id);
                 try {
-                    this.currentSession.terminate({
+                    // Remove all event listeners by creating a new session object reference
+                    // (JsSIP doesn't provide a direct way to remove all listeners, so we terminate)
+                    oldSession.terminate({
                         status_code: 486, // Busy Here
                         reason_phrase: 'Replaced by Dial leg'
                     });
@@ -761,24 +811,36 @@ class CallCenterAgent {
                 }
             }
             
-            // Replace the current session with the Dial leg
+            // Replace the current session with the Dial leg BEFORE attaching handlers
+            // This ensures onCallEstablished checks the correct session
             this.currentSession = session;
             this.activeCallSessionId = session.id;
             this.activeCallIdentity = identity;
             
-            // Re-enable Answer button since we have a new session
-            this.answerBtn.disabled = false;
-            if (this.acceptCallFromPopup) {
-                this.acceptCallFromPopup.disabled = false;
-            }
+            // Reset call state to ensure Answer button can be enabled
+            this.answerInProgress = false;
             
-            // Update UI to show incoming call for the Dial leg
+            // Update UI to show incoming call for the Dial leg FIRST
+            // This enables the Answer button immediately
             const remoteIdentity = session.remote_identity;
             const callerNumber = remoteIdentity.uri.user;
             const callerName = remoteIdentity.display_name || callerNumber;
             this.showIncomingCall(callerName, callerNumber);
             
-            // Attach event handlers to the new session
+            // Force enable Answer button (showIncomingCall should do this, but be explicit)
+            this.answerBtn.disabled = false;
+            if (this.acceptCallFromPopup) {
+                this.acceptCallFromPopup.disabled = false;
+            }
+            console.log('✅ Answer button enabled for Dial leg', {
+                sessionId: session.id,
+                sessionStatus: session.status,
+                answerBtnDisabled: this.answerBtn.disabled,
+                popupBtnDisabled: this.acceptCallFromPopup ? this.acceptCallFromPopup.disabled : 'N/A'
+            });
+            
+            // Attach event handlers to the new session AFTER setting currentSession
+            // This ensures event handlers reference the correct session
             this.attachSessionEventHandlers(session, 'inbound');
             
             // Show popup again if it's not already shown (in case it was closed)
@@ -1143,7 +1205,22 @@ class CallCenterAgent {
     }
     
     onCallEstablished() {
-        console.log('Call established');
+        // Only process if this is for the current active session
+        // This prevents old sessions (e.g., parent call) from disabling the Answer button
+        // when we're handling a Dial leg replacement
+        const establishedSessionId = this.currentSession ? this.currentSession.id : null;
+        const activeSessionId = this.activeCallSessionId;
+        
+        if (establishedSessionId !== activeSessionId) {
+            console.log('⚠️ onCallEstablished called for non-active session, ignoring', {
+                establishedSessionId,
+                activeSessionId,
+                currentSessionId: this.currentSession ? this.currentSession.id : null
+            });
+            return;
+        }
+        
+        console.log('Call established', { sessionId: establishedSessionId });
         
         this.callStartTime = Date.now();
         this.startCallDurationTimer();
