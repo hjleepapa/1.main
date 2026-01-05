@@ -327,8 +327,9 @@ def transfer_callback():
         if dial_call_status == 'completed':
             # Transfer succeeded - call is now connected to agent
             logger.info(f"✅ Transfer successful for call {call_sid} to extension {extension}")
-            # Return empty TwiML to keep the call connected
-            # The two calls are now bridged together
+            # Return a Pause to keep the call connected indefinitely
+            # The two calls are now bridged together, so we just need to keep this leg alive
+            response.pause(length=3600)  # Pause for 1 hour to keep call connected
             return Response(str(response), mimetype='text/xml')
         elif dial_call_status == 'busy':
             response.say("The agent is currently busy. Please try again later.", voice='Polly.Amy')

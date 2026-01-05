@@ -631,8 +631,26 @@ class CallCenterAgent {
         // Show customer popup
         this.showCustomerPopup(customerId);
         
-        // Play ringtone
-        this.ringTone.play();
+        // Play ringtone (with error handling for autoplay restrictions)
+        if (this.ringTone) {
+            // Ensure ringtone is loaded and ready
+            if (this.ringTone.readyState >= 2) { // HAVE_CURRENT_DATA or higher
+                this.ringTone.play().catch(error => {
+                    console.warn('Ringtone autoplay prevented:', error);
+                    // Try to play when user interacts (e.g., clicks accept button)
+                });
+            } else {
+                // Wait for ringtone to load
+                this.ringTone.addEventListener('canplay', () => {
+                    this.ringTone.play().catch(error => {
+                        console.warn('Ringtone autoplay prevented after load:', error);
+                    });
+                }, { once: true });
+                this.ringTone.load(); // Force load
+            }
+        } else {
+            console.warn('Ringtone audio element not found');
+        }
         
         this.attachSessionEventHandlers(session, 'inbound');
     }
