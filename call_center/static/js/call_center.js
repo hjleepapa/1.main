@@ -95,11 +95,16 @@ class CallCenterAgent {
         this.attendedTransferBtn = document.getElementById('attendedTransferBtn');
         this.cancelTransferBtn = document.getElementById('cancelTransferBtn');
         
-        // Customer popup
+        // Customer popup (with Accept Call button)
         this.customerPopup = document.getElementById('customerPopup');
         this.customerData = document.getElementById('customerData');
         this.closeCustomerPopup = document.getElementById('closeCustomerPopup');
         this.acceptCallFromPopup = document.getElementById('acceptCallFromPopup');
+        
+        // Customer info window (read-only, no Accept button)
+        this.customerInfoWindow = document.getElementById('customerInfoWindow');
+        this.customerInfoData = document.getElementById('customerInfoData');
+        this.closeCustomerInfoWindow = document.getElementById('closeCustomerInfoWindow');
         
         // Audio
         this.ringTone = document.getElementById('ringTone');
@@ -145,12 +150,18 @@ class CallCenterAgent {
         
         this.dialCallBtn.addEventListener('click', () => this.makeCall());
         
-        // Customer popup
+        // Customer popup (with Accept Call button)
         this.closeCustomerPopup.addEventListener('click', () => this.hideCustomerPopup());
         this.acceptCallFromPopup.addEventListener('click', () => {
-            // Don't close popup when accepting call - keep it open until call ends
+            // Close popup and open read-only info window when accepting call
+            const customerData = this.customerData.innerHTML;
+            this.hideCustomerPopup();
+            this.showCustomerInfoWindow(customerData);
             this.answerCall();
         });
+        
+        // Customer info window (read-only)
+        this.closeCustomerInfoWindow.addEventListener('click', () => this.hideCustomerInfoWindow());
     }
     
     async handleLogin(e) {
@@ -860,6 +871,13 @@ class CallCenterAgent {
                 sessionStatus: session.status
             });
             
+            // If popup is open, copy customer data to info window before auto-answering
+            if (this.customerPopup.classList.contains('active') && this.customerData.innerHTML && !this.customerData.innerHTML.includes('loading')) {
+                const customerDataHtml = this.customerData.innerHTML;
+                this.hideCustomerPopup();
+                this.showCustomerInfoWindow(customerDataHtml);
+            }
+            
             // Auto-answer the Dial leg immediately
             this.answerCall().catch(error => {
                 console.error('Failed to auto-answer Dial leg', error);
@@ -1150,6 +1168,72 @@ class CallCenterAgent {
     }
     
     displayCustomerData(customer) {
+        const html = this.getCustomerDataHtml(customer);
+        this.customerData.innerHTML = html;
+    }
+    
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    hideCustomerPopup() {
+        this.customerPopup.classList.remove('active');
+    }
+    
+    showCustomerInfoWindow(customerDataHtml = null) {
+        // Copy customer data from popup if provided, otherwise fetch fresh
+        if (customerDataHtml) {
+            this.customerInfoData.innerHTML = customerDataHtml;
+        }
+        
+        this.customerInfoWindow.classList.add('active');
+        console.log('📋 Customer info window opened (read-only)');
+    }
+    
+    hideCustomerInfoWindow() {
+        this.customerInfoWindow.classList.remove('active');
+        console.log('📋 Customer info window closed');
+    }
+    
+    async updateCustomerInfoWindow(customerId) {
+        // Update the info window with fresh customer data
+        try {
+            // Extract Call SID or Call-ID from current session for unique lookup
+            let url = `/call-center/api/customer/${customerId}`;
+            const identity = this.currentSession ? this.extractSessionIdentity(this.currentSession) : null;
+            const params = new URLSearchParams();
+            
+            if (identity) {
+                if (identity.twilioCallSid) {
+                    params.append('call_sid', identity.twilioCallSid);
+                } else if (identity.callId) {
+                    params.append('call_id', identity.callId);
+                }
+            }
+            
+            if (params.toString()) {
+                url += '?' + params.toString();
+            }
+            
+            const response = await fetch(url);
+            const customer = await response.json();
+            
+            this.displayCustomerDataInWindow(customer);
+        } catch (error) {
+            console.error('Fetch customer data error:', error);
+            this.customerInfoData.innerHTML = '<div class="customer-info"><p>Failed to load customer data</p></div>';
+        }
+    }
+    
+    displayCustomerDataInWindow(customer) {
+        // Same display logic but without Accept Call button section
+        const html = this.getCustomerDataHtml(customer);
+        this.customerInfoData.innerHTML = html;
+    }
+    
+    getCustomerDataHtml(customer) {
         // Build customer info section
         let customerInfoHtml = `
             <div class="customer-info">
@@ -1297,19 +1381,7 @@ class CallCenterAgent {
         }
         
         // Combine all sections
-        const html = customerInfoHtml + activitiesHtml + conversationHtml;
-        
-        this.customerData.innerHTML = html;
-    }
-    
-    escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-    
-    hideCustomerPopup() {
-        this.customerPopup.classList.remove('active');
+        return customerInfoHtml + activitiesHtml + conversationHtml;
     }
     
     showIncomingCall(callerName, callerNumber) {
@@ -1397,6 +1469,24 @@ class CallCenterAgent {
         
         this.updateAgentStatus('on-call');
         
+        // If popup is still open, close it and open info window instead
+        if (this.customerPopup.classList.contains('active')) {
+            const customerDataHtml = this.customerData.innerHTML;
+            this.hideCustomerPopup();
+            // Only show info window if we have actual customer data (not loading state)
+            if (customerDataHtml && !customerDataHtml.includes('loading') && !customerDataHtml.includes('Loading customer data')) {
+                this.showCustomerInfoWindow(customerDataHtml);
+            } else {
+                // If popup data is still loading, fetch fresh data for info window
+                const callerNumber = this.currentCall.caller_number || '2001';
+                this.updateCustomerInfoWindow(callerNumber);
+            }
+        } else if (!this.customerInfoWindow.classList.contains('active')) {
+            // If popup is closed and info window is not open, open info window with customer data
+            const callerNumber = this.currentCall.caller_number || '2001';
+            this.updateCustomerInfoWindow(callerNumber);
+        }
+        
         // Update call info
         const callerName = this.currentCall.caller_name || this.currentCall.caller_number;
         this.callInfo.innerHTML = `
@@ -1420,8 +1510,9 @@ class CallCenterAgent {
         
         this.stopCallDurationTimer();
         
-        // Close customer popup when call ends
+        // Close customer popup and info window when call ends
         this.hideCustomerPopup();
+        this.hideCustomerInfoWindow();
         
         this.callInfo.innerHTML = `
             <div class="no-call">
