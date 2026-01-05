@@ -718,6 +718,44 @@ class CallCenterAgent {
     }
 
     handleParallelInviteDuringActiveCall(session, identity) {
+        // Check if this is a Dial leg from Twilio (second INVITE with different Call SID)
+        // In Twilio transfers, the Dial leg has a different Call SID but is part of the same transfer
+        // We should answer this call and replace the current session
+        const isDialLeg = identity.twilioCallSid && 
+                          this.activeCallIdentity.twilioCallSid &&
+                          identity.twilioCallSid !== this.activeCallIdentity.twilioCallSid &&
+                          identity.fromTag === this.activeCallIdentity.fromTag;
+        
+        if (isDialLeg) {
+            console.log('Detected Dial leg from Twilio transfer. Replacing current session.', {
+                activeSession: this.activeCallSessionId,
+                activeCallSid: this.activeCallIdentity.twilioCallSid,
+                incomingSession: session.id,
+                incomingCallSid: identity.twilioCallSid
+            });
+            
+            // Replace the current session with the Dial leg
+            this.currentSession = session;
+            this.activeCallSessionId = session.id;
+            this.activeCallIdentity = identity;
+            
+            // Re-enable Answer button since we have a new session
+            this.answerBtn.disabled = false;
+            if (this.acceptCallFromPopup) {
+                this.acceptCallFromPopup.disabled = false;
+            }
+            
+            // Attach event handlers to the new session
+            this.attachSessionEventHandlers(session, 'inbound');
+            
+            // Show popup again if it's not already shown (in case it was closed)
+            if (this.currentCall && this.currentCall.customer_id) {
+                this.showCustomerPopup(this.currentCall.customer_id);
+            }
+            
+            return;
+        }
+        
         console.warn('Already handling an active call. Ignoring parallel incoming session.', {
             activeSession: this.activeCallSessionId,
             incomingSession: session.id,
@@ -931,6 +969,30 @@ class CallCenterAgent {
     async showCustomerPopup(customerId) {
         this.customerPopup.classList.add('active');
         this.customerData.innerHTML = '<div class="customer-info loading"><i class="fas fa-spinner fa-spin"></i> Loading customer data...</div>';
+        
+        // Ensure Answer button in popup is enabled when popup is shown
+        // This is critical because the popup may be shown before showIncomingCall completes,
+        // or showIncomingCall may have been called but the button state needs to be refreshed
+        if (this.acceptCallFromPopup && this.currentSession) {
+            // Only enable if we have an active session that can be answered
+            const status = this.currentSession.status;
+            const answerableStatuses = [];
+            if (typeof JsSIP !== 'undefined' && JsSIP.RTCSession && JsSIP.RTCSession.C) {
+                const C = JsSIP.RTCSession.C;
+                answerableStatuses.push(
+                    C.STATUS_NULL,
+                    C.STATUS_INVITE_RECEIVED,
+                    C.STATUS_1XX_RECEIVED,
+                    C.STATUS_WAITING_FOR_ANSWER
+                );
+            }
+            if (answerableStatuses.length === 0 || answerableStatuses.includes(status)) {
+                this.acceptCallFromPopup.disabled = false;
+                console.log('Enabled popup Answer button', { sessionId: this.currentSession.id, status });
+            } else {
+                console.log('Popup Answer button remains disabled - session not answerable', { sessionId: this.currentSession.id, status });
+            }
+        }
         
         try {
             const response = await fetch(`/call-center/api/customer/${customerId}`);
