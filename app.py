@@ -112,6 +112,16 @@ def create_app():
     from lgch_todo import lgch_todo_bp
     app.register_blueprint(lgch_todo_bp)
 
+    # Convonet main routes blueprint (Twilio webhooks, voice assistant, etc.)
+    try:
+        from convonet.routes import convonet_todo_bp
+        app.register_blueprint(convonet_todo_bp)
+        print("✅ Convonet todo routes registered at /convonet_todo")
+    except ImportError as e:
+        print(f"⚠️  Convonet todo routes not available: {e}")
+        import traceback
+        traceback.print_exc()
+
     # Convonet WebRTC blueprint
     try:
         from convonet.webrtc_voice_server import webrtc_bp, init_socketio
