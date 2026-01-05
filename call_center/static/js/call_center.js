@@ -757,19 +757,27 @@ class CallCenterAgent {
         // In Twilio transfers, the Dial leg has a different Call SID but is part of the same transfer
         // We should answer this call and replace the current session
         
-        // Criteria for Dial leg detection:
-        // 1. Both have Twilio Call SIDs
-        // 2. Different Call SIDs (parent vs child)
-        // 3. Different Call-IDs (different SIP sessions)
-        // 4. From same extension (both targeting extension 2001)
-        // 5. Arrives within 10 seconds of the first call
-        const hasTwilioCallSids = identity.twilioCallSid && this.activeCallIdentity.twilioCallSid;
-        const differentCallSids = identity.twilioCallSid !== this.activeCallIdentity.twilioCallSid;
-        const differentCallIds = identity.callId !== this.activeCallIdentity.callId;
-        const timeSinceFirstCall = Date.now() - (this.firstCallTimestamp || Date.now());
-        const withinTimeWindow = timeSinceFirstCall < 10000; // 10 seconds
+        // Criteria for Dial leg detection (works even if Twilio Call SIDs are not available):
+        // 1. Different Call-IDs (different SIP sessions) - REQUIRED
+        // 2. Arrives when there's already an active call - REQUIRED (we're in this function)
+        // 3. Arrives within 60 seconds of the first call - REQUIRED
+        // 4. If Twilio Call SIDs are available, they should be different (optional check)
+        // 5. Both are inbound calls to extension 2001 (implicit - we're receiving them)
         
-        const isDialLeg = hasTwilioCallSids && differentCallSids && differentCallIds && withinTimeWindow;
+        const differentCallIds = identity.callId && this.activeCallIdentity.callId && 
+                                 identity.callId !== this.activeCallIdentity.callId;
+        const timeSinceFirstCall = Date.now() - (this.firstCallTimestamp || Date.now());
+        const withinTimeWindow = timeSinceFirstCall < 60000; // 60 seconds (increased from 10)
+        
+        // Optional: Check Twilio Call SIDs if available
+        const hasTwilioCallSids = identity.twilioCallSid && this.activeCallIdentity.twilioCallSid;
+        const differentCallSids = hasTwilioCallSids && 
+                                  identity.twilioCallSid !== this.activeCallIdentity.twilioCallSid;
+        
+        // Dial leg detection: Different Call-IDs + within time window
+        // If Twilio Call SIDs are available, they should also be different
+        const isDialLeg = differentCallIds && withinTimeWindow && 
+                         (!hasTwilioCallSids || differentCallSids);
         
         console.log('🔍 Dial leg detection check:', {
             hasTwilioCallSids,
@@ -781,7 +789,9 @@ class CallCenterAgent {
             incomingIdentity: identity,
             activeIdentity: this.activeCallIdentity,
             firstCallTimestamp: this.firstCallTimestamp,
-            currentTime: Date.now()
+            currentTime: Date.now(),
+            currentAnswerBtnDisabled: this.answerBtn.disabled,
+            currentPopupBtnDisabled: this.acceptCallFromPopup ? this.acceptCallFromPopup.disabled : 'N/A'
         });
         
         if (isDialLeg) {
@@ -1161,6 +1171,14 @@ class CallCenterAgent {
     }
     
     showIncomingCall(callerName, callerNumber) {
+        console.log('📞 showIncomingCall called', {
+            callerName,
+            callerNumber,
+            currentSessionId: this.currentSession?.id,
+            answerBtnDisabled: this.answerBtn.disabled,
+            popupBtnDisabled: this.acceptCallFromPopup ? this.acceptCallFromPopup.disabled : 'N/A'
+        });
+        
         this.callInfo.innerHTML = `
             <div class="active-call ringing">
                 <div class="caller-info">
@@ -1184,6 +1202,11 @@ class CallCenterAgent {
         if (this.acceptCallFromPopup) {
             this.acceptCallFromPopup.disabled = false;
         }
+        
+        console.log('✅ Answer button enabled in showIncomingCall', {
+            answerBtnDisabled: this.answerBtn.disabled,
+            popupBtnDisabled: this.acceptCallFromPopup ? this.acceptCallFromPopup.disabled : 'N/A'
+        });
     }
     
     showOutgoingCall(number) {
