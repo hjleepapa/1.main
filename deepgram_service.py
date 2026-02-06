@@ -148,7 +148,7 @@ class DeepgramService:
             # Use Deepgram's HTTP API directly
             url = "https://api.deepgram.com/v1/listen"
             
-            # Configure parameters for WebRTC audio - try without specifying encoding
+            # Configure parameters for prerecorded/batch API (no streaming-only params)
             params = {
                 "model": "nova-2",  # Use Deepgram's latest model
                 "language": language,
@@ -156,9 +156,6 @@ class DeepgramService:
                 "punctuate": "true",     # Add punctuation
                 "alternatives": "1",     # Single alternative
                 "detect_language": "false",  # Use specified language
-                "endpointing": "300",       # Endpoint detection (300ms)
-                "vad_events": "true",       # Voice activity detection
-                "interim_results": "false"  # Final results only
             }
             
             # Read the file
