@@ -1,8 +1,6 @@
 aiohappyeyeballs==2.6.1
 aiohttp==3.12.15
 aiohttp-retry==2.9.1
-aioice==0.10.1
-aiortc==1.11.0
 aiosignal>=1.4.0
 alembic==1.16.1
 annotated-types==0.7.0
@@ -15,7 +13,6 @@ autogen==0.8.7
 autogen-agentchat==0.5.3
 autogen-azure==0.0.0
 autogen-core==0.5.3
-av==14.4.0
 azure-core==1.33.0
 azure-identity==1.21.0
 blinker==1.8.2
