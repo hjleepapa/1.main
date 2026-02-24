@@ -5,38 +5,89 @@
     <!-- Hero Section -->
     <section class="py-20">
         <div class="max-w-6xl mx-auto text-center">
-            <h1 id="dynamic-hero-text" class="text-4xl md:text-6xl font-bold text-gray-800 mb-6" style="min-height: 72px;">&nbsp;</h1> <!-- Placeholder for dynamic text, added min-height -->
+            <h1 id="dynamic-hero-text" class="text-4xl md:text-6xl font-bold text-gray-800 mb-6"
+                style="min-height: 72px;">&nbsp;</h1> <!-- Placeholder for dynamic text, added min-height -->
             <p class="text-xl text-gray-600 mb-8 max-w-4xl mx-auto">
-                Voice AI Program Lead & Solution Architect specializing in the end-to-end design, delivery, and governance of enterprise Voice AI agents. My expertise bridges the gap between deep technical architecture (LLMs, Telephony, APIs) and measurable business outcomes with cross-functional alignment.
+                Voice AI Program Lead & Solution Architect specializing in the end-to-end design, delivery, and
+                governance of enterprise Voice AI agents. My expertise bridges the gap between deep technical
+                architecture (LLMs, Telephony, APIs) and measurable business outcomes with cross-functional alignment.
             </p>
         </div>
     </section> <!-- Added closing tag for Hero Section -->
-    <section id="about" class="py-20 bg-gray-50"> <!-- Added bg-gray-50 for visual separation, similar to previous placeholder -->
+    <section id="about" class="py-20 bg-gray-50">
+        <!-- Added bg-gray-50 for visual separation, similar to previous placeholder -->
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8"> <!-- Added padding similar to other sections -->
             <h1 class="text-4xl font-bold text-center mb-12">About Me</h1>
-            
+
             <div class="grid grid-cols-1 gap-12 items-start"> <!-- Adjusted grid to single column -->
                 <div class="text-left"> <!-- Added text-left to ensure all content within is left-aligned -->
                     <h2 class="text-2xl font-semibold mb-4 text-gray-800">Professional Background</h2>
+                    <div class="mb-8 bg-white p-6 rounded-lg shadow border-l-4 border-purple-500">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-xl font-semibold text-gray-700">Voice AI Engineer | Independent Systems
+                                Builder – ConvonetAI</h3>
+                            <span
+                                class="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded-full">Personal
+                                Project</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4">Nov 2024 – Present</p>
+                        <ul class="list-disc list-inside text-gray-600 space-y-2 text-sm md:text-base">
+                            <li><strong>Architected and Deployed</strong> a high-performance, real-time Voice AI
+                                platform utilizing <strong>WebRTC (LiveKit)</strong> and <strong>Twilio</strong>,
+                                achieving <strong>sub-second E2E latency</strong> for natural human-AI conversation.
+                            </li>
+                            <li><strong>Engineered Multi-Agent Orchestration</strong> using <strong>LangGraph</strong>,
+                                implementing stateful context routing, dynamic tool-calling (38+ tools), and complex
+                                multi-turn logic for enterprise automation.</li>
+                            <li><strong>Scalable Real-Time Infrastructure</strong>: Built a dual-stream backend
+                                (Flask-SocketIO + Telephony Media Streams) supporting concurrent voice sessions and live
+                                observability dashboards.</li>
+                            <li><strong>Production Observability & Reliability</strong>: Integrated
+                                <strong>Sentry</strong> for granular latency profiling and error tracking; implemented
+                                <strong>auto-scaling on Render</strong> with event-driven concurrency
+                                (Eventlet/Gunicorn).
+                            </li>
+                            <li><strong>Enterprise-Grade Security & Integrations</strong>: Developed
+                                <strong>OAuth2-based G-Suite integration</strong> with intelligent sync/caching and a
+                                <strong>secure multi-tenant RBAC system</strong> featuring voice-based PIN
+                                authentication.
+                            </li>
+                            <li><strong>Intelligent Escalation</strong>: Designed a hybrid SIP/PSTN bridge for seamless
+                                <strong>AI-to-Human call transfers</strong> via Twilio and FusionPBX, optimizing
+                                customer experience flows.
+                            </li>
+                        </ul>
+                    </div>
+
                     <div class="mb-8 bg-white p-6 rounded-lg shadow">
                         <h3 class="text-xl font-semibold text-gray-700">📡 Telecom Architect / Project Lead – Apple</h3>
                         <p class="text-sm text-gray-500 mb-2">Elk Grove, CA | Jan 2021 – Nov. 2024</p>
                         <ul class="list-disc list-inside text-gray-600 space-y-1">
-                            <li>Led strategic assessment, multi-year roadmap architecture, and migration planning for a global, mission-critical HelpLine Contact Center (Genesys Engage to SIPCluster/AWS/ISCloud).</li>
-                            <li>Designed target-state, compliant architectures leveraging SIP, AWS, and internal cloud platforms while ensuring scalability and integration with existing corporate tools.</li>
-                            <li>Owned communication, change management, and technical documentation across cross-functional engineering teams in AMR, EMEIA, and APAC.</li>
-                            <li>Delivered seamless, large-scale platform implementations with zero material downtime, validating improved performance and operational reliability.</li>
+                            <li>Led strategic assessment, multi-year roadmap architecture, and migration planning for a
+                                global, mission-critical HelpLine Contact Center (Genesys Engage to
+                                SIPCluster/AWS/ISCloud).</li>
+                            <li>Designed target-state, compliant architectures leveraging SIP, AWS, and internal cloud
+                                platforms while ensuring scalability and integration with existing corporate tools.</li>
+                            <li>Owned communication, change management, and technical documentation across
+                                cross-functional engineering teams in AMR, EMEIA, and APAC.</li>
+                            <li>Delivered seamless, large-scale platform implementations with zero material downtime,
+                                validating improved performance and operational reliability.</li>
                         </ul>
                     </div>
 
                     <div class="bg-white p-6 rounded-lg shadow">
-                        <h3 class="text-xl font-semibold text-gray-700">💼 Solution Architect, Technical Delivery Lead – Genesys</h3>
+                        <h3 class="text-xl font-semibold text-gray-700">💼 Solution Architect, Technical Delivery Lead –
+                            Genesys</h3>
                         <p class="text-sm text-gray-500 mb-2">Daly City, CA | May 1998 – Jan 2020</p>
                         <ul class="list-disc list-inside text-gray-600 space-y-1">
-                            <li>Directed full-cycle technical delivery of Genesys On-Premise and Cloud solutions for leading clients across APAC.</li>
-                            <li>Advised stakeholders on conversational architecture, translating business strategy into precise technical roadmaps.</li>
-                            <li>Developed automated testing frameworks for voice/digital channels, accelerating issue detection and reducing post-deployment defects.</li>
-                            <li>Provided L3 hands-on troubleshooting and technical support for mission-critical, high-availability contact center environments.</li>
+                            <li>Directed full-cycle technical delivery of Genesys On-Premise and Cloud solutions for
+                                leading clients across APAC.</li>
+                            <li>Advised stakeholders on conversational architecture, translating business strategy into
+                                precise technical roadmaps.</li>
+                            <li>Developed automated testing frameworks for voice/digital channels, accelerating issue
+                                detection and reducing post-deployment defects.</li>
+                            <li>Provided L3 hands-on troubleshooting and technical support for mission-critical,
+                                high-availability contact center environments.</li>
                         </ul>
                     </div>
 
@@ -58,33 +109,39 @@
     <section id="tech-skills" class="py-12 bg-white"> <!-- Added id -->
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="text-3xl font-bold text-center mb-12">Technical Skills</h2>
-            
+
             <!-- Voice AI & LLM -->
             <div class="mb-8">
                 <h3 class="text-2xl font-semibold mb-4 text-gray-800">Voice AI & LLM</h3>
                 <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                     <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
-                        <img src="{{ url_for('static', filename='images/LG.png') }}" alt="LangGraph logo" class="w-8 h-8 mx-auto mb-2">
+                        <img src="{{ url_for('static', filename='images/LG.png') }}" alt="LangGraph logo"
+                            class="w-8 h-8 mx-auto mb-2">
                         <h4 class="text-sm font-semibold">LangGraph</h4>
                     </div>
                     <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
-                        <img src="{{ url_for('static', filename='images/lc.png') }}" alt="LangChain logo" class="w-8 h-8 mx-auto mb-2">
+                        <img src="{{ url_for('static', filename='images/lc.png') }}" alt="LangChain logo"
+                            class="w-8 h-8 mx-auto mb-2">
                         <h4 class="text-sm font-semibold">LangChain</h4>
                     </div>
                     <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
-                        <img src="{{ url_for('static', filename='images/ai-agent.webp') }}" alt="Agentic AI logo" class="w-8 h-8 mx-auto mb-2">
+                        <img src="{{ url_for('static', filename='images/ai-agent.webp') }}" alt="Agentic AI logo"
+                            class="w-8 h-8 mx-auto mb-2">
                         <h4 class="text-sm font-semibold">Agentic AI</h4>
                     </div>
                     <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
-                        <img src="{{ url_for('static', filename='images/prompt-engineering.png') }}" alt="Prompt Engineering logo" class="w-8 h-8 mx-auto mb-2">
+                        <img src="{{ url_for('static', filename='images/prompt-engineering.png') }}"
+                            alt="Prompt Engineering logo" class="w-8 h-8 mx-auto mb-2">
                         <h4 class="text-sm font-semibold">Prompt Engineering</h4>
                     </div>
                     <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
-                        <img src="{{ url_for('static', filename='images/RAG.jpg') }}" alt="RAG logo" class="w-8 h-8 mx-auto mb-2 object-contain">
+                        <img src="{{ url_for('static', filename='images/RAG.jpg') }}" alt="RAG logo"
+                            class="w-8 h-8 mx-auto mb-2 object-contain">
                         <h4 class="text-sm font-semibold">RAG</h4>
                     </div>
                     <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
-                        <img src="{{ url_for('static', filename='images/asr-tts.png') }}" alt="ASR/TTS logo" class="w-8 h-8 mx-auto mb-2">
+                        <img src="{{ url_for('static', filename='images/asr-tts.png') }}" alt="ASR/TTS logo"
+                            class="w-8 h-8 mx-auto mb-2">
                         <h4 class="text-sm font-semibold">ASR/TTS Pipelines</h4>
                     </div>
                 </div>
@@ -95,27 +152,33 @@
                 <h3 class="text-2xl font-semibold mb-4 text-gray-800">Voice & Telephony</h3>
                 <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                     <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
-                        <img src="{{ url_for('static', filename='images/twilio.png') }}" alt="Twilio logo" class="w-8 h-8 mx-auto mb-2">
+                        <img src="{{ url_for('static', filename='images/twilio.png') }}" alt="Twilio logo"
+                            class="w-8 h-8 mx-auto mb-2">
                         <h4 class="text-sm font-semibold">Twilio Voice</h4>
                     </div>
                     <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
-                        <img src="{{ url_for('static', filename='images/media-stream.png') }}" alt="Media Streams logo" class="w-8 h-8 mx-auto mb-2">
+                        <img src="{{ url_for('static', filename='images/media-stream.png') }}" alt="Media Streams logo"
+                            class="w-8 h-8 mx-auto mb-2">
                         <h4 class="text-sm font-semibold">Media Streams</h4>
                     </div>
                     <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
-                        <img src="{{ url_for('static', filename='images/sip.png') }}" alt="SIP logo" class="w-8 h-8 mx-auto mb-2">
+                        <img src="{{ url_for('static', filename='images/sip.png') }}" alt="SIP logo"
+                            class="w-8 h-8 mx-auto mb-2">
                         <h4 class="text-sm font-semibold">SIP</h4>
                     </div>
                     <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
-                        <img src="{{ url_for('static', filename='images/webrtc.webp') }}" alt="WebRTC logo" class="w-8 h-8 mx-auto mb-2">
+                        <img src="{{ url_for('static', filename='images/webrtc.webp') }}" alt="WebRTC logo"
+                            class="w-8 h-8 mx-auto mb-2">
                         <h4 class="text-sm font-semibold">WebRTC</h4>
                     </div>
                     <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
-                        <img src="{{ url_for('static', filename='images/ivr.png') }}" alt="IVR logo" class="w-8 h-8 mx-auto mb-2">
+                        <img src="{{ url_for('static', filename='images/ivr.png') }}" alt="IVR logo"
+                            class="w-8 h-8 mx-auto mb-2">
                         <h4 class="text-sm font-semibold">IVR</h4>
                     </div>
                     <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
-                        <img src="{{ url_for('static', filename='images/genesys.png') }}" alt="Genesys logo" class="w-8 h-8 mx-auto mb-2">
+                        <img src="{{ url_for('static', filename='images/genesys.png') }}" alt="Genesys logo"
+                            class="w-8 h-8 mx-auto mb-2">
                         <h4 class="text-sm font-semibold">Genesys</h4>
                     </div>
                 </div>
@@ -126,35 +189,43 @@
                 <h3 class="text-2xl font-semibold mb-4 text-gray-800">Backend & Cloud</h3>
                 <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                     <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
-                        <img src="{{ url_for('static', filename='images/python.png') }}" alt="Python logo" class="w-8 h-8 mx-auto mb-2">
+                        <img src="{{ url_for('static', filename='images/python.png') }}" alt="Python logo"
+                            class="w-8 h-8 mx-auto mb-2">
                         <h4 class="text-sm font-semibold">Python</h4>
                     </div>
                     <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
-                        <img src="{{ url_for('static', filename='images/flask.png') }}" alt="Flask logo" class="w-8 h-8 mx-auto mb-2">
+                        <img src="{{ url_for('static', filename='images/flask.png') }}" alt="Flask logo"
+                            class="w-8 h-8 mx-auto mb-2">
                         <h4 class="text-sm font-semibold">Flask</h4>
                     </div>
                     <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
-                        <img src="{{ url_for('static', filename='images/js.png') }}" alt="JavaScript logo" class="w-8 h-8 mx-auto mb-2">
+                        <img src="{{ url_for('static', filename='images/js.png') }}" alt="JavaScript logo"
+                            class="w-8 h-8 mx-auto mb-2">
                         <h4 class="text-sm font-semibold">Node.js/TypeScript</h4>
                     </div>
                     <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
-                        <img src="{{ url_for('static', filename='images/api.png') }}" alt="API logo" class="w-8 h-8 mx-auto mb-2">
+                        <img src="{{ url_for('static', filename='images/api.png') }}" alt="API logo"
+                            class="w-8 h-8 mx-auto mb-2">
                         <h4 class="text-sm font-semibold">REST APIs</h4>
                     </div>
                     <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
-                        <img src="{{ url_for('static', filename='images/redis.png') }}" alt="Redis logo" class="w-8 h-8 mx-auto mb-2">
+                        <img src="{{ url_for('static', filename='images/redis.png') }}" alt="Redis logo"
+                            class="w-8 h-8 mx-auto mb-2">
                         <h4 class="text-sm font-semibold">Redis</h4>
                     </div>
                     <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
-                        <img src="{{ url_for('static', filename='images/Docker.png') }}" alt="Docker logo" class="w-8 h-8 mx-auto mb-2">
+                        <img src="{{ url_for('static', filename='images/Docker.png') }}" alt="Docker logo"
+                            class="w-8 h-8 mx-auto mb-2">
                         <h4 class="text-sm font-semibold">Docker</h4>
                     </div>
                     <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
-                        <img src="{{ url_for('static', filename='images/cloud.png') }}" alt="Cloud logo" class="w-8 h-8 mx-auto mb-2">
+                        <img src="{{ url_for('static', filename='images/cloud.png') }}" alt="Cloud logo"
+                            class="w-8 h-8 mx-auto mb-2">
                         <h4 class="text-sm font-semibold">AWS/GCP</h4>
                     </div>
                     <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
-                        <img src="{{ url_for('static', filename='images/sql.png') }}" alt="SQL logo" class="w-8 h-8 mx-auto mb-2">
+                        <img src="{{ url_for('static', filename='images/sql.png') }}" alt="SQL logo"
+                            class="w-8 h-8 mx-auto mb-2">
                         <h4 class="text-sm font-semibold">SQL</h4>
                     </div>
                 </div>
@@ -165,19 +236,23 @@
                 <h3 class="text-2xl font-semibold mb-4 text-gray-800">Delivery & Tools</h3>
                 <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                     <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
-                        <img src="{{ url_for('static', filename='images/jira.png') }}" alt="Jira logo" class="w-8 h-8 mx-auto mb-2">
+                        <img src="{{ url_for('static', filename='images/jira.png') }}" alt="Jira logo"
+                            class="w-8 h-8 mx-auto mb-2">
                         <h4 class="text-sm font-semibold">Jira</h4>
                     </div>
                     <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
-                        <img src="{{ url_for('static', filename='images/agile.png') }}" alt="Agile logo" class="w-8 h-8 mx-auto mb-2">
+                        <img src="{{ url_for('static', filename='images/agile.png') }}" alt="Agile logo"
+                            class="w-8 h-8 mx-auto mb-2">
                         <h4 class="text-sm font-semibold">Agile</h4>
                     </div>
                     <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
-                        <img src="{{ url_for('static', filename='images/sentry.png') }}" alt="Sentry logo" class="w-8 h-8 mx-auto mb-2">
+                        <img src="{{ url_for('static', filename='images/sentry.png') }}" alt="Sentry logo"
+                            class="w-8 h-8 mx-auto mb-2">
                         <h4 class="text-sm font-semibold">Sentry</h4>
                     </div>
                     <div class="bg-gray-50 p-4 rounded-lg shadow-md hover:shadow-lg transition text-center">
-                        <img src="{{ url_for('static', filename='images/github.png') }}" alt="GitHub logo" class="w-8 h-8 mx-auto mb-2">
+                        <img src="{{ url_for('static', filename='images/github.png') }}" alt="GitHub logo"
+                            class="w-8 h-8 mx-auto mb-2">
                         <h4 class="text-sm font-semibold">GitHub</h4>
                     </div>
                 </div>
@@ -188,39 +263,89 @@
     <!-- Projects Section -->
     <section id="projects" class="py-20 bg-white">
         <div class="max-w-6xl mx-auto">
-            <h2 class="text-3xl font-bold text-center mb-12">Featured Projects</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Project 1 - Enterprise Voice AI System (Most Prominent) -->
-                <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition border-2 border-purple-200">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+                <!-- Project 1 - Convonet Voice AI (Prominent) -->
+                <div
+                    class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition border-2 border-blue-200">
                     <div class="p-6">
-                        <h3 class="text-xl font-semibold mb-2">🎤 Enterprise-Grade Voice AI Delivery & Observability</h3>
-                        <p class="text-gray-600 mb-4">Production-ready full-stack solution featuring Twilio/WebRTC integration, human-agent handoff, 38 custom tools, and sub-5s latency optimization via Sentry monitoring.</p>
-                        <div class="flex flex-wrap gap-2 mb-3">
-                            <span class="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded">Full-Stack Delivery</span>
-                            <span class="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded">Low-Latency Architecture</span>
-                            <span class="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded">Human Handoff</span>
-                            <span class="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded">Observability</span>
-                            <span class="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded">Telemetry</span>
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-xl font-semibold">🚀 Convonet Voice AI</h3>
+                            <span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">Primary
+                                Platform</span>
+                        </div>
+                        <p class="text-gray-700 mb-4 text-sm md:text-base">
+                            Built a production-grade, real-time Voice AI platform integrating telephony, WebRTC voice
+                            streaming, and multi-LLM agent orchestration for enterprise productivity and call center
+                            automation.
+                            <br><br>
+                            Designed and deployed an end-to-end low-latency voice pipeline supporting real-time
+                            speech-to-response interactions, intelligent call routing, and team collaboration workflows.
+                        </p>
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span
+                                class="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded border border-blue-100">Production-Grade</span>
+                            <span
+                                class="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded border border-blue-100">Real-Time</span>
+                            <span
+                                class="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded border border-blue-100">Multi-LLM</span>
                         </div>
                         <div class="flex space-x-4">
-                            <a href="{{ url_for('convonet_tech_spec') }}" class="text-purple-500 hover:text-purple-600">Learn More →</a>
+                            <a href="https://www.convonetai.com/" target="_blank"
+                                class="text-blue-500 font-bold hover:text-blue-600 flex items-center">
+                                Visit Platform <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14">
+                                    </path>
+                                </svg>
+                            </a>
                         </div>
                     </div>
                 </div>
 
+                <!-- Project 2 - Enterprise Voice AI System (Observability Focus) -->
+                <div
+                    class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition border-2 border-purple-200">
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold mb-2">🎤 Enterprise-Grade Voice AI Delivery & Observability
+                        </h3>
+                        <p class="text-gray-600 mb-4">Production-ready full-stack solution featuring Twilio/WebRTC
+                            integration, human-agent handoff, 38 custom tools, and sub-5s latency optimization via
+                            Sentry monitoring.</p>
+                        <div class="flex flex-wrap gap-2 mb-3">
+                            <span class="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded">Full-Stack
+                                Delivery</span>
+                            <span class="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded">Low-Latency
+                                Architecture</span>
+                        </div>
+                        <div class="flex space-x-4">
+                            <a href="{{ url_for('convonet_tech_spec') }}"
+                                class="text-purple-500 hover:text-purple-600">Deep Dive into Tech Spec →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hiding other projects -->
+                <!-- 
                 <!-- Project 2 - Agentic AI POC: VAPI -->
+
                 <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition">
                     <div class="p-6">
                         <h3 class="text-xl font-semibold mb-2">Agentic AI POC: Voice-First Task Management</h3>
-                        <p class="text-gray-600 mb-4">Voice AI solution for managing tasks, reminders, and calendar events through natural language conversations. Integrated with VAPI platform and Google Calendar API for seamless productivity management via phone calls.</p>
+                        <p class="text-gray-600 mb-4">Voice AI solution for managing tasks, reminders, and calendar
+                            events through natural language conversations. Integrated with VAPI platform and Google
+                            Calendar API for seamless productivity management via phone calls.</p>
                         <div class="flex flex-wrap gap-2 mb-3">
                             <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Voice AI</span>
-                            <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Natural Language Processing</span>
+                            <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Natural Language
+                                Processing</span>
                             <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Proof-of-Concept</span>
                         </div>
                         <div class="flex space-x-4">
-                            <a href="{{ url_for('vapi_tech_spec') }}" class="text-blue-500 hover:text-blue-600">Learn More →</a>
-                            <a href="https://github.com/hjleepapa/vapi.git" target="_blank" class="text-green-500 hover:text-green-600">GitHub →</a>
+                            <a href="{{ url_for('vapi_tech_spec') }}" class="text-blue-500 hover:text-blue-600">Learn
+                                More →</a>
+                            <a href="https://github.com/hjleepapa/vapi.git" target="_blank"
+                                class="text-green-500 hover:text-green-600">GitHub →</a>
                         </div>
                     </div>
                 </div>
@@ -229,15 +354,20 @@
                 <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition">
                     <div class="p-6">
                         <h3 class="text-xl font-semibold mb-2">Agentic AI POC: Voice-First Task Management</h3>
-                        <p class="text-gray-600 mb-4">Voice AI solution for managing tasks, reminders, and calendar events through natural language conversations. Integrated with Synthflow platform and Google Calendar API for seamless productivity management via phone calls.</p>
+                        <p class="text-gray-600 mb-4">Voice AI solution for managing tasks, reminders, and calendar
+                            events through natural language conversations. Integrated with Synthflow platform and Google
+                            Calendar API for seamless productivity management via phone calls.</p>
                         <div class="flex flex-wrap gap-2 mb-3">
                             <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Voice AI</span>
-                            <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Natural Language Processing</span>
+                            <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Natural Language
+                                Processing</span>
                             <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Proof-of-Concept</span>
                         </div>
                         <div class="flex space-x-4">
-                            <a href="{{ url_for('syfw_tech_spec') }}" class="text-blue-500 hover:text-blue-600">Learn More →</a>
-                            <a href="https://github.com/hjleepapa/syfw.git" target="_blank" class="text-green-500 hover:text-green-600">GitHub →</a>
+                            <a href="{{ url_for('syfw_tech_spec') }}" class="text-blue-500 hover:text-blue-600">Learn
+                                More →</a>
+                            <a href="https://github.com/hjleepapa/syfw.git" target="_blank"
+                                class="text-green-500 hover:text-green-600">GitHub →</a>
                         </div>
                     </div>
                 </div>
@@ -246,15 +376,19 @@
                 <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition">
                     <div class="p-6">
                         <h3 class="text-xl font-semibold mb-2">Agentic AI POC: LangGraph + MCP + Langflow</h3>
-                        <p class="text-gray-600 mb-4">Advanced orchestration POC demonstrating LangGraph state management, MCP (Model Context Protocol) tool integration, and Langflow visual workflows for voice agent development.</p>
+                        <p class="text-gray-600 mb-4">Advanced orchestration POC demonstrating LangGraph state
+                            management, MCP (Model Context Protocol) tool integration, and Langflow visual workflows for
+                            voice agent development.</p>
                         <div class="flex flex-wrap gap-2 mb-3">
                             <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Agentic AI</span>
                             <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Tool Orchestration</span>
                             <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Proof-of-Concept</span>
                         </div>
                         <div class="flex space-x-4">
-                            <a href="{{ url_for('lgch_tech_spec') }}" class="text-blue-500 hover:text-blue-600">Learn More →</a>
-                            <a href="https://github.com/hjleepapa/lgch.git" target="_blank" class="text-green-500 hover:text-green-600">GitHub →</a>
+                            <a href="{{ url_for('lgch_tech_spec') }}" class="text-blue-500 hover:text-blue-600">Learn
+                                More →</a>
+                            <a href="https://github.com/hjleepapa/lgch.git" target="_blank"
+                                class="text-green-500 hover:text-green-600">GitHub →</a>
                         </div>
                     </div>
                 </div>
@@ -263,13 +397,17 @@
                 <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition opacity-90">
                     <div class="p-6">
                         <h3 class="text-lg font-semibold mb-2">Full-Stack Blog Application</h3>
-                        <p class="text-gray-600 mb-4 text-sm">A full-stack blog solution with register, login/out, post, comment, delete with users management.</p>
+                        <p class="text-gray-600 mb-4 text-sm">A full-stack blog solution with register, login/out, post,
+                            comment, delete with users management.</p>
                         <div class="flex space-x-4">
-                            <a href="{{ url_for('blog_tech_spec') }}" class="text-blue-500 hover:text-blue-600 text-sm">Learn More →</a>
-                            <a href="https://github.com/hjleepapa/blog_project.git" target="_blank" class="text-green-500 hover:text-green-600 text-sm">GitHub →</a>
+                            <a href="{{ url_for('blog_tech_spec') }}"
+                                class="text-blue-500 hover:text-blue-600 text-sm">Learn More →</a>
+                            <a href="https://github.com/hjleepapa/blog_project.git" target="_blank"
+                                class="text-green-500 hover:text-green-600 text-sm">GitHub →</a>
                         </div>
                     </div>
                 </div>
+                -->
             </div>
         </div>
     </section>
@@ -280,7 +418,8 @@
             <h1 class="text-4xl font-bold text-center mb-12">Contact Me</h1>
 
             {% if msg_sent %}
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6" role="alert">
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6"
+                role="alert">
                 <strong class="font-bold">Success!</strong>
                 <span class="block sm:inline">Your message has been sent successfully.</span>
             </div>
@@ -291,71 +430,81 @@
                 <span class="block sm:inline">{{ error }}</span>
             </div>
             {% endif %}
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
                 <div>
                     <h2 class="text-2xl font-semibold mb-4">Get in Touch</h2>
                     <p class="text-gray-900 mb-6 text-justify">
-                        I specialize in the end-to-end design, delivery, and governance of enterprise Voice AI agents. My expertise bridges the gap between deep technical architecture (LLMs, Telephony, APIs) and successful program execution (POC management, SOW translation, executive reporting). 
-                        Whether you're looking to build agentic AI systems, integrate voice platforms, or scale enterprise deployments, I'd love to discuss how we can bring your Voice AI vision to life.
+                        I specialize in the end-to-end design, delivery, and governance of enterprise Voice AI agents.
+                        My expertise bridges the gap between deep technical architecture (LLMs, Telephony, APIs) and
+                        successful program execution (POC management, SOW translation, executive reporting).
+                        Whether you're looking to build agentic AI systems, integrate voice platforms, or scale
+                        enterprise deployments, I'd love to discuss how we can bring your Voice AI vision to life.
                     </p>
-                    
+
                     <div class="space-y-4">
                         <div class="flex items-center">
-                            <svg class="w-6 h-6 text-blue-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            <svg class="w-6 h-6 text-blue-500 mr-3" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                             </svg>
                             <span>hjleegcti@gmail.com</span>
                         </div>
                         <div class="flex items-center">
-                            <svg class="w-6 h-6 text-blue-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                            <svg class="w-6 h-6 text-blue-500 mr-3" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                             </svg>
                             <span>+1 (925) 989-7818</span>
                         </div>
                         <div class="flex items-center">
-                            <svg class="w-6 h-6 text-blue-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <svg class="w-6 h-6 text-blue-500 mr-3" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
                             <span>San Francisco, CA </span>
                         </div>
                     </div>
                 </div>
-                
+
             </div>
         </div>
     </section>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const heroTextElement = document.getElementById('dynamic-hero-text');
-    const texts = [
-        "Hi, I am HJ",
-        "Welcome to my page",
-        "Scroll down to learn more!"
-    ];
-    let currentIndex = 0;
-    let charIndex = 0;
-    const typingSpeed = 100; // Milliseconds per character
-    const displayTime = 2000; // Milliseconds to display full text before switching
+    document.addEventListener('DOMContentLoaded', function () {
+        const heroTextElement = document.getElementById('dynamic-hero-text');
+        const texts = [
+            "Hi, I am HJ",
+            "Welcome to my page",
+            "Scroll down to learn more!"
+        ];
+        let currentIndex = 0;
+        let charIndex = 0;
+        const typingSpeed = 100; // Milliseconds per character
+        const displayTime = 2000; // Milliseconds to display full text before switching
 
-    function typeText() {
-        if (charIndex < texts[currentIndex].length) {
-            heroTextElement.textContent = texts[currentIndex].substring(0, charIndex + 1);
-            charIndex++;
-            setTimeout(typeText, typingSpeed);
-        } else {
-            setTimeout(() => {
-                charIndex = 0;
-                currentIndex = (currentIndex + 1) % texts.length;
-                heroTextElement.textContent = '\u00A0'; // Clear with a non-breaking space to maintain height
-                typeText();
-            }, displayTime);
+        function typeText() {
+            if (charIndex < texts[currentIndex].length) {
+                heroTextElement.textContent = texts[currentIndex].substring(0, charIndex + 1);
+                charIndex++;
+                setTimeout(typeText, typingSpeed);
+            } else {
+                setTimeout(() => {
+                    charIndex = 0;
+                    currentIndex = (currentIndex + 1) % texts.length;
+                    heroTextElement.textContent = '\u00A0'; // Clear with a non-breaking space to maintain height
+                    typeText();
+                }, displayTime);
+            }
         }
-    }
-    typeText(); // Start the animation
-});
+        typeText(); // Start the animation
+    });
 </script>
-{% endblock %} 
+{% endblock %}
